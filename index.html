@@ -842,6 +842,23 @@ body {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+
+/* Parent theme */
+.parent-header {
+  background: linear-gradient(135deg, #0F6E56 0%, #085041 100%);
+}
+.parent-header .header-title { color: #5DCAA5; }
+.parent-header .header-subtitle { color: rgba(93,202,165,0.7); }
+#parentDashboard .section-title { color: #5DCAA5; }
+#parentDashboard .quick-action {
+  background: rgba(93,202,165,0.15);
+}
+#parentDashboard .quick-action-icon { color: #5DCAA5; }
+#parentDashboard .quick-action-text { color: #5DCAA5; }
+#parentDashboard .child-card { background: rgba(93,202,165,0.1); }
+#parentDashboard .statusbar { background: #085041; }
+#parentDashboard .section-title-pink { color: var(--pink); }
+#parentDashboard .add-child-card { border-color: rgba(93,202,165,0.3); }
 </style>
 </head>
 <body>
@@ -955,12 +972,17 @@ body {
 
 <!-- ===================== PARENT DASHBOARD ===================== -->
 <div class="page" id="parentDashboard">
-  <div class="statusbar">
+  <div class="statusbar" style="background:#1A1A2E">
     <span id="clockDashboard"></span>
   </div>
-  <div class="header">
-    <div class="header-title">Espace parent</div>
-    <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
+  <div class="header parent-header">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div class="header-title">🔒 Espace parent</div>
+        <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
+      </div>
+      <span style="font-size:13px;color:rgba(255,255,255,0.5)">v1.0.0</span>
+    </div>
   </div>
   <div class="dashboard-content">
     <div class="section-title">Mes enfants</div>
@@ -996,6 +1018,7 @@ body {
   </div>
 </div>
 
+<!-- ===================== PARENTAL CODE MODAL ===================== -->
 <!-- ===================== ADD CHILD MODAL ===================== -->
 <div class="modal-overlay" id="addChildModal">
   <div class="modal">
@@ -1049,7 +1072,7 @@ body {
   </div>
   <div class="bottom-nav" id="navMessages">
     <button class="nav-item active" onclick="switchTab('messagesPage')">
-      <span class="nav-icon">💬</span>
+      <span class="nav-icon" style="position:relative">💬<span class="msg-badge" style="display:none;position:absolute;top:-6px;right:-10px;background:#FF6B9D;color:white;font-size:9px;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px">0</span></span>
       <span class="nav-label">Messages</span>
     </button>
     <button class="nav-item" onclick="switchTab('contactsPage')">
@@ -1144,7 +1167,7 @@ body {
     </div>
   </div>
   <div class="bottom-nav">
-    <button class="nav-item" onclick="switchTab('messagesPage')"><span class="nav-icon">💬</span><span class="nav-label">Messages</span></button>
+    <button class="nav-item" onclick="switchTab('messagesPage')"><span class="nav-icon" style="position:relative">💬<span class="msg-badge" style="display:none;position:absolute;top:-6px;right:-10px;background:#FF6B9D;color:white;font-size:9px;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px">0</span></span><span class="nav-label">Messages</span></button>
     <button class="nav-item active" onclick="switchTab('contactsPage')"><span class="nav-icon">📇</span><span class="nav-label">Contacts</span></button>
     <button class="nav-item" onclick="switchTab('invitePage')"><span class="nav-icon">👋</span><span class="nav-label">Inviter</span></button>
     <button class="nav-item" onclick="switchTab('avatarPage')"><span class="nav-icon">😊</span><span class="nav-label">Avatar</span></button>
@@ -1189,7 +1212,7 @@ body {
     </button>
   </div>
   <div class="bottom-nav">
-    <button class="nav-item" onclick="switchTab('messagesPage')"><span class="nav-icon">💬</span><span class="nav-label">Messages</span></button>
+    <button class="nav-item" onclick="switchTab('messagesPage')"><span class="nav-icon" style="position:relative">💬<span class="msg-badge" style="display:none;position:absolute;top:-6px;right:-10px;background:#FF6B9D;color:white;font-size:9px;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px">0</span></span><span class="nav-label">Messages</span></button>
     <button class="nav-item" onclick="switchTab('contactsPage')"><span class="nav-icon">📇</span><span class="nav-label">Contacts</span></button>
     <button class="nav-item active" onclick="switchTab('invitePage')"><span class="nav-icon">👋</span><span class="nav-label">Inviter</span></button>
     <button class="nav-item" onclick="switchTab('avatarPage')"><span class="nav-icon">😊</span><span class="nav-label">Avatar</span></button>
@@ -1234,7 +1257,7 @@ body {
     </div>
   </div>
   <div class="bottom-nav">
-    <button class="nav-item" onclick="switchTab('messagesPage')"><span class="nav-icon">💬</span><span class="nav-label">Messages</span></button>
+    <button class="nav-item" onclick="switchTab('messagesPage')"><span class="nav-icon" style="position:relative">💬<span class="msg-badge" style="display:none;position:absolute;top:-6px;right:-10px;background:#FF6B9D;color:white;font-size:9px;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px">0</span></span><span class="nav-label">Messages</span></button>
     <button class="nav-item" onclick="switchTab('contactsPage')"><span class="nav-icon">📇</span><span class="nav-label">Contacts</span></button>
     <button class="nav-item" onclick="switchTab('invitePage')"><span class="nav-icon">👋</span><span class="nav-label">Inviter</span></button>
     <button class="nav-item active" onclick="switchTab('avatarPage')"><span class="nav-icon">😊</span><span class="nav-label">Avatar</span></button>
@@ -1300,7 +1323,7 @@ body {
           <span>Déconnexion</span>
         </div>
       </div>
-      <div class="settings-item" onclick="deleteAccount()">
+      <div class="settings-item" id="deleteAccountBtn" onclick="deleteAccount()">
         <div class="settings-item-left settings-item-danger">
           <span class="settings-icon">🗑️</span>
           <span>Supprimer mon compte</span>
@@ -1309,7 +1332,7 @@ body {
     </div>
   </div>
   <div class="bottom-nav">
-    <button class="nav-item" onclick="switchTab('messagesPage')"><span class="nav-icon">💬</span><span class="nav-label">Messages</span></button>
+    <button class="nav-item" onclick="switchTab('messagesPage')"><span class="nav-icon" style="position:relative">💬<span class="msg-badge" style="display:none;position:absolute;top:-6px;right:-10px;background:#FF6B9D;color:white;font-size:9px;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px">0</span></span><span class="nav-label">Messages</span></button>
     <button class="nav-item" onclick="switchTab('contactsPage')"><span class="nav-icon">📇</span><span class="nav-label">Contacts</span></button>
     <button class="nav-item" onclick="switchTab('invitePage')"><span class="nav-icon">👋</span><span class="nav-label">Inviter</span></button>
     <button class="nav-item" onclick="switchTab('avatarPage')"><span class="nav-icon">😊</span><span class="nav-label">Avatar</span></button>
@@ -1620,6 +1643,10 @@ function updateProfileDisplay() {
   const avatarPreview = document.getElementById('avatarPreview');
   if (avatarPreview) avatarPreview.textContent = currentUserData.avatar || '😊';
   currentAvatar = currentUserData.avatar || '😊';
+
+  // Hide delete account for children
+  const deleteBtn = document.getElementById('deleteAccountBtn');
+  if (deleteBtn) deleteBtn.style.display = currentUserData.role === 'child' ? 'none' : 'flex';
 }
 
 /* ============== ADD CHILD ============== */
@@ -1789,10 +1816,12 @@ async function loadConversations() {
 
     if (snap.empty) {
       list.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-text">Pas encore de messages</div></div>';
+      updateMessageBadge(0);
       return;
     }
 
     let html = '';
+    let totalUnread = 0;
     const docs = snap.docs.sort((a, b) => {
       const ta = a.data().lastMessageAt ? a.data().lastMessageAt.toMillis() : 0;
       const tb = b.data().lastMessageAt ? b.data().lastMessageAt.toMillis() : 0;
@@ -1807,25 +1836,49 @@ async function loadConversations() {
       const time = conv.lastMessageAt ? new Date(conv.lastMessageAt.toDate()).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : '';
       const preview = conv.lastMessage || '';
 
+      // Unread count
+      const lastReadBy = conv.lastReadBy || {};
+      const myLastRead = lastReadBy[currentUser.uid] ? lastReadBy[currentUser.uid].toMillis() : 0;
+      const lastMsgTime = conv.lastMessageAt ? conv.lastMessageAt.toMillis() : 0;
+      const lastSenderId = conv.lastSenderId || '';
+      const unread = (lastMsgTime > myLastRead && lastSenderId !== currentUser.uid) ? (conv.unreadCount && conv.unreadCount[currentUser.uid] ? conv.unreadCount[currentUser.uid] : 1) : 0;
+      totalUnread += unread;
+
+      const badgeHtml = unread > 0 ? `<div class="message-badge">${unread}</div>` : '';
+      const unreadStyle = unread > 0 ? 'background:var(--primary-light);' : '';
+
       html += `
-        <div class="message-item" onclick="openConversation('${doc.id}', '${otherName}', '${otherColor}')">
+        <div class="message-item" style="${unreadStyle}" onclick="openConversation('${doc.id}', '${otherName}', '${otherColor}')">
           <div class="message-avatar" style="background:${otherColor}">
             ${initial}
           </div>
           <div class="message-content">
             <div class="message-header">
-              <span class="message-name">${otherName}</span>
+              <span class="message-name" ${unread > 0 ? 'style="font-weight:700"' : ''}>${otherName}</span>
               <span class="message-time">${time}</span>
             </div>
-            <div class="message-preview">${preview}</div>
+            <div class="message-preview" ${unread > 0 ? 'style="color:var(--text);font-weight:500"' : ''}>${preview}</div>
           </div>
+          ${badgeHtml}
         </div>`;
     });
 
     list.innerHTML = html;
+    updateMessageBadge(totalUnread);
   } catch (err) {
     list.innerHTML = '<div class="empty-state"><div class="empty-text">Erreur de chargement</div></div>';
   }
+}
+
+function updateMessageBadge(count) {
+  document.querySelectorAll('.msg-badge').forEach(b => {
+    if (count > 0) {
+      b.textContent = count > 99 ? '99+' : count;
+      b.style.display = 'flex';
+    } else {
+      b.style.display = 'none';
+    }
+  });
 }
 
 /* ============== PARENT WRITE MESSAGE ============== */
@@ -1871,6 +1924,13 @@ function openConversation(convId, name, color) {
   if (avatarEl) {
     avatarEl.style.background = color;
     avatarEl.textContent = name.charAt(0).toUpperCase();
+  }
+
+  // Mark as read
+  if (currentUser) {
+    const updateData = {};
+    updateData['lastReadBy.' + currentUser.uid] = firebase.firestore.FieldValue.serverTimestamp();
+    db.collection('conversations').doc(convId).update(updateData).catch(() => {});
   }
 
   showPage('conversationPage');
@@ -1953,7 +2013,8 @@ async function sendMessage() {
 
     await db.collection('conversations').doc(currentConvId).update({
       lastMessage: text,
-      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+      lastSenderId: currentUser.uid
     });
   } catch (err) {
     showToast('Erreur d\'envoi');
@@ -1978,7 +2039,8 @@ async function sendSticker(emoji) {
 
     await db.collection('conversations').doc(currentConvId).update({
       lastMessage: emoji,
-      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+      lastSenderId: currentUser.uid
     });
   } catch (err) {
     showToast('Erreur d\'envoi');
@@ -2049,7 +2111,8 @@ async function stopAndSendRecording() {
           });
         await db.collection('conversations').doc(currentConvId).update({
           lastMessage: '🎤 Message audio',
-          lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+          lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+          lastSenderId: currentUser.uid
         });
       } catch (err) {
         showToast('Erreur d\'envoi audio');
@@ -2308,13 +2371,29 @@ let parentUserData = null;
 let parentAuthUser = null;
 
 function goHome() {
-  if (isParentBrowsingChild && parentAuthUser && parentUserData) {
-    isParentBrowsingChild = false;
-    currentUser = parentAuthUser;
-    currentUserData = parentUserData;
-    loadParentDashboard(parentAuthUser);
-  } else if (currentUserData && currentUserData.role === 'parent') {
-    loadParentDashboard(currentUser);
+  const pwd = prompt('🔒 Mot de passe parent :');
+  if (!pwd) return;
+
+  showLoading();
+  const authUser = auth.currentUser;
+
+  if (authUser) {
+    const credential = firebase.auth.EmailAuthProvider.credential(authUser.email, pwd);
+    authUser.reauthenticateWithCredential(credential).then(() => {
+      hideLoading();
+      if (isParentBrowsingChild && parentAuthUser && parentUserData) {
+        isParentBrowsingChild = false;
+        currentUser = parentAuthUser;
+        currentUserData = parentUserData;
+      }
+      loadParentDashboard(authUser);
+    }).catch(() => {
+      hideLoading();
+      showToast('Mot de passe incorrect');
+    });
+  } else {
+    hideLoading();
+    showToast('Connexion parent requise');
   }
 }
 
