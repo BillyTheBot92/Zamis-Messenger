@@ -1357,7 +1357,12 @@ function showPage(pageId) {
 
 function switchTab(pageId) {
   showPage(pageId);
-  if (isParentBrowsingChild) {
+  // Show home button if parent (to return to dashboard)
+  if (currentUserData && currentUserData.role === 'parent') {
+    document.querySelectorAll('.home-btn').forEach(b => b.style.display = 'inline');
+    const homeBtn = document.getElementById('homeBtn');
+    if (homeBtn) homeBtn.style.display = 'inline';
+  } else if (isParentBrowsingChild) {
     document.querySelectorAll('.home-btn').forEach(b => b.style.display = 'inline');
     const homeBtn = document.getElementById('homeBtn');
     if (homeBtn) homeBtn.style.display = 'inline';
@@ -1581,13 +1586,40 @@ async function loadParentDashboard(user) {
   const doc = await db.collection('users').doc(user.uid).get();
   if (!doc.exists) return;
   currentUserData = doc.data();
+  isParentBrowsingChild = false;
 
   const welcome = document.getElementById('parentWelcome');
   if (welcome) welcome.textContent = 'Bienvenue, ' + currentUserData.pseudo;
 
+  // Populate profile for parent
+  updateProfileDisplay();
+
+  // Hide home buttons on dashboard
+  document.querySelectorAll('.home-btn').forEach(b => b.style.display = 'none');
+  const homeBtn = document.getElementById('homeBtn');
+  if (homeBtn) homeBtn.style.display = 'none';
+
   showPage('parentDashboard');
   loadChildren();
   loadPendingRequests();
+}
+
+function updateProfileDisplay() {
+  const profileName = document.getElementById('profileNameDisplay');
+  if (profileName) profileName.textContent = currentUserData.pseudo || '---';
+  const profileCode = document.getElementById('profileCodeDisplay');
+  if (profileCode) profileCode.textContent = currentUserData.friendCode || '';
+  const profilePseudo = document.getElementById('profilePseudoVal');
+  if (profilePseudo) profilePseudo.textContent = currentUserData.pseudo || '---';
+  const profileAvatar = document.getElementById('profileAvatarDisplay');
+  if (profileAvatar) profileAvatar.textContent = currentUserData.avatar || '😊';
+  const friendCodeEl = document.getElementById('myFriendCode');
+  if (friendCodeEl) friendCodeEl.textContent = currentUserData.friendCode || '---';
+  const avatarName = document.getElementById('avatarName');
+  if (avatarName) avatarName.textContent = currentUserData.pseudo || '---';
+  const avatarPreview = document.getElementById('avatarPreview');
+  if (avatarPreview) avatarPreview.textContent = currentUserData.avatar || '😊';
+  currentAvatar = currentUserData.avatar || '😊';
 }
 
 /* ============== ADD CHILD ============== */
@@ -1737,22 +1769,8 @@ function loadChildApp(childData) {
   currentUserData = childData;
   currentUser = { uid: childData.uid };
 
-  const nameEl = document.getElementById('avatarName');
-  if (nameEl) nameEl.textContent = childData.pseudo;
-  const previewEl = document.getElementById('avatarPreview');
-  if (previewEl) previewEl.textContent = childData.avatar || '😊';
-  const profileName = document.getElementById('profileNameDisplay');
-  if (profileName) profileName.textContent = childData.pseudo;
-  const profileCode = document.getElementById('profileCodeDisplay');
-  if (profileCode) profileCode.textContent = childData.friendCode;
-  const profilePseudo = document.getElementById('profilePseudoVal');
-  if (profilePseudo) profilePseudo.textContent = childData.pseudo;
-  const profileAvatar = document.getElementById('profileAvatarDisplay');
-  if (profileAvatar) profileAvatar.textContent = childData.avatar || '😊';
-  const friendCodeEl = document.getElementById('myFriendCode');
-  if (friendCodeEl) friendCodeEl.textContent = childData.friendCode;
+  updateProfileDisplay();
 
-  currentAvatar = childData.avatar || '😊';
   showPage('messagesPage');
   loadConversations();
   loadContacts();
@@ -2290,14 +2308,13 @@ let parentUserData = null;
 let parentAuthUser = null;
 
 function goHome() {
-  if (parentAuthUser && parentUserData) {
+  if (isParentBrowsingChild && parentAuthUser && parentUserData) {
     isParentBrowsingChild = false;
     currentUser = parentAuthUser;
     currentUserData = parentUserData;
-    document.querySelectorAll('.home-btn').forEach(b => b.style.display = 'none');
-    const homeBtn = document.getElementById('homeBtn');
-    if (homeBtn) homeBtn.style.display = 'none';
     loadParentDashboard(parentAuthUser);
+  } else if (currentUserData && currentUserData.role === 'parent') {
+    loadParentDashboard(currentUser);
   }
 }
 
