@@ -1,0 +1,2294 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#7C5CFC">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Zamis Messenger</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%237C5CFC'/><text x='50' y='68' text-anchor='middle' font-size='50' font-weight='bold' fill='white'>Z</text></svg>">
+<style>
+:root {
+  --primary: #7C5CFC;
+  --primary-light: #F3F0FF;
+  --primary-dark: #5A3FD6;
+  --pink: #FF6B9D;
+  --pink-light: #FFF0F5;
+  --orange: #FFB347;
+  --orange-light: #FFF8F0;
+  --green: #5DCAA5;
+  --green-online: #4CAF50;
+  --red: #F44336;
+  --bg: #FFFFFF;
+  --bg-secondary: #F5F5F5;
+  --text: #333333;
+  --text-secondary: #999999;
+  --text-light: #BBBBBB;
+  --border: #EEEEEE;
+  --shadow: rgba(0,0,0,0.08);
+}
+[data-theme="dark"] {
+  --primary: #9B82FC;
+  --primary-light: #2A2040;
+  --primary-dark: #7C5CFC;
+  --pink: #FF85B1;
+  --pink-light: #2D1F25;
+  --orange: #FFB347;
+  --orange-light: #2D2518;
+  --green: #5DCAA5;
+  --bg: #1A1A2E;
+  --bg-secondary: #252540;
+  --text: #E8E8F0;
+  --text-secondary: #8888AA;
+  --text-light: #555570;
+  --border: #333350;
+  --shadow: rgba(0,0,0,0.3);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.page { display: none; flex-direction: column; min-height: 100vh; }
+.page.active { display: flex; }
+
+/* Status bar */
+.statusbar {
+  background: var(--primary);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: white;
+}
+
+/* Header */
+.header {
+  background: var(--primary);
+  padding: 12px 20px 16px;
+  color: white;
+}
+.header-title { font-size: 20px; font-weight: 600; }
+.header-subtitle { font-size: 12px; opacity: 0.7; margin-top: 2px; }
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.header-back {
+  background: none; border: none; color: white;
+  font-size: 24px; cursor: pointer; padding: 0 8px 0 0;
+}
+
+/* Splash */
+#splash {
+  background: linear-gradient(160deg, #7C5CFC 0%, #FF6B9D 50%, #FFB347 100%);
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.splash-logo {
+  width: 100px; height: 100px;
+  background: white;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+}
+.splash-logo span { font-size: 42px; font-weight: 700; color: #7C5CFC; }
+.splash-title { color: white; font-size: 32px; font-weight: 700; }
+.splash-sub { color: rgba(255,255,255,0.85); font-size: 16px; margin-top: 4px; }
+.splash-version {
+  position: absolute; bottom: 20px;
+  color: rgba(255,255,255,0.5); font-size: 12px;
+}
+.splash-loader {
+  margin-top: 40px;
+  width: 40px; height: 40px;
+  border: 3px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Auth */
+.auth-container {
+  flex: 1; padding: 30px 24px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.auth-logo {
+  width: 70px; height: 70px;
+  background: var(--primary);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 12px;
+}
+.auth-logo span { font-size: 28px; font-weight: 700; color: white; }
+.auth-app-name { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+.auth-label { font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; }
+
+/* Toggle tabs */
+.toggle-tabs {
+  display: flex; width: 100%; border-radius: 25px;
+  overflow: hidden; border: 2px solid var(--primary);
+  margin-bottom: 24px;
+}
+.toggle-tab {
+  flex: 1; padding: 12px; text-align: center;
+  font-size: 14px; font-weight: 500;
+  cursor: pointer; border: none;
+  background: var(--bg);
+  color: var(--primary);
+  transition: all 0.2s;
+}
+.toggle-tab.active {
+  background: var(--primary);
+  color: white;
+}
+
+/* Form elements */
+.form-group { width: 100%; margin-bottom: 14px; }
+.form-label {
+  display: block; font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 6px; padding-left: 4px;
+}
+.form-input {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus { border-color: var(--primary); }
+.form-input::placeholder { color: var(--text-light); }
+
+/* Buttons */
+.btn {
+  width: 100%; padding: 14px;
+  border: none; border-radius: 14px;
+  font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  text-align: center;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-pink { background: var(--pink); color: white; }
+.btn-green { background: var(--green-online); color: white; }
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid var(--primary);
+  color: var(--primary);
+}
+
+.link { color: var(--primary); cursor: pointer; font-size: 13px; }
+.link-pink { color: var(--pink); font-weight: 500; }
+.text-center { text-align: center; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mt-24 { margin-top: 24px; }
+.mb-8 { margin-bottom: 8px; }
+
+/* Error messages */
+.error-msg {
+  background: #FFF0F0;
+  color: var(--red);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin-bottom: 14px;
+  width: 100%;
+  display: none;
+}
+[data-theme="dark"] .error-msg { background: #2D1A1A; }
+.success-msg {
+  background: #F0FFF4;
+  color: var(--green-online);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin-bottom: 14px;
+  width: 100%;
+  display: none;
+}
+[data-theme="dark"] .success-msg { background: #1A2D1F; }
+
+/* Parent dashboard */
+.dashboard-content { flex: 1; padding: 16px; overflow-y: auto; }
+.section-title {
+  font-size: 14px; font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 10px;
+}
+.section-title-pink { color: var(--pink); }
+
+/* Children grid */
+.children-grid {
+  display: flex; gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.child-card {
+  flex: 1; min-width: 80px; max-width: 120px;
+  background: var(--primary-light);
+  border-radius: 14px;
+  padding: 14px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.child-card:active { transform: scale(0.96); }
+.child-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 8px;
+  font-size: 20px; font-weight: 600; color: white;
+}
+.child-name { font-size: 13px; font-weight: 500; }
+.child-status { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+
+.add-child-card {
+  flex: 1; min-width: 80px; max-width: 120px;
+  background: var(--bg-secondary);
+  border-radius: 14px;
+  padding: 14px 8px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px dashed var(--text-light);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  transition: border-color 0.2s;
+}
+.add-child-card:hover { border-color: var(--primary); }
+.add-child-icon { font-size: 28px; color: var(--text-light); }
+.add-child-text { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
+
+/* Pending requests */
+.pending-card {
+  background: var(--orange-light);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pending-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 600; color: white;
+}
+.pending-info { flex: 1; }
+.pending-name { font-size: 13px; font-weight: 500; }
+.pending-time { font-size: 10px; color: var(--text-secondary); }
+.pending-actions { display: flex; gap: 6px; }
+.pending-btn {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 18px; color: white;
+}
+.pending-btn-yes { background: var(--green-online); }
+.pending-btn-no { background: var(--red); }
+
+/* Quick actions */
+.quick-actions {
+  display: flex; gap: 10px;
+  margin-top: 8px;
+}
+.quick-action {
+  flex: 1;
+  background: var(--primary-light);
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.2s;
+}
+.quick-action:active { transform: scale(0.96); }
+.quick-action-icon { font-size: 22px; color: var(--primary); margin-bottom: 4px; }
+.quick-action-text { font-size: 11px; color: var(--primary); font-weight: 500; }
+
+/* Bottom nav */
+.bottom-nav {
+  display: flex;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  position: sticky;
+  bottom: 0;
+}
+.nav-item {
+  flex: 1; padding: 8px 0;
+  text-align: center;
+  cursor: pointer; border: none;
+  background: none;
+  color: var(--text-light);
+  transition: color 0.2s;
+}
+.nav-item.active { color: var(--primary); }
+.nav-icon { font-size: 20px; display: block; }
+.nav-label { font-size: 9px; margin-top: 2px; display: block; }
+.nav-badge {
+  position: relative;
+}
+.nav-badge::after {
+  content: attr(data-count);
+  position: absolute;
+  top: -4px; right: 50%;
+  transform: translateX(16px);
+  background: var(--pink);
+  color: white;
+  font-size: 9px;
+  min-width: 16px; height: 16px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 4px;
+}
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--bg);
+  border-radius: 20px;
+  padding: 24px;
+  width: 100%;
+  max-width: 360px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.modal-close {
+  background: none; border: none;
+  font-size: 24px; color: var(--text-secondary);
+  cursor: pointer; float: right;
+}
+
+/* Messages list */
+.messages-list { flex: 1; overflow-y: auto; }
+.message-item {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.message-item:active { background: var(--bg-secondary); }
+.message-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 600; color: white;
+  flex-shrink: 0;
+  position: relative;
+}
+.online-dot {
+  position: absolute; bottom: 1px; right: 1px;
+  width: 12px; height: 12px;
+  background: var(--green-online);
+  border-radius: 50%;
+  border: 2px solid var(--bg);
+}
+.message-content { flex: 1; min-width: 0; }
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+.message-name { font-size: 14px; font-weight: 500; }
+.message-time { font-size: 11px; color: var(--text-secondary); }
+.message-preview {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.message-badge {
+  width: 20px; height: 20px;
+  background: var(--pink);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: white; font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* Conversation */
+.conv-header {
+  background: var(--primary);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+}
+.conv-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 600; color: white;
+}
+.conv-name { font-size: 15px; font-weight: 500; }
+.conv-status { font-size: 11px; opacity: 0.7; }
+.conv-messages {
+  flex: 1;
+  padding: 12px 16px;
+  overflow-y: auto;
+  background: var(--primary-light);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.conv-date {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin: 8px 0;
+}
+.bubble {
+  max-width: 78%;
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.4;
+  position: relative;
+}
+.bubble-in {
+  align-self: flex-start;
+  background: var(--bg);
+  border-radius: 16px 16px 16px 4px;
+  color: var(--text);
+}
+.bubble-out {
+  align-self: flex-end;
+  background: var(--primary);
+  border-radius: 16px 16px 4px 16px;
+  color: white;
+}
+.bubble-time {
+  font-size: 9px;
+  color: var(--text-secondary);
+  margin-top: 3px;
+}
+.bubble-out .bubble-time { color: rgba(255,255,255,0.6); text-align: right; }
+.bubble-audio {
+  background: var(--primary-light);
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.audio-play {
+  background: none; border: none;
+  font-size: 18px; color: var(--primary);
+  cursor: pointer;
+}
+.audio-bar {
+  flex: 1; height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+}
+.audio-bar-fill {
+  width: 0%; height: 100%;
+  background: var(--primary);
+  border-radius: 2px;
+  transition: width 0.1s;
+}
+.audio-duration { font-size: 10px; color: var(--text-secondary); }
+
+/* Chat input */
+.chat-input-bar {
+  background: var(--bg);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+}
+.chat-input-bar button {
+  background: none; border: none;
+  font-size: 24px; cursor: pointer;
+  color: var(--text-light);
+  padding: 4px;
+}
+.chat-input-bar button.active { color: var(--primary); }
+.chat-input {
+  flex: 1;
+  background: var(--bg-secondary);
+  border: none;
+  border-radius: 20px;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+}
+.chat-input::placeholder { color: var(--text-light); }
+
+/* Recording UI */
+.recording-bar {
+  display: none;
+  background: var(--red);
+  color: white;
+  padding: 12px 16px;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+}
+.recording-bar.active { display: flex; }
+.recording-dot {
+  width: 10px; height: 10px;
+  background: white;
+  border-radius: 50%;
+  animation: blink 1s infinite;
+}
+@keyframes blink { 50% { opacity: 0.3; } }
+.recording-time { flex: 1; font-size: 14px; }
+.recording-cancel, .recording-send {
+  background: none; border: none;
+  color: white; font-size: 24px;
+  cursor: pointer; padding: 4px;
+}
+
+/* Sticker panel */
+.sticker-panel {
+  display: none;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  padding: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.sticker-panel.active { display: block; }
+.sticker-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  text-align: center;
+}
+.sticker-item {
+  font-size: 28px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.sticker-item:hover { background: var(--bg-secondary); }
+
+/* Contacts */
+.contacts-list { flex: 1; overflow-y: auto; }
+.contacts-search {
+  margin: 10px 16px;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.contacts-search input {
+  flex: 1; border: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+}
+.contacts-search input::placeholder { color: var(--text-light); }
+.contact-section-title {
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.contact-item {
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.contact-avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; font-weight: 600; color: white;
+}
+.contact-info { flex: 1; }
+.contact-name { font-size: 14px; font-weight: 500; }
+.contact-status-text { font-size: 11px; }
+.contact-action {
+  background: none; border: none;
+  font-size: 22px; color: var(--primary);
+  cursor: pointer;
+}
+
+/* Invite */
+.invite-content { flex: 1; padding: 20px; }
+.invite-icon-box {
+  width: 70px; height: 70px;
+  background: var(--primary-light);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 12px;
+  font-size: 32px; color: var(--primary);
+}
+.my-code-box {
+  background: var(--primary-light);
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.my-code-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+.my-code-value {
+  font-size: 22px; font-weight: 600;
+  color: var(--primary);
+  letter-spacing: 2px;
+}
+.copy-btn {
+  display: inline-flex;
+  align-items: center; gap: 4px;
+  background: var(--primary);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+.invite-row {
+  display: flex; gap: 8px;
+  margin-bottom: 14px;
+}
+.invite-option {
+  background: var(--bg-secondary);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  flex: 1;
+  border: none;
+  text-align: left;
+  color: var(--text);
+  transition: background 0.15s;
+}
+.invite-option:active { background: var(--border); }
+.invite-option-icon {
+  width: 40px; height: 40px;
+  background: var(--bg);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+}
+
+/* Profile */
+.profile-content { flex: 1; padding: 20px; }
+.profile-avatar-box { text-align: center; margin-bottom: 20px; }
+.profile-avatar {
+  width: 90px; height: 90px;
+  background: var(--primary-light);
+  border: 3px solid var(--primary);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 10px;
+  font-size: 40px;
+}
+.profile-name { font-size: 18px; font-weight: 600; }
+.profile-code { font-size: 12px; color: var(--text-secondary); }
+.profile-info-box {
+  background: var(--primary-light);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.profile-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+.profile-info-row + .profile-info-row { border-top: 1px solid var(--border); padding-top: 10px; margin-top: 4px; }
+.profile-info-label {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 14px;
+}
+.profile-info-label span:first-child { font-size: 18px; color: var(--primary); }
+.profile-info-value { font-size: 14px; color: var(--primary); }
+
+.settings-box {
+  background: var(--bg-secondary);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.settings-item {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  color: var(--text);
+  font-size: 14px;
+}
+.settings-item + .settings-item { border-top: 1px solid var(--border); }
+.settings-item-left {
+  display: flex; align-items: center; gap: 10px;
+}
+.settings-icon { font-size: 20px; }
+.settings-item-danger { color: var(--red); }
+
+/* Toggle switch */
+.toggle {
+  width: 44px; height: 24px;
+  background: var(--text-light);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+  border: none;
+}
+.toggle.active { background: var(--primary); }
+.toggle-knob {
+  width: 20px; height: 20px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px; left: 2px;
+  transition: transform 0.2s;
+}
+.toggle.active .toggle-knob { transform: translateX(20px); }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+}
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-text { font-size: 14px; }
+
+/* Loading */
+.loading-overlay {
+  display: none;
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 200;
+  align-items: center; justify-content: center;
+}
+.loading-overlay.active { display: flex; }
+.loading-spinner {
+  width: 48px; height: 48px;
+  border: 4px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 80px; left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--text);
+  color: var(--bg);
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 13px;
+  z-index: 300;
+  opacity: 0;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+</div>
+
+<!-- ===================== SPLASH ===================== -->
+<div class="page active" id="splash">
+  <div class="splash-logo"><span>Z</span></div>
+  <div class="splash-title">Zamis</div>
+  <div class="splash-sub">Messenger</div>
+  <div class="splash-loader"></div>
+  <div class="splash-version">v1.0.0</div>
+</div>
+
+<!-- ===================== LOGIN ===================== -->
+<div class="page" id="loginPage">
+  <div class="statusbar">
+    <span id="clockLogin"></span>
+  </div>
+  <div class="auth-container">
+    <div class="auth-logo"><span>Z</span></div>
+    <div class="auth-app-name">Zamis Messenger</div>
+    <div class="auth-label">Connexion</div>
+    <div class="toggle-tabs">
+      <button class="toggle-tab active" onclick="switchAuthTab('parent')">👤 Parent</button>
+      <button class="toggle-tab" onclick="switchAuthTab('child')">👦 Enfant</button>
+    </div>
+
+    <!-- Parent login -->
+    <div id="parentLoginForm" style="width:100%">
+      <div class="error-msg" id="loginError"></div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" id="loginEmail" placeholder="parent@email.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mot de passe</label>
+        <input class="form-input" type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary" onclick="loginParent()">Se connecter</button>
+      <div class="text-center mt-12">
+        <span class="link" onclick="showForgotPassword()">Mot de passe oublié ?</span>
+      </div>
+      <div class="text-center mt-12">
+        <span style="font-size:13px;color:var(--text-secondary)">Pas de compte ? </span>
+        <span class="link-pink" onclick="showPage('registerPage')" style="cursor:pointer">S'inscrire</span>
+      </div>
+    </div>
+
+    <!-- Child login -->
+    <div id="childLoginForm" style="width:100%;display:none">
+      <div class="error-msg" id="childLoginError"></div>
+      <div class="form-group">
+        <label class="form-label">Code Zamis</label>
+        <input class="form-input" type="text" id="childCode" placeholder="ex: lucas.z4k9" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Code secret</label>
+        <input class="form-input" type="password" id="childPin" placeholder="••••" maxlength="4" autocomplete="off">
+      </div>
+      <button class="btn btn-pink" onclick="loginChild()">Se connecter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== REGISTER ===================== -->
+<div class="page" id="registerPage">
+  <div class="statusbar">
+    <span id="clockRegister"></span>
+  </div>
+  <div class="header">
+    <div class="header-row">
+      <button class="header-back" onclick="showPage('loginPage')">←</button>
+      <span class="header-title">Inscription parent</span>
+      <span></span>
+    </div>
+  </div>
+  <div class="auth-container">
+    <div class="error-msg" id="registerError"></div>
+    <div class="success-msg" id="registerSuccess"></div>
+    <div class="form-group">
+      <label class="form-label">Pseudo</label>
+      <input class="form-input" type="text" id="registerPseudo" placeholder="Papa de Lucas" autocomplete="name">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" type="email" id="registerEmail" placeholder="parent@email.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mot de passe</label>
+      <input class="form-input" type="password" id="registerPwd" placeholder="6 caractères min." autocomplete="new-password">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Confirmer le mot de passe</label>
+      <input class="form-input" type="password" id="registerPwd2" placeholder="••••••••" autocomplete="new-password">
+    </div>
+    <button class="btn btn-pink" onclick="registerParent()">Créer mon compte</button>
+    <div class="text-center mt-12">
+      <span style="font-size:13px;color:var(--text-secondary)">Déjà un compte ? </span>
+      <span class="link" onclick="showPage('loginPage')" style="cursor:pointer">Se connecter</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PARENT DASHBOARD ===================== -->
+<div class="page" id="parentDashboard">
+  <div class="statusbar">
+    <span id="clockDashboard"></span>
+  </div>
+  <div class="header">
+    <div class="header-title">Espace parent</div>
+    <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
+  </div>
+  <div class="dashboard-content">
+    <div class="section-title">Mes enfants</div>
+    <div class="children-grid" id="childrenGrid">
+      <div class="add-child-card" onclick="showAddChildModal()">
+        <div class="add-child-icon">+</div>
+        <div class="add-child-text">Ajouter</div>
+      </div>
+    </div>
+
+    <div class="section-title section-title-pink">Demandes en attente</div>
+    <div id="pendingRequests">
+      <div class="empty-state" style="padding:20px">
+        <div style="font-size:13px">Aucune demande en attente</div>
+      </div>
+    </div>
+
+    <div class="section-title mt-16">Actions rapides</div>
+    <div class="quick-actions">
+      <button class="quick-action" onclick="showPage('messagesPage')">
+        <div class="quick-action-icon">💬</div>
+        <div class="quick-action-text">Écrire</div>
+      </button>
+      <button class="quick-action" onclick="showToast('Bientôt disponible')">
+        <div class="quick-action-icon">👥</div>
+        <div class="quick-action-text">Groupe</div>
+      </button>
+      <button class="quick-action" onclick="showPage('profilePage')">
+        <div class="quick-action-icon">⚙️</div>
+        <div class="quick-action-text">Réglages</div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== ADD CHILD MODAL ===================== -->
+<div class="modal-overlay" id="addChildModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('addChildModal')">×</button>
+    <div class="modal-title">Ajouter un enfant</div>
+    <div class="error-msg" id="addChildError"></div>
+    <div class="form-group">
+      <label class="form-label">Prénom / Pseudo</label>
+      <input class="form-input" type="text" id="childPseudo" placeholder="Lucas">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Code secret (4 chiffres)</label>
+      <input class="form-input" type="text" id="childPinSetup" placeholder="1234" maxlength="4" inputmode="numeric">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Couleur de l'avatar</label>
+      <div style="display:flex;gap:8px;margin-top:6px;" id="colorPicker">
+        <div class="color-dot" data-color="#FF6B9D" style="width:36px;height:36px;border-radius:50%;background:#FF6B9D;cursor:pointer;border:3px solid transparent" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#FFB347" style="width:36px;height:36px;border-radius:50%;background:#FFB347;cursor:pointer;border:3px solid transparent" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#5DCAA5" style="width:36px;height:36px;border-radius:50%;background:#5DCAA5;cursor:pointer;border:3px solid transparent" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#7C5CFC" style="width:36px;height:36px;border-radius:50%;background:#7C5CFC;cursor:pointer;border:3px solid transparent" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#85B7EB" style="width:36px;height:36px;border-radius:50%;background:#85B7EB;cursor:pointer;border:3px solid transparent" onclick="selectColor(this)"></div>
+      </div>
+    </div>
+    <button class="btn btn-primary mt-16" onclick="addChild()">Ajouter cet enfant</button>
+  </div>
+</div>
+
+<!-- ===================== MESSAGES ===================== -->
+<div class="page" id="messagesPage">
+  <div class="statusbar">
+    <span id="clockMessages"></span>
+  </div>
+  <div class="header">
+    <div class="header-row">
+      <span class="header-title">Messages</span>
+      <div style="display:flex;gap:12px">
+        <span style="font-size:22px;cursor:pointer">🔍</span>
+        <span style="font-size:22px;cursor:pointer" onclick="showToast('Bientôt disponible')">✏️</span>
+      </div>
+    </div>
+  </div>
+  <div class="messages-list" id="messagesList">
+    <div class="empty-state">
+      <div class="empty-icon">💬</div>
+      <div class="empty-text">Pas encore de messages</div>
+    </div>
+  </div>
+  <div class="bottom-nav" id="navMessages">
+    <button class="nav-item active" onclick="switchTab('messagesPage')">
+      <span class="nav-icon">💬</span>
+      <span class="nav-label">Messages</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('contactsPage')">
+      <span class="nav-icon">📇</span>
+      <span class="nav-label">Contacts</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('invitePage')">
+      <span class="nav-icon">👋</span>
+      <span class="nav-label">Inviter</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('avatarPage')">
+      <span class="nav-icon">😊</span>
+      <span class="nav-label">Avatar</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('profilePage')">
+      <span class="nav-icon">👤</span>
+      <span class="nav-label">Profil</span>
+    </button>
+  </div>
+</div>
+
+<!-- ===================== CONVERSATION ===================== -->
+<div class="page" id="conversationPage">
+  <div class="statusbar">
+    <span id="clockConv"></span>
+  </div>
+  <div class="conv-header">
+    <button class="header-back" onclick="showPage('messagesPage')">←</button>
+    <div class="conv-avatar" id="convAvatar" style="background:var(--orange)">T</div>
+    <div>
+      <div class="conv-name" id="convName">Contact</div>
+      <div class="conv-status" id="convStatus">En ligne</div>
+    </div>
+  </div>
+  <div class="conv-messages" id="convMessages"></div>
+  <div class="sticker-panel" id="stickerPanel">
+    <div class="sticker-grid">
+      <span class="sticker-item" onclick="sendSticker('😀')">😀</span>
+      <span class="sticker-item" onclick="sendSticker('😂')">😂</span>
+      <span class="sticker-item" onclick="sendSticker('😍')">😍</span>
+      <span class="sticker-item" onclick="sendSticker('🥰')">🥰</span>
+      <span class="sticker-item" onclick="sendSticker('😎')">😎</span>
+      <span class="sticker-item" onclick="sendSticker('🤩')">🤩</span>
+      <span class="sticker-item" onclick="sendSticker('😜')">😜</span>
+      <span class="sticker-item" onclick="sendSticker('🤗')">🤗</span>
+      <span class="sticker-item" onclick="sendSticker('👍')">👍</span>
+      <span class="sticker-item" onclick="sendSticker('👋')">👋</span>
+      <span class="sticker-item" onclick="sendSticker('❤️')">❤️</span>
+      <span class="sticker-item" onclick="sendSticker('💪')">💪</span>
+      <span class="sticker-item" onclick="sendSticker('🎉')">🎉</span>
+      <span class="sticker-item" onclick="sendSticker('⚽')">⚽</span>
+      <span class="sticker-item" onclick="sendSticker('🌟')">🌟</span>
+      <span class="sticker-item" onclick="sendSticker('🍕')">🍕</span>
+      <span class="sticker-item" onclick="sendSticker('🎮')">🎮</span>
+      <span class="sticker-item" onclick="sendSticker('📚')">📚</span>
+    </div>
+  </div>
+  <div class="recording-bar" id="recordingBar">
+    <div class="recording-dot"></div>
+    <div class="recording-time" id="recordingTime">0:00</div>
+    <button class="recording-cancel" onclick="cancelRecording()">✕</button>
+    <button class="recording-send" onclick="stopAndSendRecording()">➤</button>
+  </div>
+  <div class="chat-input-bar" id="chatInputBar">
+    <button onclick="toggleStickers()" id="stickerBtn">😊</button>
+    <input class="chat-input" type="text" id="chatInput" placeholder="Écrire un message..." onkeydown="if(event.key==='Enter')sendMessage()">
+    <button onclick="startRecording()" id="micBtn" class="active">🎤</button>
+    <button onclick="sendMessage()" class="active">➤</button>
+  </div>
+</div>
+
+<!-- ===================== CONTACTS ===================== -->
+<div class="page" id="contactsPage">
+  <div class="statusbar"><span id="clockContacts"></span></div>
+  <div class="header">
+    <div class="header-row">
+      <span class="header-title">Contacts</span>
+      <span style="font-size:22px;cursor:pointer" onclick="switchTab('invitePage')">➕</span>
+    </div>
+  </div>
+  <div class="contacts-search">
+    <span>🔍</span>
+    <input type="text" placeholder="Rechercher un contact..." id="contactSearch" oninput="filterContacts()">
+  </div>
+  <div class="contacts-list" id="contactsList">
+    <div class="empty-state">
+      <div class="empty-icon">📇</div>
+      <div class="empty-text">Aucun contact pour l'instant</div>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-item" onclick="switchTab('messagesPage')"><span class="nav-icon">💬</span><span class="nav-label">Messages</span></button>
+    <button class="nav-item active" onclick="switchTab('contactsPage')"><span class="nav-icon">📇</span><span class="nav-label">Contacts</span></button>
+    <button class="nav-item" onclick="switchTab('invitePage')"><span class="nav-icon">👋</span><span class="nav-label">Inviter</span></button>
+    <button class="nav-item" onclick="switchTab('avatarPage')"><span class="nav-icon">😊</span><span class="nav-label">Avatar</span></button>
+    <button class="nav-item" onclick="switchTab('profilePage')"><span class="nav-icon">👤</span><span class="nav-label">Profil</span></button>
+  </div>
+</div>
+
+<!-- ===================== INVITE ===================== -->
+<div class="page" id="invitePage">
+  <div class="statusbar"><span id="clockInvite"></span></div>
+  <div class="header">
+    <span class="header-title">Inviter un ami</span>
+  </div>
+  <div class="invite-content">
+    <div style="text-align:center;margin-bottom:20px">
+      <div class="invite-icon-box">👋</div>
+      <div style="font-size:16px;font-weight:500">Invite tes amis !</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">Partage ton code ou entre celui de ton ami</div>
+    </div>
+    <div class="my-code-box">
+      <div class="my-code-label">Mon code ami</div>
+      <div class="my-code-value" id="myFriendCode">---</div>
+      <button class="copy-btn" onclick="copyCode()">📋 Copier</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Code ami</label>
+      <div class="invite-row">
+        <input class="form-input" type="text" id="friendCodeInput" placeholder="ex: prenom.a3b2" style="flex:1">
+        <button class="btn btn-pink" style="width:auto;padding:12px 20px" onclick="sendFriendRequest()">Inviter</button>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:13px;color:var(--text-secondary);margin:12px 0">ou</div>
+    <button class="invite-option" onclick="shareCode()">
+      <div class="invite-option-icon">📤</div>
+      <div>
+        <div style="font-size:13px;font-weight:500">Partager mon code</div>
+        <div style="font-size:11px;color:var(--text-secondary)">Envoie ton code par SMS ou autre</div>
+      </div>
+    </button>
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-item" onclick="switchTab('messagesPage')"><span class="nav-icon">💬</span><span class="nav-label">Messages</span></button>
+    <button class="nav-item" onclick="switchTab('contactsPage')"><span class="nav-icon">📇</span><span class="nav-label">Contacts</span></button>
+    <button class="nav-item active" onclick="switchTab('invitePage')"><span class="nav-icon">👋</span><span class="nav-label">Inviter</span></button>
+    <button class="nav-item" onclick="switchTab('avatarPage')"><span class="nav-icon">😊</span><span class="nav-label">Avatar</span></button>
+    <button class="nav-item" onclick="switchTab('profilePage')"><span class="nav-icon">👤</span><span class="nav-label">Profil</span></button>
+  </div>
+</div>
+
+<!-- ===================== AVATAR ===================== -->
+<div class="page" id="avatarPage">
+  <div class="statusbar"><span id="clockAvatar"></span></div>
+  <div class="header">
+    <div class="header-row">
+      <span class="header-title">Mon avatar</span>
+      <span style="color:#FFB347;font-size:14px;font-weight:500;cursor:pointer" onclick="saveAvatar()">Sauvegarder</span>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column">
+    <div style="flex:1;background:linear-gradient(180deg,var(--primary-light) 0%,var(--pink-light) 100%);display:flex;align-items:center;justify-content:center;padding:20px">
+      <div style="width:150px;height:150px;background:var(--bg);border-radius:50%;border:3px solid var(--primary);display:flex;align-items:center;justify-content:center">
+        <div style="text-align:center">
+          <div style="font-size:56px" id="avatarPreview">😊</div>
+          <div style="font-size:12px;color:var(--primary);font-weight:500" id="avatarName">---</div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:12px 16px">
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">Choisir un visage</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+        <span class="sticker-item" onclick="setAvatar('😊')" style="border:2px solid var(--primary);border-radius:12px;padding:6px">😊</span>
+        <span class="sticker-item" onclick="setAvatar('😎')" style="border:2px solid transparent;border-radius:12px;padding:6px">😎</span>
+        <span class="sticker-item" onclick="setAvatar('🤓')" style="border:2px solid transparent;border-radius:12px;padding:6px">🤓</span>
+        <span class="sticker-item" onclick="setAvatar('😄')" style="border:2px solid transparent;border-radius:12px;padding:6px">😄</span>
+        <span class="sticker-item" onclick="setAvatar('🥰')" style="border:2px solid transparent;border-radius:12px;padding:6px">🥰</span>
+        <span class="sticker-item" onclick="setAvatar('🤠')" style="border:2px solid transparent;border-radius:12px;padding:6px">🤠</span>
+        <span class="sticker-item" onclick="setAvatar('🦊')" style="border:2px solid transparent;border-radius:12px;padding:6px">🦊</span>
+        <span class="sticker-item" onclick="setAvatar('🐱')" style="border:2px solid transparent;border-radius:12px;padding:6px">🐱</span>
+        <span class="sticker-item" onclick="setAvatar('🐶')" style="border:2px solid transparent;border-radius:12px;padding:6px">🐶</span>
+        <span class="sticker-item" onclick="setAvatar('🦁')" style="border:2px solid transparent;border-radius:12px;padding:6px">🦁</span>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-item" onclick="switchTab('messagesPage')"><span class="nav-icon">💬</span><span class="nav-label">Messages</span></button>
+    <button class="nav-item" onclick="switchTab('contactsPage')"><span class="nav-icon">📇</span><span class="nav-label">Contacts</span></button>
+    <button class="nav-item" onclick="switchTab('invitePage')"><span class="nav-icon">👋</span><span class="nav-label">Inviter</span></button>
+    <button class="nav-item active" onclick="switchTab('avatarPage')"><span class="nav-icon">😊</span><span class="nav-label">Avatar</span></button>
+    <button class="nav-item" onclick="switchTab('profilePage')"><span class="nav-icon">👤</span><span class="nav-label">Profil</span></button>
+  </div>
+</div>
+
+<!-- ===================== PROFILE ===================== -->
+<div class="page" id="profilePage">
+  <div class="statusbar"><span id="clockProfile"></span></div>
+  <div class="header">
+    <span class="header-title">Mon profil</span>
+  </div>
+  <div class="profile-content">
+    <div class="profile-avatar-box">
+      <div class="profile-avatar" id="profileAvatarDisplay">😊</div>
+      <div class="profile-name" id="profileNameDisplay">---</div>
+      <div class="profile-code" id="profileCodeDisplay">---</div>
+    </div>
+    <div class="profile-info-box">
+      <div class="profile-info-row">
+        <div class="profile-info-label"><span>👤</span><span>Pseudo</span></div>
+        <div class="profile-info-value" id="profilePseudoVal">---</div>
+      </div>
+      <div class="profile-info-row">
+        <div class="profile-info-label"><span>😊</span><span>Avatar</span></div>
+        <div style="font-size:18px;cursor:pointer" onclick="switchTab('avatarPage')">›</div>
+      </div>
+    </div>
+    <div class="section-title">Paramètres</div>
+    <div class="settings-box">
+      <div class="settings-item" onclick="toggleDarkMode()">
+        <div class="settings-item-left">
+          <span class="settings-icon">🌙</span>
+          <span>Mode sombre</span>
+        </div>
+        <button class="toggle" id="darkModeToggle">
+          <div class="toggle-knob"></div>
+        </button>
+      </div>
+      <div class="settings-item">
+        <div class="settings-item-left">
+          <span class="settings-icon">🔔</span>
+          <span>Notifications</span>
+        </div>
+        <button class="toggle active" id="notifToggle" onclick="toggleNotif()">
+          <div class="toggle-knob"></div>
+        </button>
+      </div>
+      <div class="settings-item" onclick="showToast('Zamis Messenger v1.0.0')">
+        <div class="settings-item-left">
+          <span class="settings-icon">ℹ️</span>
+          <span>À propos</span>
+        </div>
+        <span style="color:var(--text-light)">›</span>
+      </div>
+      <div class="settings-item" onclick="logout()">
+        <div class="settings-item-left settings-item-danger">
+          <span class="settings-icon">🚪</span>
+          <span>Déconnexion</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-item" onclick="switchTab('messagesPage')"><span class="nav-icon">💬</span><span class="nav-label">Messages</span></button>
+    <button class="nav-item" onclick="switchTab('contactsPage')"><span class="nav-icon">📇</span><span class="nav-label">Contacts</span></button>
+    <button class="nav-item" onclick="switchTab('invitePage')"><span class="nav-icon">👋</span><span class="nav-label">Inviter</span></button>
+    <button class="nav-item" onclick="switchTab('avatarPage')"><span class="nav-icon">😊</span><span class="nav-label">Avatar</span></button>
+    <button class="nav-item active" onclick="switchTab('profilePage')"><span class="nav-icon">👤</span><span class="nav-label">Profil</span></button>
+  </div>
+</div>
+
+<!-- ===================== FIREBASE SDK ===================== -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+const ZAMIS_VERSION = '1.0.0';
+const firebaseConfig = {
+  apiKey: "AIzaSyCgR7u4UDjSSNIicavPAuDuwQHWg4YTmPA",
+  authDomain: "zamis-messenger.firebaseapp.com",
+  projectId: "zamis-messenger",
+  storageBucket: "zamis-messenger.firebasestorage.app",
+  messagingSenderId: "785313908510",
+  appId: "1:785313908510:web:8e847665d09888d4706b0f"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let currentUser = null;
+let currentUserData = null;
+let selectedChildColor = '#FF6B9D';
+let currentAvatar = '😊';
+let mediaRecorder = null;
+let audioChunks = [];
+let recordingInterval = null;
+let recordingSeconds = 0;
+let currentConvId = null;
+let unsubMessages = null;
+
+/* ============== UTILS ============== */
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const page = document.getElementById(pageId);
+  if (page) page.classList.add('active');
+}
+
+function switchTab(pageId) {
+  showPage(pageId);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if (t) { t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
+}
+
+function showLoading() {
+  const el = document.getElementById('loadingOverlay');
+  if (el) el.classList.add('active');
+}
+function hideLoading() {
+  const el = document.getElementById('loadingOverlay');
+  if (el) el.classList.remove('active');
+}
+
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+}
+function hideError(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+}
+function showSuccess(id, msg) {
+  const el = document.getElementById(id);
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+}
+
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.remove('active');
+}
+function openModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+
+function generateFriendCode(pseudo) {
+  const clean = pseudo.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let code = '';
+  for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return clean.substring(0, 8) + '.' + code;
+}
+
+function updateClocks() {
+  const now = new Date();
+  const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  document.querySelectorAll('[id^="clock"]').forEach(el => { el.textContent = time; });
+}
+setInterval(updateClocks, 30000);
+updateClocks();
+
+/* ============== DARK MODE ============== */
+function toggleDarkMode() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
+  const toggle = document.getElementById('darkModeToggle');
+  if (toggle) toggle.classList.toggle('active', !isDark);
+  localStorage.setItem('zamis-dark', isDark ? '' : 'dark');
+}
+function toggleNotif() {
+  const toggle = document.getElementById('notifToggle');
+  if (toggle) toggle.classList.toggle('active');
+}
+
+(function initTheme() {
+  const saved = localStorage.getItem('zamis-dark');
+  if (saved === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    setTimeout(() => {
+      const toggle = document.getElementById('darkModeToggle');
+      if (toggle) toggle.classList.add('active');
+    }, 100);
+  }
+})();
+
+/* ============== AUTH TABS ============== */
+function switchAuthTab(tab) {
+  const tabs = document.querySelectorAll('.toggle-tab');
+  tabs.forEach(t => t.classList.remove('active'));
+  if (tab === 'parent') {
+    tabs[0].classList.add('active');
+    document.getElementById('parentLoginForm').style.display = '';
+    document.getElementById('childLoginForm').style.display = 'none';
+  } else {
+    tabs[1].classList.add('active');
+    document.getElementById('parentLoginForm').style.display = 'none';
+    document.getElementById('childLoginForm').style.display = '';
+  }
+}
+
+/* ============== REGISTER PARENT ============== */
+async function registerParent() {
+  hideError('registerError');
+  const pseudo = document.getElementById('registerPseudo').value.trim();
+  const email = document.getElementById('registerEmail').value.trim();
+  const pwd = document.getElementById('registerPwd').value;
+  const pwd2 = document.getElementById('registerPwd2').value;
+
+  if (!pseudo) return showError('registerError', 'Entre ton pseudo');
+  if (!email) return showError('registerError', 'Entre ton email');
+  if (pwd.length < 6) return showError('registerError', 'Le mot de passe doit faire 6 caractères minimum');
+  if (pwd !== pwd2) return showError('registerError', 'Les mots de passe ne correspondent pas');
+
+  showLoading();
+  try {
+    const cred = await auth.createUserWithEmailAndPassword(email, pwd);
+    const friendCode = generateFriendCode(pseudo);
+    await db.collection('users').doc(cred.user.uid).set({
+      uid: cred.user.uid,
+      pseudo: pseudo,
+      email: email,
+      role: 'parent',
+      friendCode: friendCode,
+      avatar: '😊',
+      childrenIds: [],
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    hideLoading();
+    showSuccess('registerSuccess', 'Compte créé ! Redirection...');
+    setTimeout(() => {
+      loadParentDashboard(cred.user);
+    }, 1500);
+  } catch (err) {
+    hideLoading();
+    let msg = 'Erreur lors de l\'inscription';
+    if (err.code === 'auth/email-already-in-use') msg = 'Cet email est déjà utilisé';
+    if (err.code === 'auth/invalid-email') msg = 'Email invalide';
+    showError('registerError', msg);
+  }
+}
+
+/* ============== LOGIN PARENT ============== */
+async function loginParent() {
+  hideError('loginError');
+  const email = document.getElementById('loginEmail').value.trim();
+  const pwd = document.getElementById('loginPassword').value;
+
+  if (!email || !pwd) return showError('loginError', 'Remplis tous les champs');
+
+  showLoading();
+  try {
+    const cred = await auth.signInWithEmailAndPassword(email, pwd);
+    hideLoading();
+    const doc = await db.collection('users').doc(cred.user.uid).get();
+    if (doc.exists && doc.data().role === 'parent') {
+      loadParentDashboard(cred.user);
+    } else if (doc.exists && doc.data().role === 'child') {
+      loadChildApp(doc.data());
+    } else {
+      showError('loginError', 'Compte introuvable');
+    }
+  } catch (err) {
+    hideLoading();
+    let msg = 'Email ou mot de passe incorrect';
+    if (err.code === 'auth/user-not-found') msg = 'Aucun compte avec cet email';
+    if (err.code === 'auth/too-many-requests') msg = 'Trop de tentatives, réessaie plus tard';
+    showError('loginError', msg);
+  }
+}
+
+/* ============== LOGIN CHILD ============== */
+async function loginChild() {
+  hideError('childLoginError');
+  const code = document.getElementById('childCode').value.trim().toLowerCase();
+  const pin = document.getElementById('childPin').value.trim();
+
+  if (!code || !pin) return showError('childLoginError', 'Remplis tous les champs');
+
+  showLoading();
+  try {
+    const snap = await db.collection('users')
+      .where('friendCode', '==', code)
+      .where('role', '==', 'child')
+      .get();
+
+    if (snap.empty) {
+      hideLoading();
+      return showError('childLoginError', 'Code Zamis introuvable');
+    }
+
+    const childData = snap.docs[0].data();
+    if (childData.pin !== pin) {
+      hideLoading();
+      return showError('childLoginError', 'Code secret incorrect');
+    }
+
+    hideLoading();
+    currentUser = { uid: childData.uid };
+    currentUserData = childData;
+    localStorage.setItem('zamis-child-code', code);
+    localStorage.setItem('zamis-child-pin', pin);
+    loadChildApp(childData);
+  } catch (err) {
+    hideLoading();
+    showError('childLoginError', 'Erreur de connexion');
+  }
+}
+
+/* ============== FORGOT PASSWORD ============== */
+async function showForgotPassword() {
+  const email = document.getElementById('loginEmail').value.trim();
+  if (!email) return showToast('Entre ton email d\'abord');
+  try {
+    await auth.sendPasswordResetEmail(email);
+    showToast('Email de réinitialisation envoyé !');
+  } catch (err) {
+    showToast('Email introuvable');
+  }
+}
+
+/* ============== LOAD PARENT DASHBOARD ============== */
+async function loadParentDashboard(user) {
+  currentUser = user;
+  const doc = await db.collection('users').doc(user.uid).get();
+  if (!doc.exists) return;
+  currentUserData = doc.data();
+
+  const welcome = document.getElementById('parentWelcome');
+  if (welcome) welcome.textContent = 'Bienvenue, ' + currentUserData.pseudo;
+
+  showPage('parentDashboard');
+  loadChildren();
+  loadPendingRequests();
+}
+
+/* ============== ADD CHILD ============== */
+function showAddChildModal() {
+  openModal('addChildModal');
+  document.getElementById('childPseudo').value = '';
+  document.getElementById('childPinSetup').value = '';
+  hideError('addChildError');
+  selectedChildColor = '#FF6B9D';
+  document.querySelectorAll('.color-dot').forEach(d => d.style.borderColor = 'transparent');
+  document.querySelector('.color-dot').style.borderColor = selectedChildColor;
+}
+
+function selectColor(el) {
+  document.querySelectorAll('.color-dot').forEach(d => d.style.borderColor = 'transparent');
+  selectedChildColor = el.getAttribute('data-color');
+  el.style.borderColor = selectedChildColor;
+}
+
+async function addChild() {
+  hideError('addChildError');
+  const pseudo = document.getElementById('childPseudo').value.trim();
+  const pin = document.getElementById('childPinSetup').value.trim();
+
+  if (!pseudo) return showError('addChildError', 'Entre le prénom de l\'enfant');
+  if (pin.length !== 4 || !/^\d{4}$/.test(pin)) return showError('addChildError', 'Le code secret doit être 4 chiffres');
+
+  showLoading();
+  try {
+    const friendCode = generateFriendCode(pseudo);
+    const childRef = db.collection('users').doc();
+    const childUid = childRef.id;
+
+    await childRef.set({
+      uid: childUid,
+      pseudo: pseudo,
+      role: 'child',
+      parentId: currentUser.uid,
+      friendCode: friendCode,
+      pin: pin,
+      avatar: '😊',
+      avatarColor: selectedChildColor,
+      approvedContacts: [],
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await db.collection('users').doc(currentUser.uid).update({
+      childrenIds: firebase.firestore.FieldValue.arrayUnion(childUid)
+    });
+
+    // Create parent-child conversation
+    const convRef = db.collection('conversations').doc();
+    await convRef.set({
+      type: 'direct',
+      members: [currentUser.uid, childUid],
+      memberNames: { [currentUser.uid]: currentUserData.pseudo, [childUid]: pseudo },
+      memberColors: { [currentUser.uid]: '#7C5CFC', [childUid]: selectedChildColor },
+      lastMessage: 'Bienvenue sur Zamis ! 🎉',
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy: currentUser.uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await convRef.collection('messages').add({
+      senderId: 'system',
+      senderPseudo: 'Zamis',
+      type: 'text',
+      content: 'Bienvenue sur Zamis Messenger ! 🎉 Vous pouvez maintenant discuter ensemble.',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    currentUserData.childrenIds = currentUserData.childrenIds || [];
+    currentUserData.childrenIds.push(childUid);
+
+    hideLoading();
+    closeModal('addChildModal');
+    showToast(pseudo + ' a été ajouté !');
+    loadChildren();
+  } catch (err) {
+    hideLoading();
+    showError('addChildError', 'Erreur : ' + err.message);
+  }
+}
+
+/* ============== LOAD CHILDREN ============== */
+async function loadChildren() {
+  const grid = document.getElementById('childrenGrid');
+  if (!grid) return;
+
+  const ids = currentUserData.childrenIds || [];
+  let html = '';
+
+  for (const id of ids) {
+    try {
+      const doc = await db.collection('users').doc(id).get();
+      if (doc.exists) {
+        const child = doc.data();
+        html += `
+          <div class="child-card" onclick="loginAsChild('${id}')">
+            <div class="child-avatar" style="background:${child.avatarColor || '#FFB347'}">
+              ${child.avatar || child.pseudo.charAt(0).toUpperCase()}
+            </div>
+            <div class="child-name">${child.pseudo}</div>
+            <div class="child-status">Code: ${child.friendCode}</div>
+          </div>`;
+      }
+    } catch (e) {}
+  }
+
+  html += `
+    <div class="add-child-card" onclick="showAddChildModal()">
+      <div class="add-child-icon">+</div>
+      <div class="add-child-text">Ajouter</div>
+    </div>`;
+
+  grid.innerHTML = html;
+}
+
+/* ============== PARENT -> CHILD VIEW ============== */
+async function loginAsChild(childId) {
+  showLoading();
+  try {
+    const doc = await db.collection('users').doc(childId).get();
+    if (doc.exists) {
+      currentUserData = doc.data();
+      currentUser = { uid: childId };
+      hideLoading();
+      loadChildApp(currentUserData);
+    }
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur');
+  }
+}
+
+/* ============== LOAD CHILD APP ============== */
+function loadChildApp(childData) {
+  currentUserData = childData;
+  currentUser = { uid: childData.uid };
+
+  const nameEl = document.getElementById('avatarName');
+  if (nameEl) nameEl.textContent = childData.pseudo;
+  const previewEl = document.getElementById('avatarPreview');
+  if (previewEl) previewEl.textContent = childData.avatar || '😊';
+  const profileName = document.getElementById('profileNameDisplay');
+  if (profileName) profileName.textContent = childData.pseudo;
+  const profileCode = document.getElementById('profileCodeDisplay');
+  if (profileCode) profileCode.textContent = childData.friendCode;
+  const profilePseudo = document.getElementById('profilePseudoVal');
+  if (profilePseudo) profilePseudo.textContent = childData.pseudo;
+  const profileAvatar = document.getElementById('profileAvatarDisplay');
+  if (profileAvatar) profileAvatar.textContent = childData.avatar || '😊';
+  const friendCodeEl = document.getElementById('myFriendCode');
+  if (friendCodeEl) friendCodeEl.textContent = childData.friendCode;
+
+  currentAvatar = childData.avatar || '😊';
+  showPage('messagesPage');
+  loadConversations();
+  loadContacts();
+}
+
+/* ============== LOAD CONVERSATIONS ============== */
+async function loadConversations() {
+  if (!currentUser) return;
+  const list = document.getElementById('messagesList');
+  if (!list) return;
+
+  try {
+    const snap = await db.collection('conversations')
+      .where('members', 'array-contains', currentUser.uid)
+      .orderBy('lastMessageAt', 'desc')
+      .get();
+
+    if (snap.empty) {
+      list.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-text">Pas encore de messages</div></div>';
+      return;
+    }
+
+    let html = '';
+    snap.forEach(doc => {
+      const conv = doc.data();
+      const otherId = conv.members.find(m => m !== currentUser.uid);
+      const otherName = conv.memberNames ? (conv.memberNames[otherId] || 'Inconnu') : 'Inconnu';
+      const otherColor = conv.memberColors ? (conv.memberColors[otherId] || '#7C5CFC') : '#7C5CFC';
+      const initial = otherName.charAt(0).toUpperCase();
+      const time = conv.lastMessageAt ? new Date(conv.lastMessageAt.toDate()).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : '';
+      const preview = conv.lastMessage || '';
+
+      html += `
+        <div class="message-item" onclick="openConversation('${doc.id}', '${otherName}', '${otherColor}')">
+          <div class="message-avatar" style="background:${otherColor}">
+            ${initial}
+          </div>
+          <div class="message-content">
+            <div class="message-header">
+              <span class="message-name">${otherName}</span>
+              <span class="message-time">${time}</span>
+            </div>
+            <div class="message-preview">${preview}</div>
+          </div>
+        </div>`;
+    });
+
+    list.innerHTML = html;
+  } catch (err) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-text">Erreur de chargement</div></div>';
+  }
+}
+
+/* ============== OPEN CONVERSATION ============== */
+function openConversation(convId, name, color) {
+  currentConvId = convId;
+  const nameEl = document.getElementById('convName');
+  if (nameEl) nameEl.textContent = name;
+  const avatarEl = document.getElementById('convAvatar');
+  if (avatarEl) {
+    avatarEl.style.background = color;
+    avatarEl.textContent = name.charAt(0).toUpperCase();
+  }
+
+  showPage('conversationPage');
+  loadMessages(convId);
+}
+
+/* ============== LOAD MESSAGES ============== */
+function loadMessages(convId) {
+  const container = document.getElementById('convMessages');
+  if (!container) return;
+
+  if (unsubMessages) unsubMessages();
+
+  unsubMessages = db.collection('conversations').doc(convId)
+    .collection('messages')
+    .orderBy('createdAt', 'asc')
+    .onSnapshot(snap => {
+      let html = '';
+      let lastDate = '';
+
+      snap.forEach(doc => {
+        const msg = doc.data();
+        const isMe = msg.senderId === currentUser.uid;
+        const isSystem = msg.senderId === 'system';
+        const time = msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
+        const date = msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleDateString('fr-FR') : '';
+
+        if (date !== lastDate) {
+          html += `<div class="conv-date">${date}</div>`;
+          lastDate = date;
+        }
+
+        if (isSystem) {
+          html += `<div class="conv-date" style="background:var(--primary-light);padding:8px 12px;border-radius:10px;font-size:12px">${msg.content}</div>`;
+        } else if (msg.type === 'sticker') {
+          html += `<div class="bubble ${isMe ? 'bubble-out' : 'bubble-in'}" style="background:transparent;font-size:40px;padding:4px">${msg.content}<div class="bubble-time">${time}</div></div>`;
+        } else if (msg.type === 'audio') {
+          html += `
+            <div class="bubble ${isMe ? 'bubble-out' : 'bubble-in'}">
+              <div class="bubble-audio">
+                <button class="audio-play" onclick="playAudio(this, '${msg.content}')">▶</button>
+                <div class="audio-bar"><div class="audio-bar-fill"></div></div>
+                <span class="audio-duration">0:${String(msg.duration || 0).padStart(2, '0')}</span>
+              </div>
+              <div class="bubble-time">${time}</div>
+            </div>`;
+        } else {
+          html += `
+            <div class="bubble ${isMe ? 'bubble-out' : 'bubble-in'}">
+              ${msg.content}
+              <div class="bubble-time">${time}</div>
+            </div>`;
+        }
+      });
+
+      container.innerHTML = html;
+      container.scrollTop = container.scrollHeight;
+    });
+}
+
+/* ============== SEND MESSAGE ============== */
+async function sendMessage() {
+  if (!currentConvId || !currentUser) return;
+  const input = document.getElementById('chatInput');
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+
+  try {
+    await db.collection('conversations').doc(currentConvId)
+      .collection('messages').add({
+        senderId: currentUser.uid,
+        senderPseudo: currentUserData.pseudo,
+        type: 'text',
+        content: text,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+    await db.collection('conversations').doc(currentConvId).update({
+      lastMessage: text,
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (err) {
+    showToast('Erreur d\'envoi');
+  }
+}
+
+/* ============== SEND STICKER ============== */
+async function sendSticker(emoji) {
+  if (!currentConvId || !currentUser) return;
+  const panel = document.getElementById('stickerPanel');
+  if (panel) panel.classList.remove('active');
+
+  try {
+    await db.collection('conversations').doc(currentConvId)
+      .collection('messages').add({
+        senderId: currentUser.uid,
+        senderPseudo: currentUserData.pseudo,
+        type: 'sticker',
+        content: emoji,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+    await db.collection('conversations').doc(currentConvId).update({
+      lastMessage: emoji,
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (err) {
+    showToast('Erreur d\'envoi');
+  }
+}
+
+function toggleStickers() {
+  const panel = document.getElementById('stickerPanel');
+  if (panel) panel.classList.toggle('active');
+}
+
+/* ============== AUDIO RECORDING ============== */
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    recordingSeconds = 0;
+
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.start();
+
+    const bar = document.getElementById('recordingBar');
+    const inputBar = document.getElementById('chatInputBar');
+    if (bar) bar.classList.add('active');
+    if (inputBar) inputBar.style.display = 'none';
+
+    recordingInterval = setInterval(() => {
+      recordingSeconds++;
+      const timeEl = document.getElementById('recordingTime');
+      if (timeEl) timeEl.textContent = Math.floor(recordingSeconds / 60) + ':' + String(recordingSeconds % 60).padStart(2, '0');
+    }, 1000);
+  } catch (err) {
+    showToast('Micro non disponible');
+  }
+}
+
+function cancelRecording() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+    mediaRecorder.stream.getTracks().forEach(t => t.stop());
+  }
+  clearInterval(recordingInterval);
+  const bar = document.getElementById('recordingBar');
+  const inputBar = document.getElementById('chatInputBar');
+  if (bar) bar.classList.remove('active');
+  if (inputBar) inputBar.style.display = 'flex';
+}
+
+async function stopAndSendRecording() {
+  if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
+  const duration = recordingSeconds;
+
+  mediaRecorder.onstop = async () => {
+    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64 = reader.result;
+      try {
+        await db.collection('conversations').doc(currentConvId)
+          .collection('messages').add({
+            senderId: currentUser.uid,
+            senderPseudo: currentUserData.pseudo,
+            type: 'audio',
+            content: base64,
+            duration: duration,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        await db.collection('conversations').doc(currentConvId).update({
+          lastMessage: '🎤 Message audio',
+          lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } catch (err) {
+        showToast('Erreur d\'envoi audio');
+      }
+    };
+    reader.readAsDataURL(blob);
+    mediaRecorder.stream.getTracks().forEach(t => t.stop());
+  };
+
+  mediaRecorder.stop();
+  clearInterval(recordingInterval);
+  const bar = document.getElementById('recordingBar');
+  const inputBar = document.getElementById('chatInputBar');
+  if (bar) bar.classList.remove('active');
+  if (inputBar) inputBar.style.display = 'flex';
+}
+
+function playAudio(btn, src) {
+  const audio = new Audio(src);
+  const fill = btn.parentElement.querySelector('.audio-bar-fill');
+  btn.textContent = '⏸';
+  audio.onended = () => {
+    btn.textContent = '▶';
+    if (fill) fill.style.width = '0%';
+  };
+  audio.ontimeupdate = () => {
+    if (fill && audio.duration) {
+      fill.style.width = Math.round((audio.currentTime / audio.duration) * 100) + '%';
+    }
+  };
+  audio.play();
+}
+
+/* ============== CONTACTS ============== */
+async function loadContacts() {
+  if (!currentUser || !currentUserData) return;
+  const list = document.getElementById('contactsList');
+  if (!list) return;
+
+  let html = '';
+
+  if (currentUserData.role === 'child' && currentUserData.parentId) {
+    try {
+      const parentDoc = await db.collection('users').doc(currentUserData.parentId).get();
+      if (parentDoc.exists) {
+        const parent = parentDoc.data();
+        html += `<div class="contact-section-title" style="color:var(--primary)">Famille</div>`;
+        html += `
+          <div class="contact-item">
+            <div class="contact-avatar" style="background:#7C5CFC">${parent.pseudo.charAt(0).toUpperCase()}</div>
+            <div class="contact-info">
+              <div class="contact-name">${parent.pseudo}</div>
+              <div class="contact-status-text" style="color:var(--green-online)">Parent</div>
+            </div>
+            <button class="contact-action">💬</button>
+          </div>`;
+      }
+    } catch (e) {}
+  }
+
+  const approved = currentUserData.approvedContacts || [];
+  if (approved.length > 0) {
+    html += `<div class="contact-section-title" style="color:var(--pink)">Amis</div>`;
+    for (const id of approved) {
+      try {
+        const doc = await db.collection('users').doc(id).get();
+        if (doc.exists) {
+          const friend = doc.data();
+          html += `
+            <div class="contact-item">
+              <div class="contact-avatar" style="background:${friend.avatarColor || '#FFB347'}">${friend.pseudo.charAt(0).toUpperCase()}</div>
+              <div class="contact-info">
+                <div class="contact-name">${friend.pseudo}</div>
+                <div class="contact-status-text" style="color:var(--text-secondary)">Ami</div>
+              </div>
+              <button class="contact-action">💬</button>
+            </div>`;
+        }
+      } catch (e) {}
+    }
+  }
+
+  if (!html) {
+    html = '<div class="empty-state"><div class="empty-icon">📇</div><div class="empty-text">Aucun contact pour l\'instant</div></div>';
+  }
+
+  list.innerHTML = html;
+}
+
+function filterContacts() {
+  // Simple filter future improvement
+}
+
+/* ============== INVITE ============== */
+async function sendFriendRequest() {
+  const code = document.getElementById('friendCodeInput').value.trim().toLowerCase();
+  if (!code) return showToast('Entre un code ami');
+
+  showLoading();
+  try {
+    const snap = await db.collection('users').where('friendCode', '==', code).get();
+    if (snap.empty) {
+      hideLoading();
+      return showToast('Code ami introuvable');
+    }
+
+    const targetUser = snap.docs[0].data();
+    if (targetUser.uid === currentUser.uid) {
+      hideLoading();
+      return showToast('C\'est ton propre code !');
+    }
+
+    const parentId = targetUser.role === 'child' ? targetUser.parentId : targetUser.uid;
+
+    await db.collection('invitations').add({
+      fromChildId: currentUser.uid,
+      fromChildPseudo: currentUserData.pseudo,
+      toChildId: targetUser.uid,
+      toChildPseudo: targetUser.pseudo,
+      parentApprovalId: parentId,
+      status: 'pending',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    hideLoading();
+    document.getElementById('friendCodeInput').value = '';
+    showToast('Invitation envoyée ! En attente de validation du parent.');
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur : ' + err.message);
+  }
+}
+
+function copyCode() {
+  const code = document.getElementById('myFriendCode').textContent;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(code).then(() => showToast('Code copié !'));
+  } else {
+    showToast(code);
+  }
+}
+
+function shareCode() {
+  const code = document.getElementById('myFriendCode').textContent;
+  if (navigator.share) {
+    navigator.share({ title: 'Zamis Messenger', text: 'Ajoute-moi sur Zamis Messenger ! Mon code : ' + code });
+  } else {
+    copyCode();
+  }
+}
+
+/* ============== PENDING REQUESTS (PARENT) ============== */
+async function loadPendingRequests() {
+  if (!currentUser) return;
+  const container = document.getElementById('pendingRequests');
+  if (!container) return;
+
+  try {
+    const snap = await db.collection('invitations')
+      .where('parentApprovalId', '==', currentUser.uid)
+      .where('status', '==', 'pending')
+      .get();
+
+    if (snap.empty) {
+      container.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--text-secondary);text-align:center">Aucune demande en attente</div>';
+      return;
+    }
+
+    let html = '';
+    snap.forEach(doc => {
+      const inv = doc.data();
+      html += `
+        <div class="pending-card">
+          <div class="pending-avatar" style="background:var(--orange)">${inv.fromChildPseudo.charAt(0).toUpperCase()}</div>
+          <div class="pending-info">
+            <div class="pending-name">${inv.fromChildPseudo} veut ajouter ${inv.toChildPseudo}</div>
+            <div class="pending-time">En attente</div>
+          </div>
+          <div class="pending-actions">
+            <button class="pending-btn pending-btn-yes" onclick="approveRequest('${doc.id}')">✓</button>
+            <button class="pending-btn pending-btn-no" onclick="rejectRequest('${doc.id}')">✕</button>
+          </div>
+        </div>`;
+    });
+
+    container.innerHTML = html;
+  } catch (err) {
+    container.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--red)">Erreur de chargement</div>';
+  }
+}
+
+async function approveRequest(invId) {
+  showLoading();
+  try {
+    const invDoc = await db.collection('invitations').doc(invId).get();
+    const inv = invDoc.data();
+
+    // Update both children's approved contacts
+    await db.collection('users').doc(inv.fromChildId).update({
+      approvedContacts: firebase.firestore.FieldValue.arrayUnion(inv.toChildId)
+    });
+    await db.collection('users').doc(inv.toChildId).update({
+      approvedContacts: firebase.firestore.FieldValue.arrayUnion(inv.fromChildId)
+    });
+
+    // Create conversation between children
+    const fromDoc = await db.collection('users').doc(inv.fromChildId).get();
+    const toDoc = await db.collection('users').doc(inv.toChildId).get();
+    const fromData = fromDoc.data();
+    const toData = toDoc.data();
+
+    const convRef = db.collection('conversations').doc();
+    await convRef.set({
+      type: 'direct',
+      members: [inv.fromChildId, inv.toChildId],
+      memberNames: { [inv.fromChildId]: fromData.pseudo, [inv.toChildId]: toData.pseudo },
+      memberColors: { [inv.fromChildId]: fromData.avatarColor || '#FFB347', [inv.toChildId]: toData.avatarColor || '#5DCAA5' },
+      lastMessage: 'Vous êtes maintenant amis ! 🎉',
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy: currentUser.uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await convRef.collection('messages').add({
+      senderId: 'system',
+      senderPseudo: 'Zamis',
+      type: 'text',
+      content: fromData.pseudo + ' et ' + toData.pseudo + ' sont maintenant amis ! 🎉',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await db.collection('invitations').doc(invId).update({ status: 'approved' });
+
+    hideLoading();
+    showToast('Demande approuvée !');
+    loadPendingRequests();
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur');
+  }
+}
+
+async function rejectRequest(invId) {
+  try {
+    await db.collection('invitations').doc(invId).update({ status: 'rejected' });
+    showToast('Demande refusée');
+    loadPendingRequests();
+  } catch (err) {
+    showToast('Erreur');
+  }
+}
+
+/* ============== AVATAR ============== */
+function setAvatar(emoji) {
+  currentAvatar = emoji;
+  const preview = document.getElementById('avatarPreview');
+  if (preview) preview.textContent = emoji;
+  const profileAvatar = document.getElementById('profileAvatarDisplay');
+  if (profileAvatar) profileAvatar.textContent = emoji;
+}
+
+async function saveAvatar() {
+  if (!currentUser) return;
+  try {
+    await db.collection('users').doc(currentUser.uid).update({ avatar: currentAvatar });
+    showToast('Avatar sauvegardé !');
+  } catch (err) {
+    showToast('Erreur');
+  }
+}
+
+/* ============== LOGOUT ============== */
+async function logout() {
+  try {
+    await auth.signOut();
+  } catch (e) {}
+  currentUser = null;
+  currentUserData = null;
+  localStorage.removeItem('zamis-child-code');
+  localStorage.removeItem('zamis-child-pin');
+  if (unsubMessages) unsubMessages();
+  showPage('loginPage');
+}
+
+/* ============== AUTO LOGIN ============== */
+auth.onAuthStateChanged(async user => {
+  if (user) {
+    try {
+      const doc = await db.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        const data = doc.data();
+        if (data.role === 'parent') {
+          loadParentDashboard(user);
+        } else {
+          loadChildApp(data);
+        }
+        return;
+      }
+    } catch (e) {}
+  }
+
+  // Try child auto-login
+  const savedCode = localStorage.getItem('zamis-child-code');
+  const savedPin = localStorage.getItem('zamis-child-pin');
+  if (savedCode && savedPin) {
+    try {
+      const snap = await db.collection('users')
+        .where('friendCode', '==', savedCode)
+        .where('role', '==', 'child')
+        .get();
+      if (!snap.empty) {
+        const childData = snap.docs[0].data();
+        if (childData.pin === savedPin) {
+          loadChildApp(childData);
+          return;
+        }
+      }
+    } catch (e) {}
+  }
+
+  setTimeout(() => showPage('loginPage'), 2000);
+});
+
+/* ============== SPLASH TIMEOUT ============== */
+setTimeout(() => {
+  if (document.getElementById('splash').classList.contains('active')) {
+    showPage('loginPage');
+  }
+}, 3000);
+</script>
+</body>
+</html>
