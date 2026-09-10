@@ -980,7 +980,7 @@ body {
 
     <div class="section-title mt-16">Actions rapides</div>
     <div class="quick-actions">
-      <button class="quick-action" onclick="showPage('messagesPage')">
+      <button class="quick-action" onclick="parentWriteMessage()">
         <div class="quick-action-icon">💬</div>
         <div class="quick-action-text">Écrire</div>
       </button>
@@ -1357,6 +1357,11 @@ function showPage(pageId) {
 
 function switchTab(pageId) {
   showPage(pageId);
+  if (isParentBrowsingChild) {
+    document.querySelectorAll('.home-btn').forEach(b => b.style.display = 'inline');
+    const homeBtn = document.getElementById('homeBtn');
+    if (homeBtn) homeBtn.style.display = 'inline';
+  }
 }
 
 function showToast(msg) {
@@ -1805,6 +1810,40 @@ async function loadConversations() {
   }
 }
 
+/* ============== PARENT WRITE MESSAGE ============== */
+function parentWriteMessage() {
+  showPage('messagesPage');
+  loadConversations();
+}
+
+/* ============== OPEN CONV WITH CONTACT ============== */
+async function openConvWith(contactId, contactName, contactColor) {
+  showLoading();
+  try {
+    const snap = await db.collection('conversations')
+      .where('members', 'array-contains', currentUser.uid)
+      .get();
+
+    let foundConvId = null;
+    snap.forEach(doc => {
+      const conv = doc.data();
+      if (conv.members.includes(contactId)) {
+        foundConvId = doc.id;
+      }
+    });
+
+    hideLoading();
+    if (foundConvId) {
+      openConversation(foundConvId, contactName, contactColor);
+    } else {
+      showToast('Aucune conversation trouvée');
+    }
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur');
+  }
+}
+
 /* ============== OPEN CONVERSATION ============== */
 function openConversation(convId, name, color) {
   currentConvId = convId;
@@ -2041,7 +2080,7 @@ async function loadContacts() {
         const parent = parentDoc.data();
         html += `<div class="contact-section-title" style="color:var(--primary)">Famille</div>`;
         html += `
-          <div class="contact-item">
+          <div class="contact-item" onclick="openConvWith('${currentUserData.parentId}','${parent.pseudo}','#7C5CFC')" style="cursor:pointer">
             <div class="contact-avatar" style="background:#7C5CFC">${parent.pseudo.charAt(0).toUpperCase()}</div>
             <div class="contact-info">
               <div class="contact-name">${parent.pseudo}</div>
@@ -2062,7 +2101,7 @@ async function loadContacts() {
         if (doc.exists) {
           const friend = doc.data();
           html += `
-            <div class="contact-item">
+            <div class="contact-item" onclick="openConvWith('${id}','${friend.pseudo}','${friend.avatarColor || '#FFB347'}')" style="cursor:pointer">
               <div class="contact-avatar" style="background:${friend.avatarColor || '#FFB347'}">${friend.pseudo.charAt(0).toUpperCase()}</div>
               <div class="contact-info">
                 <div class="contact-name">${friend.pseudo}</div>
