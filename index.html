@@ -1289,6 +1289,12 @@ body {
           <span>Déconnexion</span>
         </div>
       </div>
+      <div class="settings-item" onclick="deleteAccount()">
+        <div class="settings-item-left settings-item-danger">
+          <span class="settings-icon">🗑️</span>
+          <span>Supprimer mon compte</span>
+        </div>
+      </div>
     </div>
   </div>
   <div class="bottom-nav">
@@ -1664,12 +1670,15 @@ async function loadChildren() {
       if (doc.exists) {
         const child = doc.data();
         html += `
-          <div class="child-card" onclick="loginAsChild('${id}')">
-            <div class="child-avatar" style="background:${child.avatarColor || '#FFB347'}">
-              ${child.avatar || child.pseudo.charAt(0).toUpperCase()}
+          <div class="child-card" style="position:relative">
+            <div style="position:absolute;top:6px;right:6px;width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:white;z-index:2" onclick="event.stopPropagation();confirmDeleteChild('${id}','${child.pseudo}')">✕</div>
+            <div onclick="loginAsChild('${id}')" style="cursor:pointer">
+              <div class="child-avatar" style="background:${child.avatarColor || '#FFB347'}">
+                ${child.avatar || child.pseudo.charAt(0).toUpperCase()}
+              </div>
+              <div class="child-name">${child.pseudo}</div>
+              <div class="child-status">Code: ${child.friendCode}</div>
             </div>
-            <div class="child-name">${child.pseudo}</div>
-            <div class="child-status">Code: ${child.friendCode}</div>
           </div>`;
       }
     } catch (e) {}
@@ -2259,16 +2268,171 @@ async function saveAvatar() {
   }
 }
 
+/* ============== DELETE CHILD ============== */
+function confirmDeleteChild(childId, pseudo) {
+  if (confirm('Supprimer ' + pseudo + ' et toutes ses conversations ?\n\nCette action est irréversible.')) {
+    deleteChild(childId);
+  }
+}
+
+async function deleteChild(childId) {
+  showLoading();
+  try {
+    // Supprimer les conversations de l'enfant
+    const convSnap = await db.collection('conversations')
+      .where('members', 'array-contains', childId)
+      .get();
+    for (const convDoc of convSnap.docs) {
+      const msgsSnap = await convDoc.ref.collection('messages').get();
+      for (const msgDoc of msgsSnap.docs) {
+        await msgDoc.ref.delete();
+      }
+      await convDoc.ref.delete();
+    }
+
+    // Supprimer les invitations liées
+    const invSnap1 = await db.collection('invitations').where('fromChildId', '==', childId).get();
+    for (const d of invSnap1.docs) await d.ref.delete();
+    const invSnap2 = await db.collection('invitations').where('toChildId', '==', childId).get();
+    for (const d of invSnap2.docs) await d.ref.delete();
+
+    // Retirer l'enfant des contacts approuvés des autres
+    const childDoc = await db.collection('users').doc(childId).get();
+    if (childDoc.exists) {
+      const approved = childDoc.data().approvedContacts || [];
+      for (const friendId of approved) {
+        try {
+          await db.collection('users').doc(friendId).update({
+            approvedContacts: firebase.firestore.FieldValue.arrayRemove(childId)
+          });
+        } catch (e) {}
+      }
+    }
+
+    // Supprimer l'enfant de la liste du parent
+    await db.collection('users').doc(currentUser.uid).update({
+      childrenIds: firebase.firestore.FieldValue.arrayRemove(childId)
+    });
+
+    // Supprimer le document enfant
+    await db.collection('users').doc(childId).delete();
+
+    // Mettre à jour localement
+    currentUserData.childrenIds = (currentUserData.childrenIds || []).filter(id => id !== childId);
+
+    hideLoading();
+    showToast('Enfant supprimé');
+    loadChildren();
+    loadPendingRequests();
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur : ' + err.message);
+  }
+}
+
+/* ============== DELETE ACCOUNT ============== */
+async function deleteAccount() {
+  if (!confirm('Supprimer ton compte et TOUTES les données ?\n\n(Enfants, messages, contacts)\n\nCette action est irréversible.')) return;
+  if (!confirm('Dernière confirmation : tu es sûr ?')) return;
+
+  showLoading();
+  try {
+    const uid = currentUser.uid;
+    const userData = currentUserData;
+
+    // Si parent : supprimer tous les enfants d'abord
+    if (userData.role === 'parent') {
+      const children = userData.childrenIds || [];
+      for (const childId of children) {
+        await deleteChildData(childId);
+      }
+    }
+
+    // Supprimer les conversations du user
+    const convSnap = await db.collection('conversations')
+      .where('members', 'array-contains', uid)
+      .get();
+    for (const convDoc of convSnap.docs) {
+      const msgsSnap = await convDoc.ref.collection('messages').get();
+      for (const msgDoc of msgsSnap.docs) {
+        await msgDoc.ref.delete();
+      }
+      await convDoc.ref.delete();
+    }
+
+    // Supprimer invitations
+    const invSnap1 = await db.collection('invitations').where('fromChildId', '==', uid).get();
+    for (const d of invSnap1.docs) await d.ref.delete();
+    const invSnap2 = await db.collection('invitations').where('toChildId', '==', uid).get();
+    for (const d of invSnap2.docs) await d.ref.delete();
+    const invSnap3 = await db.collection('invitations').where('parentApprovalId', '==', uid).get();
+    for (const d of invSnap3.docs) await d.ref.delete();
+
+    // Supprimer le document user
+    await db.collection('users').doc(uid).delete();
+
+    // Supprimer le compte Firebase Auth
+    try {
+      await auth.currentUser.delete();
+    } catch (e) {}
+
+    // Nettoyer tout le local
+    clearAllData();
+    hideLoading();
+    showToast('Compte supprimé');
+    showPage('loginPage');
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur : ' + err.message);
+  }
+}
+
+async function deleteChildData(childId) {
+  try {
+    const convSnap = await db.collection('conversations')
+      .where('members', 'array-contains', childId)
+      .get();
+    for (const convDoc of convSnap.docs) {
+      const msgsSnap = await convDoc.ref.collection('messages').get();
+      for (const msgDoc of msgsSnap.docs) await msgDoc.ref.delete();
+      await convDoc.ref.delete();
+    }
+    const childDoc = await db.collection('users').doc(childId).get();
+    if (childDoc.exists) {
+      const approved = childDoc.data().approvedContacts || [];
+      for (const friendId of approved) {
+        try {
+          await db.collection('users').doc(friendId).update({
+            approvedContacts: firebase.firestore.FieldValue.arrayRemove(childId)
+          });
+        } catch (e) {}
+      }
+    }
+    await db.collection('users').doc(childId).delete();
+  } catch (e) {}
+}
+
+function clearAllData() {
+  localStorage.clear();
+  sessionStorage.clear();
+  if ('caches' in window) {
+    caches.keys().then(keys => {
+      keys.forEach(key => caches.delete(key));
+    });
+  }
+  currentUser = null;
+  currentUserData = null;
+  parentAuthUser = null;
+  parentUserData = null;
+  if (unsubMessages) unsubMessages();
+}
+
 /* ============== LOGOUT ============== */
 async function logout() {
   try {
     await auth.signOut();
   } catch (e) {}
-  currentUser = null;
-  currentUserData = null;
-  localStorage.removeItem('zamis-child-code');
-  localStorage.removeItem('zamis-child-pin');
-  if (unsubMessages) unsubMessages();
+  clearAllData();
   showPage('loginPage');
 }
 
