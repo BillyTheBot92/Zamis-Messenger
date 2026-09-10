@@ -1031,7 +1031,10 @@ body {
   </div>
   <div class="header">
     <div class="header-row">
-      <span class="header-title">Messages</span>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span id="homeBtn" style="font-size:22px;cursor:pointer;display:none" onclick="goHome()">🏠</span>
+        <span class="header-title">Messages</span>
+      </div>
       <div style="display:flex;gap:12px">
         <span style="font-size:22px;cursor:pointer">🔍</span>
         <span style="font-size:22px;cursor:pointer" onclick="showToast('Bientôt disponible')">✏️</span>
@@ -1687,9 +1690,14 @@ async function loginAsChild(childId) {
   try {
     const doc = await db.collection('users').doc(childId).get();
     if (doc.exists) {
+      parentAuthUser = currentUser;
+      parentUserData = currentUserData;
+      isParentBrowsingChild = true;
       currentUserData = doc.data();
       currentUser = { uid: childId };
       hideLoading();
+      const homeBtn = document.getElementById('homeBtn');
+      if (homeBtn) homeBtn.style.display = 'inline';
       loadChildApp(currentUserData);
     }
   } catch (err) {
@@ -1733,7 +1741,6 @@ async function loadConversations() {
   try {
     const snap = await db.collection('conversations')
       .where('members', 'array-contains', currentUser.uid)
-      .orderBy('lastMessageAt', 'desc')
       .get();
 
     if (snap.empty) {
@@ -1742,7 +1749,12 @@ async function loadConversations() {
     }
 
     let html = '';
-    snap.forEach(doc => {
+    const docs = snap.docs.sort((a, b) => {
+      const ta = a.data().lastMessageAt ? a.data().lastMessageAt.toMillis() : 0;
+      const tb = b.data().lastMessageAt ? b.data().lastMessageAt.toMillis() : 0;
+      return tb - ta;
+    });
+    docs.forEach(doc => {
       const conv = doc.data();
       const otherId = conv.members.find(m => m !== currentUser.uid);
       const otherName = conv.memberNames ? (conv.memberNames[otherId] || 'Inconnu') : 'Inconnu';
@@ -2209,6 +2221,22 @@ async function rejectRequest(invId) {
     loadPendingRequests();
   } catch (err) {
     showToast('Erreur');
+  }
+}
+
+/* ============== GO HOME (PARENT) ============== */
+let isParentBrowsingChild = false;
+let parentUserData = null;
+let parentAuthUser = null;
+
+function goHome() {
+  if (parentAuthUser && parentUserData) {
+    isParentBrowsingChild = false;
+    currentUser = parentAuthUser;
+    currentUserData = parentUserData;
+    const homeBtn = document.getElementById('homeBtn');
+    if (homeBtn) homeBtn.style.display = 'none';
+    loadParentDashboard(parentAuthUser);
   }
 }
 
