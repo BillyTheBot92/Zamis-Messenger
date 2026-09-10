@@ -2333,10 +2333,18 @@ async function deleteChild(childId) {
 /* ============== DELETE ACCOUNT ============== */
 async function deleteAccount() {
   if (!confirm('Supprimer ton compte et TOUTES les données ?\n\n(Enfants, messages, contacts)\n\nCette action est irréversible.')) return;
-  if (!confirm('Dernière confirmation : tu es sûr ?')) return;
+
+  // Demander le mot de passe pour re-authentification
+  const pwd = prompt('Entre ton mot de passe pour confirmer la suppression :');
+  if (!pwd) return;
 
   showLoading();
   try {
+    // Re-authentifier avant suppression
+    const user = auth.currentUser;
+    const credential = firebase.auth.EmailAuthProvider.credential(user.email, pwd);
+    await user.reauthenticateWithCredential(credential);
+
     const uid = currentUser.uid;
     const userData = currentUserData;
 
@@ -2371,10 +2379,8 @@ async function deleteAccount() {
     // Supprimer le document user
     await db.collection('users').doc(uid).delete();
 
-    // Supprimer le compte Firebase Auth
-    try {
-      await auth.currentUser.delete();
-    } catch (e) {}
+    // Supprimer le compte Firebase Auth (après re-auth, ça marche)
+    await user.delete();
 
     // Nettoyer tout le local
     clearAllData();
@@ -2383,7 +2389,9 @@ async function deleteAccount() {
     showPage('loginPage');
   } catch (err) {
     hideLoading();
-    showToast('Erreur : ' + err.message);
+    let msg = 'Erreur : ' + err.message;
+    if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') msg = 'Mot de passe incorrect';
+    showToast(msg);
   }
 }
 
