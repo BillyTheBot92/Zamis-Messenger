@@ -725,18 +725,17 @@ body {
 
 /* Profile */
 .profile-content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-.profile-avatar-box { text-align: center; margin-bottom: 20px; }
+.profile-avatar-box { text-align: center; margin-bottom: 14px; }
 .profile-avatar {
-  width: 90px; height: 90px;
+  width: 64px; height: 64px;
   background: var(--primary-light);
   border: 3px solid var(--primary);
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 10px;
-  font-size: 40px;
+  margin: 0 auto 6px;
+  font-size: 30px;
 }
-.profile-name { font-size: 18px; font-weight: 600; }
-.profile-code { font-size: 12px; color: var(--text-secondary); }
+.profile-code { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
 .profile-info-box {
   background: var(--primary-light);
   border-radius: 14px;
@@ -914,17 +913,14 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
     <div id="parentLoginForm" style="width:100%">
       <div class="error-msg" id="loginError"></div>
       <div class="form-group">
-        <label class="form-label">Email</label>
-        <input class="form-input" type="email" id="loginEmail" placeholder="parent@email.com" autocomplete="email">
+        <label class="form-label">Pseudo ou code ami</label>
+        <input class="form-input" type="text" id="loginPseudo" placeholder="Mon pseudo" autocomplete="username">
       </div>
       <div class="form-group">
         <label class="form-label">Mot de passe</label>
         <input class="form-input" type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
       </div>
       <button class="btn btn-primary" onclick="loginParent()">Se connecter</button>
-      <div class="text-center mt-12">
-        <span class="link" onclick="showForgotPassword()">Mot de passe oublié ?</span>
-      </div>
       <div class="text-center mt-12">
         <span style="font-size:13px;color:var(--text-secondary)">Pas de compte ? </span>
         <span class="link-pink" onclick="showPage('registerPage')" style="cursor:pointer">S'inscrire</span>
@@ -967,12 +963,8 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
       <input class="form-input" type="text" id="registerPseudo" placeholder="Papa de Lucas" autocomplete="name">
     </div>
     <div class="form-group">
-      <label class="form-label">Email</label>
-      <input class="form-input" type="email" id="registerEmail" placeholder="parent@email.com" autocomplete="email">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Mot de passe</label>
-      <input class="form-input" type="password" id="registerPwd" placeholder="6 caractères min." autocomplete="new-password">
+      <label class="form-label">Mot de passe (6 caractères min.)</label>
+      <input class="form-input" type="password" id="registerPwd" placeholder="••••••••" autocomplete="new-password">
     </div>
     <div class="form-group">
       <label class="form-label">Confirmer le mot de passe</label>
@@ -1293,7 +1285,6 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
   <div class="profile-content">
     <div class="profile-avatar-box">
       <div class="profile-avatar" id="profileAvatarDisplay">😊</div>
-      <div class="profile-name" id="profileNameDisplay">---</div>
       <div class="profile-code" id="profileCodeDisplay">---</div>
     </div>
     <div class="profile-info-box">
@@ -1506,23 +1497,31 @@ function switchAuthTab(tab) {
 async function registerParent() {
   hideError('registerError');
   const pseudo = document.getElementById('registerPseudo').value.trim();
-  const email = document.getElementById('registerEmail').value.trim();
   const pwd = document.getElementById('registerPwd').value;
   const pwd2 = document.getElementById('registerPwd2').value;
 
   if (!pseudo) return showError('registerError', 'Entre ton pseudo');
-  if (!email) return showError('registerError', 'Entre ton email');
+  if (pseudo.length < 3) return showError('registerError', 'Le pseudo doit faire 3 caractères minimum');
   if (pwd.length < 6) return showError('registerError', 'Le mot de passe doit faire 6 caractères minimum');
   if (pwd !== pwd2) return showError('registerError', 'Les mots de passe ne correspondent pas');
 
+  // Check pseudo uniqueness
+  const pseudoCheck = await db.collection('users').where('pseudo', '==', pseudo).get();
+  if (!pseudoCheck.empty) return showError('registerError', 'Ce pseudo est déjà pris');
+
   showLoading();
   try {
-    const cred = await auth.createUserWithEmailAndPassword(email, pwd);
+    // Auto-generate internal email from pseudo
+    const cleanPseudo = pseudo.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+    const autoEmail = cleanPseudo + '.' + randomSuffix + '@zamis.app';
+
+    const cred = await auth.createUserWithEmailAndPassword(autoEmail, pwd);
     const friendCode = generateFriendCode(pseudo);
     await db.collection('users').doc(cred.user.uid).set({
       uid: cred.user.uid,
       pseudo: pseudo,
-      email: email,
+      internalEmail: autoEmail,
       role: 'parent',
       friendCode: friendCode,
       avatar: '😊',
@@ -1537,8 +1536,7 @@ async function registerParent() {
   } catch (err) {
     hideLoading();
     let msg = 'Erreur lors de l\'inscription';
-    if (err.code === 'auth/email-already-in-use') msg = 'Cet email est déjà utilisé';
-    if (err.code === 'auth/invalid-email') msg = 'Email invalide';
+    if (err.code === 'auth/email-already-in-use') msg = 'Réessaie avec un autre pseudo';
     showError('registerError', msg);
   }
 }
@@ -1546,27 +1544,42 @@ async function registerParent() {
 /* ============== LOGIN PARENT ============== */
 async function loginParent() {
   hideError('loginError');
-  const email = document.getElementById('loginEmail').value.trim();
+  const pseudoOrCode = document.getElementById('loginPseudo').value.trim();
   const pwd = document.getElementById('loginPassword').value;
 
-  if (!email || !pwd) return showError('loginError', 'Remplis tous les champs');
+  if (!pseudoOrCode || !pwd) return showError('loginError', 'Remplis tous les champs');
 
   showLoading();
   try {
-    const cred = await auth.signInWithEmailAndPassword(email, pwd);
+    // Find user by pseudo or friendCode
+    let userSnap = await db.collection('users').where('pseudo', '==', pseudoOrCode).get();
+    if (userSnap.empty) {
+      userSnap = await db.collection('users').where('friendCode', '==', pseudoOrCode.toLowerCase()).get();
+    }
+
+    if (userSnap.empty) {
+      hideLoading();
+      return showError('loginError', 'Pseudo introuvable');
+    }
+
+    const userData = userSnap.docs[0].data();
+    const internalEmail = userData.internalEmail;
+
+    if (!internalEmail) {
+      hideLoading();
+      return showError('loginError', 'Compte incompatible, recrée-le');
+    }
+
+    const cred = await auth.signInWithEmailAndPassword(internalEmail, pwd);
     hideLoading();
-    const doc = await db.collection('users').doc(cred.user.uid).get();
-    if (doc.exists && doc.data().role === 'parent') {
+    if (userData.role === 'parent') {
       loadParentDashboard(cred.user);
-    } else if (doc.exists && doc.data().role === 'child') {
-      loadChildApp(doc.data());
     } else {
-      showError('loginError', 'Compte introuvable');
+      loadChildApp(userData);
     }
   } catch (err) {
     hideLoading();
-    let msg = 'Email ou mot de passe incorrect';
-    if (err.code === 'auth/user-not-found') msg = 'Aucun compte avec cet email';
+    let msg = 'Pseudo ou mot de passe incorrect';
     if (err.code === 'auth/too-many-requests') msg = 'Trop de tentatives, réessaie plus tard';
     showError('loginError', msg);
   }
@@ -1610,18 +1623,6 @@ async function loginChild() {
   }
 }
 
-/* ============== FORGOT PASSWORD ============== */
-async function showForgotPassword() {
-  const email = document.getElementById('loginEmail').value.trim();
-  if (!email) return showToast('Entre ton email d\'abord');
-  try {
-    await auth.sendPasswordResetEmail(email);
-    showToast('Email de réinitialisation envoyé !');
-  } catch (err) {
-    showToast('Email introuvable');
-  }
-}
-
 /* ============== LOAD PARENT DASHBOARD ============== */
 async function loadParentDashboard(user) {
   currentUser = user;
@@ -1649,8 +1650,6 @@ async function loadParentDashboard(user) {
 }
 
 function updateProfileDisplay() {
-  const profileName = document.getElementById('profileNameDisplay');
-  if (profileName) profileName.textContent = currentUserData.pseudo || '---';
   const profileCode = document.getElementById('profileCodeDisplay');
   if (profileCode) profileCode.textContent = currentUserData.friendCode || '';
   const profilePseudo = document.getElementById('profilePseudoVal');
