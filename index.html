@@ -1092,14 +1092,14 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
     <div class="form-group">
       <label class="form-label">Couleur de l'avatar</label>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;" id="colorPicker">
-        <div class="color-dot" data-color="#FF6B9D" style="width:36px;height:36px;border-radius:50%;background:#FF6B9D;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#FFB347" style="width:36px;height:36px;border-radius:50%;background:#FFB347;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#5DCAA5" style="width:36px;height:36px;border-radius:50%;background:#5DCAA5;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#FF4081" style="width:36px;height:36px;border-radius:50%;background:#FF4081;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#FF9800" style="width:36px;height:36px;border-radius:50%;background:#FF9800;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#4CAF50" style="width:36px;height:36px;border-radius:50%;background:#4CAF50;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
         <div class="color-dot" data-color="#7C5CFC" style="width:36px;height:36px;border-radius:50%;background:#7C5CFC;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#85B7EB" style="width:36px;height:36px;border-radius:50%;background:#85B7EB;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#E57373" style="width:36px;height:36px;border-radius:50%;background:#E57373;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#FFD54F" style="width:36px;height:36px;border-radius:50%;background:#FFD54F;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#4DB6AC" style="width:36px;height:36px;border-radius:50%;background:#4DB6AC;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#2196F3" style="width:36px;height:36px;border-radius:50%;background:#2196F3;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#F44336" style="width:36px;height:36px;border-radius:50%;background:#F44336;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#FFEB3B" style="width:36px;height:36px;border-radius:50%;background:#FFEB3B;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#795548" style="width:36px;height:36px;border-radius:50%;background:#795548;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
       </div>
     </div>
     <button class="btn btn-primary mt-16" onclick="addChild()">Ajouter cet enfant</button>
@@ -1719,6 +1719,7 @@ async function loadParentDashboard(user) {
   isParentBrowsingChild = false;
   document.body.classList.add('parent-mode');
   document.body.classList.remove('child-mode');
+  if (unsubConversations) { unsubConversations(); unsubConversations = null; }
 
   const welcome = document.getElementById('parentWelcome');
   if (welcome) welcome.textContent = 'Bienvenue, ' + currentUserData.pseudo;
@@ -1762,7 +1763,7 @@ function showAddChildModal() {
   const fields = ['childNom', 'childPrenom', 'childPseudo', 'childBirth', 'childPinSetup'];
   fields.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   hideError('addChildError');
-  selectedChildColor = '#FF6B9D';
+  selectedChildColor = '#FF4081';
   document.querySelectorAll('.color-dot').forEach(d => {
     d.style.borderColor = 'transparent';
     d.style.boxShadow = 'none';
@@ -1771,7 +1772,7 @@ function showAddChildModal() {
   const first = document.querySelector('.color-dot');
   if (first) {
     first.style.borderColor = 'white';
-    first.style.boxShadow = '0 0 12px #FF6B9D';
+    first.style.boxShadow = '0 0 12px #FF4081';
     first.style.transform = 'scale(1.15)';
   }
 }
@@ -1934,6 +1935,7 @@ function loadChildApp(childData) {
   currentUser = { uid: childData.uid };
   document.body.classList.remove('parent-mode');
   document.body.classList.add('child-mode');
+  if (unsubConversations) { unsubConversations(); unsubConversations = null; }
 
   updateProfileDisplay();
 
@@ -1943,70 +1945,74 @@ function loadChildApp(childData) {
 }
 
 /* ============== LOAD CONVERSATIONS ============== */
-async function loadConversations() {
+let unsubConversations = null;
+
+function loadConversations() {
   if (!currentUser) return;
   const list = document.getElementById('messagesList');
   if (!list) return;
 
-  try {
-    const snap = await db.collection('conversations')
-      .where('members', 'array-contains', currentUser.uid)
-      .get();
+  // Unsubscribe previous listener
+  if (unsubConversations) unsubConversations();
 
-    if (snap.empty) {
-      list.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-text">Pas encore de messages</div></div>';
-      updateMessageBadge(0);
-      return;
-    }
+  unsubConversations = db.collection('conversations')
+    .where('members', 'array-contains', currentUser.uid)
+    .onSnapshot(snap => {
+      if (snap.empty) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-text">Pas encore de messages</div></div>';
+        updateMessageBadge(0);
+        return;
+      }
 
-    let html = '';
-    let totalUnread = 0;
-    const docs = snap.docs.sort((a, b) => {
-      const ta = a.data().lastMessageAt ? a.data().lastMessageAt.toMillis() : 0;
-      const tb = b.data().lastMessageAt ? b.data().lastMessageAt.toMillis() : 0;
-      return tb - ta;
-    });
-    docs.forEach(doc => {
-      const conv = doc.data();
-      const otherId = conv.members.find(m => m !== currentUser.uid);
-      const otherName = conv.memberNames ? (conv.memberNames[otherId] || 'Inconnu') : 'Inconnu';
-      const otherColor = conv.memberColors ? (conv.memberColors[otherId] || '#7C5CFC') : '#7C5CFC';
-      const initial = otherName.charAt(0).toUpperCase();
-      const time = conv.lastMessageAt ? new Date(conv.lastMessageAt.toDate()).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : '';
-      const preview = conv.lastMessage || '';
+      let html = '';
+      let totalUnread = 0;
+      const docs = snap.docs.sort((a, b) => {
+        const ta = a.data().lastMessageAt ? a.data().lastMessageAt.toMillis() : 0;
+        const tb = b.data().lastMessageAt ? b.data().lastMessageAt.toMillis() : 0;
+        return tb - ta;
+      });
+      docs.forEach(doc => {
+        const conv = doc.data();
+        const otherId = conv.members.find(m => m !== currentUser.uid);
+        const otherName = conv.memberNames ? (conv.memberNames[otherId] || 'Inconnu') : 'Inconnu';
+        const otherColor = conv.memberColors ? (conv.memberColors[otherId] || '#7C5CFC') : '#7C5CFC';
+        const initial = otherName.charAt(0).toUpperCase();
+        const time = conv.lastMessageAt ? new Date(conv.lastMessageAt.toDate()).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : '';
+        const preview = conv.lastMessage || '';
 
-      // Unread count
-      const lastReadBy = conv.lastReadBy || {};
-      const myLastRead = lastReadBy[currentUser.uid] ? lastReadBy[currentUser.uid].toMillis() : 0;
-      const lastMsgTime = conv.lastMessageAt ? conv.lastMessageAt.toMillis() : 0;
-      const lastSenderId = conv.lastSenderId || '';
-      const unread = (lastMsgTime > myLastRead && lastSenderId !== currentUser.uid) ? (conv.unreadCount && conv.unreadCount[currentUser.uid] ? conv.unreadCount[currentUser.uid] : 1) : 0;
-      totalUnread += unread;
+        // Unread count
+        const lastReadBy = conv.lastReadBy || {};
+        const myLastRead = lastReadBy[currentUser.uid] ? lastReadBy[currentUser.uid].toMillis() : 0;
+        const lastMsgTime = conv.lastMessageAt ? conv.lastMessageAt.toMillis() : 0;
+        const lastSenderId = conv.lastSenderId || '';
+        const isUnread = (lastMsgTime > myLastRead && lastSenderId !== currentUser.uid);
+        if (isUnread) totalUnread++;
 
-      const badgeHtml = unread > 0 ? `<div class="message-badge">${unread}</div>` : '';
-      const unreadStyle = unread > 0 ? 'background:var(--primary-light);' : '';
+        const badgeHtml = isUnread ? '<div class="message-badge">●</div>' : '';
+        const unreadStyle = isUnread ? 'background:var(--primary-light);' : '';
 
-      html += `
-        <div class="message-item" style="${unreadStyle}" onclick="openConversation('${doc.id}', '${otherName}', '${otherColor}')">
-          <div class="message-avatar" style="background:${otherColor}">
-            ${initial}
-          </div>
-          <div class="message-content">
-            <div class="message-header">
-              <span class="message-name" ${unread > 0 ? 'style="font-weight:700"' : ''}>${otherName}</span>
-              <span class="message-time">${time}</span>
+        const safeName = otherName.replace(/'/g, "\\'");
+        html += `
+          <div class="message-item" style="${unreadStyle}" onclick="openConversation('${doc.id}', '${safeName}', '${otherColor}')">
+            <div class="message-avatar" style="background:${otherColor}">
+              ${initial}
             </div>
-            <div class="message-preview" ${unread > 0 ? 'style="color:var(--text);font-weight:500"' : ''}>${preview}</div>
-          </div>
-          ${badgeHtml}
-        </div>`;
-    });
+            <div class="message-content">
+              <div class="message-header">
+                <span class="message-name" ${isUnread ? 'style="font-weight:700"' : ''}>${otherName}</span>
+                <span class="message-time">${time}</span>
+              </div>
+              <div class="message-preview" ${isUnread ? 'style="color:var(--text);font-weight:500"' : ''}>${preview}</div>
+            </div>
+            ${badgeHtml}
+          </div>`;
+      });
 
-    list.innerHTML = html;
-    updateMessageBadge(totalUnread);
-  } catch (err) {
-    list.innerHTML = '<div class="empty-state"><div class="empty-text">Erreur de chargement</div></div>';
-  }
+      list.innerHTML = html;
+      updateMessageBadge(totalUnread);
+    }, err => {
+      list.innerHTML = '<div class="empty-state"><div class="empty-text">Erreur de chargement</div></div>';
+    });
 }
 
 function updateMessageBadge(count) {
@@ -2022,11 +2028,11 @@ function updateMessageBadge(count) {
 
 /* ============== BACK TO MESSAGES ============== */
 function backToMessages() {
-  if (unsubMessages) unsubMessages();
-  unsubMessages = null;
+  if (unsubMessages) { unsubMessages(); unsubMessages = null; }
   currentConvId = null;
   switchTab('messagesPage');
-  loadConversations();
+  // Conversations list auto-updates via onSnapshot, but reload if listener died
+  if (!unsubConversations) loadConversations();
 }
 
 /* ============== PARENT WRITE MESSAGE ============== */
@@ -2829,6 +2835,8 @@ function clearAllData() {
   localStorage.clear();
   sessionStorage.clear();
   document.body.classList.remove('parent-mode', 'child-mode');
+  if (unsubConversations) { unsubConversations(); unsubConversations = null; }
+  if (unsubMessages) { unsubMessages(); unsubMessages = null; }
   if ('caches' in window) {
     caches.keys().then(keys => {
       keys.forEach(key => caches.delete(key));
