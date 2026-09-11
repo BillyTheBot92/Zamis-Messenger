@@ -75,13 +75,14 @@ body {
 /* Status bar */
 .statusbar {
   background: var(--primary);
-  padding: 8px 16px;
+  padding: 6px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 12px;
-  color: white;
+  font-size: 11px;
+  color: rgba(255,255,255,0.8);
 }
+.statusbar-brand { font-weight: 600; color: white; font-size: 12px; }
 
 /* Header */
 .header {
@@ -391,12 +392,14 @@ body {
 .modal {
   background: var(--bg);
   border-radius: 20px;
-  padding: 24px;
+  padding: 18px;
   width: 100%;
   max-width: 360px;
-  max-height: 80vh;
+  max-height: 90vh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
+.modal .form-group { margin-bottom: 10px; }
 .modal-title {
   font-size: 18px;
   font-weight: 600;
@@ -883,6 +886,14 @@ body.parent-mode .profile-info-value { color: #5DCAA5; }
 body.parent-mode .my-code-value { color: #5DCAA5; }
 body.parent-mode .btn-primary { background: #0F6E56; }
 body.parent-mode .toggle.active { background: #5DCAA5; }
+
+/* Child theme - uses CSS variable set from JS */
+body.child-mode .header { background: var(--child-color, #7C5CFC); }
+body.child-mode .statusbar { background: var(--child-color-dark, #5A3FD6); }
+body.child-mode .conv-header { background: var(--child-color, #7C5CFC); }
+body.child-mode .nav-item.active { color: var(--child-color, #7C5CFC); }
+body.child-mode .bubble-out { background: var(--child-color, #7C5CFC); }
+body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
 </style>
 </head>
 <body>
@@ -907,7 +918,7 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
 <!-- ===================== LOGIN ===================== -->
 <div class="page" id="loginPage">
   <div class="statusbar">
-    <span id="clockLogin"></span>
+    <span class="statusbar-brand">Zamis</span><span class="statusbar-date"></span>
   </div>
   <div class="auth-container">
     <div class="auth-logo"><span>Z</span></div>
@@ -961,7 +972,7 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
 <!-- ===================== REGISTER ===================== -->
 <div class="page" id="registerPage">
   <div class="statusbar">
-    <span id="clockRegister"></span>
+    <span class="statusbar-brand">Zamis</span><span class="statusbar-date"></span>
   </div>
   <div class="header">
     <div class="header-row">
@@ -1014,7 +1025,7 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
 <!-- ===================== PARENT DASHBOARD ===================== -->
 <div class="page" id="parentDashboard">
   <div class="statusbar" style="background:#1A1A2E">
-    <span id="clockDashboard"></span>
+    <span class="statusbar-brand">Zamis</span><span class="statusbar-date"></span>
   </div>
   <div class="header parent-header">
     <div style="display:flex;align-items:center;justify-content:space-between">
@@ -1047,7 +1058,7 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
         <div class="quick-action-icon">💬</div>
         <div class="quick-action-text">Écrire</div>
       </button>
-      <button class="quick-action" onclick="showToast('Bientôt disponible')">
+      <button class="quick-action" onclick="showCreateGroupModal()">
         <div class="quick-action-icon">👥</div>
         <div class="quick-action-text">Groupe</div>
       </button>
@@ -1060,6 +1071,58 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
 </div>
 
 <!-- ===================== PARENTAL CODE MODAL ===================== -->
+<!-- ===================== CREATE GROUP MODAL ===================== -->
+<div class="modal-overlay" id="createGroupModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('createGroupModal')">×</button>
+    <div class="modal-title">Créer un groupe</div>
+    <div class="form-group">
+      <label class="form-label">Nom du groupe</label>
+      <input class="form-input" type="text" id="groupName" placeholder="Famille, Copains foot..." maxlength="30">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ajouter des membres</label>
+      <div id="groupMembersList" style="max-height:200px;overflow-y:auto"></div>
+    </div>
+    <button class="btn btn-primary mt-16" onclick="createGroup()">Créer le groupe</button>
+  </div>
+</div>
+
+<!-- ===================== ABOUT MODAL ===================== -->
+<div class="modal-overlay" id="aboutModal">
+  <div class="modal" style="text-align:center">
+    <button class="modal-close" onclick="closeModal('aboutModal')">×</button>
+    <div style="font-size:48px;margin-bottom:8px">💬</div>
+    <div style="font-size:20px;font-weight:700;margin-bottom:4px">Zamis Messenger</div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">Version 1.0.0</div>
+    <div style="background:var(--bg-secondary);border-radius:12px;padding:14px;text-align:left;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--primary)">📋 Informations</div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:1.6">
+        Messagerie sécurisée pour les enfants avec contrôle parental intégré.
+      </div>
+    </div>
+    <div style="background:var(--bg-secondary);border-radius:12px;padding:14px;text-align:left;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--primary)">👤 Créateur</div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:1.6">
+        Alexandre Lavrard<br>
+        © 2026 Tous droits réservés
+      </div>
+    </div>
+    <div style="background:var(--bg-secondary);border-radius:12px;padding:14px;text-align:left;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--primary)">🤖 Développement</div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:1.6">
+        Développé avec l'aide de Claude (Anthropic)
+      </div>
+    </div>
+    <div style="background:var(--bg-secondary);border-radius:12px;padding:14px;text-align:left">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--primary)">📜 Mentions légales</div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:1.6">
+        Cette application est destinée aux enfants de moins de 18 ans sous la responsabilité de leurs parents. Aucune donnée n'est partagée avec des tiers. Les messages sont stockés de manière sécurisée sur Firebase (Google Cloud).
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ===================== ADD CHILD MODAL ===================== -->
 <div class="modal-overlay" id="addChildModal">
   <div class="modal">
@@ -1090,16 +1153,13 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Couleur de l'avatar</label>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;" id="colorPicker">
-        <div class="color-dot" data-color="#FF4081" style="width:36px;height:36px;border-radius:50%;background:#FF4081;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#FF9800" style="width:36px;height:36px;border-radius:50%;background:#FF9800;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#4CAF50" style="width:36px;height:36px;border-radius:50%;background:#4CAF50;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#7C5CFC" style="width:36px;height:36px;border-radius:50%;background:#7C5CFC;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#2196F3" style="width:36px;height:36px;border-radius:50%;background:#2196F3;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#F44336" style="width:36px;height:36px;border-radius:50%;background:#F44336;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#FFEB3B" style="width:36px;height:36px;border-radius:50%;background:#FFEB3B;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#795548" style="width:36px;height:36px;border-radius:50%;background:#795548;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
+      <label class="form-label">Couleur</label>
+      <div style="display:flex;gap:10px;margin-top:6px;" id="colorPicker">
+        <div class="color-dot" data-color="#FF4081" style="width:32px;height:32px;border-radius:50%;background:#FF4081;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#FF9800" style="width:32px;height:32px;border-radius:50%;background:#FF9800;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#4CAF50" style="width:32px;height:32px;border-radius:50%;background:#4CAF50;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#7C5CFC" style="width:32px;height:32px;border-radius:50%;background:#7C5CFC;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#2196F3" style="width:32px;height:32px;border-radius:50%;background:#2196F3;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
       </div>
     </div>
     <button class="btn btn-primary mt-16" onclick="addChild()">Ajouter cet enfant</button>
@@ -1109,7 +1169,7 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
 <!-- ===================== MESSAGES ===================== -->
 <div class="page" id="messagesPage">
   <div class="statusbar">
-    <span id="clockMessages"></span>
+    <span class="statusbar-brand">Zamis</span><span class="statusbar-date"></span>
   </div>
   <div class="header">
     <div class="header-row">
@@ -1119,7 +1179,7 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
       </div>
       <div style="display:flex;gap:12px">
         <span style="font-size:22px;cursor:pointer">🔍</span>
-        <span style="font-size:22px;cursor:pointer" onclick="showToast('Bientôt disponible')">✏️</span>
+        <span style="font-size:22px;cursor:pointer" onclick="switchTab('contactsPage')">✏️</span>
       </div>
     </div>
   </div>
@@ -1156,15 +1216,21 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
 <!-- ===================== CONVERSATION ===================== -->
 <div class="page" id="conversationPage">
   <div class="statusbar">
-    <span id="clockConv"></span>
+    <span class="statusbar-brand">Zamis</span><span class="statusbar-date"></span>
   </div>
   <div class="conv-header">
     <button class="header-back" onclick="backToMessages()">←</button>
     <div class="conv-avatar" id="convAvatar" style="background:var(--orange)">T</div>
-    <div>
+    <div style="flex:1">
       <div class="conv-name" id="convName">Contact</div>
       <div class="conv-status" id="convStatus">En ligne</div>
     </div>
+    <span style="font-size:20px;cursor:pointer;color:white;padding:4px 8px" onclick="showConvMenu()">⋮</span>
+  </div>
+  <!-- Conv menu -->
+  <div id="convMenu" style="display:none;position:absolute;right:8px;top:80px;background:var(--bg);border-radius:12px;box-shadow:0 4px 20px var(--shadow);z-index:50;min-width:180px;overflow:hidden">
+    <div style="padding:12px 16px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border)" onclick="deleteConversation(currentConvId)">🗑️ Supprimer la conversation</div>
+    <div style="padding:12px 16px;cursor:pointer;font-size:13px;color:var(--red)" id="convBlockBtn" onclick="blockFromConv()">🚫 Bloquer ce contact</div>
   </div>
   <div class="conv-messages" id="convMessages"></div>
   <div class="sticker-panel" id="stickerPanel">
@@ -1195,6 +1261,9 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
     <button class="recording-cancel" onclick="cancelRecording()">✕</button>
     <button class="recording-send" onclick="stopAndSendRecording()">➤</button>
   </div>
+  <div id="readOnlyBar" style="display:none;background:var(--bg-secondary);padding:12px 16px;text-align:center;font-size:13px;color:var(--text-secondary);border-top:1px solid var(--border);flex-shrink:0">
+    🔒 Lecture seule — espace parent
+  </div>
   <div class="chat-input-bar" id="chatInputBar">
     <button onclick="toggleStickers()" id="stickerBtn">😊</button>
     <input class="chat-input" type="text" id="chatInput" placeholder="Écrire un message..." onkeydown="if(event.key==='Enter')sendMessage()">
@@ -1205,7 +1274,7 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
 
 <!-- ===================== CONTACTS ===================== -->
 <div class="page" id="contactsPage">
-  <div class="statusbar"><span id="clockContacts"></span></div>
+  <div class="statusbar"><span class="statusbar-brand">Zamis</span><span class="statusbar-date"></span></div>
   <div class="header">
     <div class="header-row">
       <div style="display:flex;align-items:center;gap:10px">
@@ -1236,7 +1305,7 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
 
 <!-- ===================== INVITE ===================== -->
 <div class="page" id="invitePage">
-  <div class="statusbar"><span id="clockInvite"></span></div>
+  <div class="statusbar"><span class="statusbar-brand">Zamis</span><span class="statusbar-date"></span></div>
   <div class="header">
     <div style="display:flex;align-items:center;gap:10px">
       <span class="home-btn" style="font-size:22px;cursor:pointer;display:none" onclick="goHome()">🏠</span>
@@ -1244,14 +1313,14 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
     </div>
   </div>
   <div class="invite-content">
-    <div style="text-align:center;margin-bottom:20px">
-      <div class="invite-icon-box">👋</div>
+    <div style="text-align:center;margin-bottom:16px">
       <div style="font-size:16px;font-weight:500">Invite tes amis !</div>
-      <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">Partage ton code ou entre celui de ton ami</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">Partage ton code, scanne ou entre celui de ton ami</div>
     </div>
     <div class="my-code-box">
       <div class="my-code-label">Mon code ami</div>
       <div class="my-code-value" id="myFriendCode">---</div>
+      <div id="qrCodeContainer" style="margin:10px auto 0;width:120px;height:120px"></div>
     </div>
     <div class="form-group">
       <label class="form-label">Code ami</label>
@@ -1260,14 +1329,20 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
         <button class="btn btn-pink" style="width:auto;padding:12px 20px" onclick="sendFriendRequest()">Inviter</button>
       </div>
     </div>
-    <div style="text-align:center;font-size:13px;color:var(--text-secondary);margin:12px 0">ou</div>
-    <button class="invite-option" onclick="shareCode()">
-      <div class="invite-option-icon">📤</div>
-      <div>
-        <div style="font-size:13px;font-weight:500">Partager mon code</div>
-        <div style="font-size:11px;color:var(--text-secondary)">Envoie ton code par SMS ou autre</div>
-      </div>
-    </button>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="invite-option" onclick="scanQRCode()" style="flex:1">
+        <div class="invite-option-icon">📷</div>
+        <div>
+          <div style="font-size:12px;font-weight:500">Scanner</div>
+        </div>
+      </button>
+      <button class="invite-option" onclick="shareCode()" style="flex:1">
+        <div class="invite-option-icon">📤</div>
+        <div>
+          <div style="font-size:12px;font-weight:500">Partager</div>
+        </div>
+      </button>
+    </div>
   </div>
   <div class="bottom-nav">
     <button class="nav-item" onclick="switchTab('messagesPage')"><span class="nav-icon" style="position:relative">💬<span class="msg-badge" style="display:none;position:absolute;top:-6px;right:-10px;background:#FF6B9D;color:white;font-size:9px;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px">0</span></span><span class="nav-label">Messages</span></button>
@@ -1280,7 +1355,7 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
 
 <!-- ===================== AVATAR ===================== -->
 <div class="page" id="avatarPage">
-  <div class="statusbar"><span id="clockAvatar"></span></div>
+  <div class="statusbar"><span class="statusbar-brand">Zamis</span><span class="statusbar-date"></span></div>
   <div class="header">
     <div class="header-row">
       <div style="display:flex;align-items:center;gap:10px">
@@ -1325,7 +1400,7 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
 
 <!-- ===================== PROFILE ===================== -->
 <div class="page" id="profilePage">
-  <div class="statusbar"><span id="clockProfile"></span></div>
+  <div class="statusbar"><span class="statusbar-brand">Zamis</span><span class="statusbar-date"></span></div>
   <div class="header">
     <div style="display:flex;align-items:center;gap:10px">
       <span class="home-btn" style="font-size:22px;cursor:pointer;display:none" onclick="goHome()">🏠</span>
@@ -1370,7 +1445,7 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
           <div class="toggle-knob"></div>
         </button>
       </div>
-      <div class="settings-item" onclick="showToast('Zamis Messenger v1.0.0')">
+      <div class="settings-item" onclick="openModal('aboutModal')">
         <div class="settings-item-left">
           <span class="settings-icon">ℹ️</span>
           <span>À propos</span>
@@ -1404,6 +1479,7 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
 const ZAMIS_VERSION = '1.0.0';
@@ -1498,10 +1574,11 @@ function generateFriendCode(pseudo) {
 
 function updateClocks() {
   const now = new Date();
-  const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  document.querySelectorAll('[id^="clock"]').forEach(el => { el.textContent = time; });
+  const days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+  const dateStr = days[now.getDay()] + ' ' + now.getDate() + '/' + String(now.getMonth() + 1).padStart(2, '0');
+  document.querySelectorAll('.statusbar-date').forEach(el => { el.textContent = dateStr; });
 }
-setInterval(updateClocks, 30000);
+setInterval(updateClocks, 60000);
 updateClocks();
 
 /* ============== PASSWORD TOGGLE ============== */
@@ -1726,6 +1803,7 @@ async function loadParentDashboard(user) {
 
   // Populate profile for parent
   updateProfileDisplay();
+  setTimeout(generateQRCode, 500);
 
   // Hide home buttons on dashboard
   document.querySelectorAll('.home-btn').forEach(b => b.style.display = 'none');
@@ -1773,7 +1851,7 @@ function showAddChildModal() {
   if (first) {
     first.style.borderColor = 'white';
     first.style.boxShadow = '0 0 12px #FF4081';
-    first.style.transform = 'scale(1.15)';
+    first.style.transform = 'scale(1.2)';
   }
 }
 
@@ -1786,7 +1864,7 @@ function selectColor(el) {
   selectedChildColor = el.getAttribute('data-color');
   el.style.borderColor = 'white';
   el.style.boxShadow = '0 0 12px ' + selectedChildColor;
-  el.style.transform = 'scale(1.15)';
+  el.style.transform = 'scale(1.2)';
 }
 
 async function addChild() {
@@ -1937,7 +2015,13 @@ function loadChildApp(childData) {
   document.body.classList.add('child-mode');
   if (unsubConversations) { unsubConversations(); unsubConversations = null; }
 
+  // Apply child's avatar color to headers
+  const childColor = childData.avatarColor || '#7C5CFC';
+  document.documentElement.style.setProperty('--child-color', childColor);
+  document.documentElement.style.setProperty('--child-color-dark', childColor + 'CC');
+
   updateProfileDisplay();
+  setTimeout(generateQRCode, 500);
 
   showPage('messagesPage');
   loadConversations();
@@ -1973,10 +2057,20 @@ function loadConversations() {
       });
       docs.forEach(doc => {
         const conv = doc.data();
-        const otherId = conv.members.find(m => m !== currentUser.uid);
-        const otherName = conv.memberNames ? (conv.memberNames[otherId] || 'Inconnu') : 'Inconnu';
-        const otherColor = conv.memberColors ? (conv.memberColors[otherId] || '#7C5CFC') : '#7C5CFC';
-        const initial = otherName.charAt(0).toUpperCase();
+        const isGroup = conv.type === 'group';
+        let displayName, displayColor, initial;
+
+        if (isGroup) {
+          displayName = conv.groupName || 'Groupe';
+          displayColor = '#7C5CFC';
+          initial = '👥';
+        } else {
+          const otherId = conv.members.find(m => m !== currentUser.uid);
+          displayName = conv.memberNames ? (conv.memberNames[otherId] || 'Inconnu') : 'Inconnu';
+          displayColor = conv.memberColors ? (conv.memberColors[otherId] || '#7C5CFC') : '#7C5CFC';
+          initial = displayName.charAt(0).toUpperCase();
+        }
+
         const time = conv.lastMessageAt ? new Date(conv.lastMessageAt.toDate()).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : '';
         const preview = conv.lastMessage || '';
 
@@ -1992,15 +2086,15 @@ function loadConversations() {
         const badgeHtml = unreadNum > 0 ? `<div class="message-badge">${unreadNum}</div>` : '';
         const unreadStyle = unreadNum > 0 ? 'background:var(--primary-light);' : '';
 
-        const safeName = otherName.replace(/'/g, "\\'");
+        const safeName = displayName.replace(/'/g, "\\'");
         html += `
-          <div class="message-item" style="${unreadStyle}" onclick="openConversation('${doc.id}', '${safeName}', '${otherColor}')">
-            <div class="message-avatar" style="background:${otherColor}">
+          <div class="message-item" style="${unreadStyle}" onclick="openConversation('${doc.id}', '${safeName}', '${displayColor}')">
+            <div class="message-avatar" style="background:${displayColor}">
               ${initial}
             </div>
             <div class="message-content">
               <div class="message-header">
-                <span class="message-name" ${isUnread ? 'style="font-weight:700"' : ''}>${otherName}</span>
+                <span class="message-name" ${isUnread ? 'style="font-weight:700"' : ''}>${displayName}</span>
                 <span class="message-time">${time}</span>
               </div>
               <div class="message-preview" ${isUnread ? 'style="color:var(--text);font-weight:500"' : ''}>${preview}</div>
@@ -2031,9 +2125,35 @@ function updateMessageBadge(count) {
 function backToMessages() {
   if (unsubMessages) { unsubMessages(); unsubMessages = null; }
   currentConvId = null;
+  hideConvMenu();
   switchTab('messagesPage');
-  // Conversations list auto-updates via onSnapshot, but reload if listener died
   if (!unsubConversations) loadConversations();
+}
+
+function showConvMenu() {
+  const menu = document.getElementById('convMenu');
+  if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+function hideConvMenu() {
+  const menu = document.getElementById('convMenu');
+  if (menu) menu.style.display = 'none';
+}
+
+async function blockFromConv() {
+  hideConvMenu();
+  if (!currentConvId) return;
+  try {
+    const convDoc = await db.collection('conversations').doc(currentConvId).get();
+    if (!convDoc.exists) return;
+    const conv = convDoc.data();
+    if (conv.type === 'group') return showToast('Utilise les paramètres du groupe');
+    const otherId = conv.members.find(m => m !== currentUser.uid);
+    const otherName = conv.memberNames ? (conv.memberNames[otherId] || 'Inconnu') : 'Inconnu';
+    blockUser(otherId, otherName);
+  } catch (e) {
+    showToast('Erreur');
+  }
 }
 
 /* ============== PARENT WRITE MESSAGE ============== */
@@ -2071,14 +2191,41 @@ async function openConvWith(contactId, contactName, contactColor) {
 }
 
 /* ============== OPEN CONVERSATION ============== */
-function openConversation(convId, name, color) {
+async function openConversation(convId, name, color) {
   currentConvId = convId;
   const nameEl = document.getElementById('convName');
   if (nameEl) nameEl.textContent = name;
   const avatarEl = document.getElementById('convAvatar');
   if (avatarEl) {
     avatarEl.style.background = color;
+    const isGroup = name === 'Groupe' || color === '#7C5CFC';
     avatarEl.textContent = name.charAt(0).toUpperCase();
+  }
+
+  // Check if parent is in read-only mode (browsing child's group)
+  const chatInputBar = document.getElementById('chatInputBar');
+  const readOnlyBar = document.getElementById('readOnlyBar');
+
+  if (isParentBrowsingChild) {
+    // Get conversation to check if it's a group created by someone else
+    try {
+      const convDoc = await db.collection('conversations').doc(convId).get();
+      const conv = convDoc.data();
+      if (conv && conv.type === 'group' && conv.createdBy !== currentUser.uid) {
+        // Parent viewing child's group = read only
+        if (chatInputBar) chatInputBar.style.display = 'none';
+        if (readOnlyBar) readOnlyBar.style.display = 'flex';
+      } else {
+        if (chatInputBar) chatInputBar.style.display = 'flex';
+        if (readOnlyBar) readOnlyBar.style.display = 'none';
+      }
+    } catch (e) {
+      if (chatInputBar) chatInputBar.style.display = 'flex';
+      if (readOnlyBar) readOnlyBar.style.display = 'none';
+    }
+  } else {
+    if (chatInputBar) chatInputBar.style.display = 'flex';
+    if (readOnlyBar) readOnlyBar.style.display = 'none';
   }
 
   // Mark as read + reset unread count
@@ -2100,17 +2247,25 @@ function loadMessages(convId) {
 
   if (unsubMessages) unsubMessages();
 
+  // Listen to conversation doc for read status
+  let convData = null;
+  const unsubConv = db.collection('conversations').doc(convId).onSnapshot(doc => {
+    if (doc.exists) convData = doc.data();
+  });
+
   unsubMessages = db.collection('conversations').doc(convId)
     .collection('messages')
     .orderBy('createdAt', 'asc')
     .onSnapshot(snap => {
       let html = '';
       let lastDate = '';
+      let hasNewFromOther = false;
 
       snap.forEach(doc => {
         const msg = doc.data();
         const isMe = msg.senderId === currentUser.uid;
         const isSystem = msg.senderId === 'system';
+        if (!isMe && !isSystem) hasNewFromOther = true;
         const time = msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
         const date = msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleDateString('fr-FR') : '';
 
@@ -2119,13 +2274,37 @@ function loadMessages(convId) {
           lastDate = date;
         }
 
+        // Pseudo above received bubbles
+        const pseudoHtml = (!isMe && !isSystem && msg.senderPseudo) ? `<div class="bubble-pseudo" style="font-size:11px;font-weight:600;color:var(--primary);margin-bottom:2px;padding-left:4px">${msg.senderPseudo}</div>` : '';
+
+        // Bubble color for my messages (accusé de réception)
+        let bubbleClass = isMe ? 'bubble-out' : 'bubble-in';
+        let bubbleStyle = '';
+        if (isMe && msg.createdAt && convData) {
+          const msgTime = msg.createdAt.toMillis();
+          const otherMembers = (convData.members || []).filter(m => m !== currentUser.uid);
+          let isRead = false;
+          let isDelivered = true; // if in Firestore, it's delivered
+          for (const m of otherMembers) {
+            const readTime = convData.lastReadBy && convData.lastReadBy[m] ? convData.lastReadBy[m].toMillis() : 0;
+            if (readTime >= msgTime) isRead = true;
+          }
+          if (isRead) {
+            bubbleStyle = 'background:#4CAF50;'; // green = read
+          } else if (isDelivered) {
+            bubbleStyle = 'background:linear-gradient(135deg, #9E9E9E 0%, #4CAF50 100%);'; // gradient = delivered
+          } else {
+            bubbleStyle = 'background:#9E9E9E;'; // grey = sent
+          }
+        }
+
         if (isSystem) {
           html += `<div class="conv-date" style="background:var(--primary-light);padding:8px 12px;border-radius:10px;font-size:12px">${msg.content}</div>`;
         } else if (msg.type === 'sticker') {
-          html += `<div class="bubble ${isMe ? 'bubble-out' : 'bubble-in'}" style="background:transparent;font-size:40px;padding:4px">${msg.content}<div class="bubble-time">${time}</div></div>`;
+          html += `${pseudoHtml}<div class="bubble ${bubbleClass}" style="background:transparent;font-size:40px;padding:4px;${isMe ? bubbleStyle : ''}">${msg.content}<div class="bubble-time">${time}</div></div>`;
         } else if (msg.type === 'audio') {
-          html += `
-            <div class="bubble ${isMe ? 'bubble-out' : 'bubble-in'}">
+          html += `${pseudoHtml}
+            <div class="bubble ${bubbleClass}" ${isMe ? `style="${bubbleStyle}"` : ''}>
               <div class="bubble-audio">
                 <button class="audio-play" onclick="playAudio(this, '${msg.content}')">▶</button>
                 <div class="audio-bar"><div class="audio-bar-fill"></div></div>
@@ -2134,8 +2313,8 @@ function loadMessages(convId) {
               <div class="bubble-time">${time}</div>
             </div>`;
         } else {
-          html += `
-            <div class="bubble ${isMe ? 'bubble-out' : 'bubble-in'}">
+          html += `${pseudoHtml}
+            <div class="bubble ${bubbleClass}" ${isMe ? `style="${bubbleStyle}"` : ''}>
               ${msg.content}
               <div class="bubble-time">${time}</div>
             </div>`;
@@ -2144,7 +2323,19 @@ function loadMessages(convId) {
 
       container.innerHTML = html;
       container.scrollTop = container.scrollHeight;
+
+      // Auto mark as read while conversation is open
+      if (hasNewFromOther && currentUser && currentConvId === convId) {
+        const updateData = {};
+        updateData['lastReadBy.' + currentUser.uid] = firebase.firestore.FieldValue.serverTimestamp();
+        updateData['unreadCount.' + currentUser.uid] = 0;
+        db.collection('conversations').doc(convId).update(updateData).catch(() => {});
+      }
     });
+
+  // Store both unsubs
+  const originalUnsub = unsubMessages;
+  unsubMessages = () => { originalUnsub(); unsubConv(); };
 }
 
 /* ============== SEND MESSAGE ============== */
@@ -2520,7 +2711,267 @@ function shareCode() {
   if (navigator.share) {
     navigator.share({ title: 'Zamis Messenger', text: 'Ajoute-moi sur Zamis Messenger ! Mon code : ' + code });
   } else {
-    copyCode();
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(code).then(() => showToast('Code copié !'));
+    } else {
+      showToast(code);
+    }
+  }
+}
+
+function generateQRCode() {
+  const container = document.getElementById('qrCodeContainer');
+  if (!container || !currentUserData) return;
+  container.innerHTML = '';
+  try {
+    new QRCode(container, {
+      text: currentUserData.friendCode || '',
+      width: 120,
+      height: 120,
+      colorDark: '#333333',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } catch (e) {}
+}
+
+async function scanQRCode() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay active';
+    modal.id = 'qrScanModal';
+    modal.innerHTML = `
+      <div class="modal" style="padding:16px;text-align:center">
+        <button class="modal-close" onclick="closeScanModal()">×</button>
+        <div class="modal-title">Scanner un QR code</div>
+        <video id="qrVideo" style="width:100%;max-width:280px;border-radius:12px;margin-bottom:12px" autoplay playsinline></video>
+        <canvas id="qrCanvas" style="display:none"></canvas>
+        <div style="font-size:12px;color:var(--text-secondary)">Place le QR code devant la caméra</div>
+      </div>`;
+    document.body.appendChild(modal);
+    const video = document.getElementById('qrVideo');
+    video.srcObject = stream;
+    video.play();
+    scanQRLoop(video, stream);
+  } catch (err) {
+    showToast('Caméra non disponible');
+  }
+}
+
+function scanQRLoop(video, stream) {
+  const canvas = document.getElementById('qrCanvas');
+  if (!canvas || !document.getElementById('qrScanModal')) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = video.videoWidth || 320;
+  canvas.height = video.videoHeight || 240;
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  // Simple detection: look for code pattern in image data
+  // For now, use prompt fallback since jsQR is not loaded
+  requestAnimationFrame(() => scanQRLoop(video, stream));
+}
+
+function closeScanModal() {
+  const modal = document.getElementById('qrScanModal');
+  if (modal) {
+    const video = modal.querySelector('video');
+    if (video && video.srcObject) {
+      video.srcObject.getTracks().forEach(t => t.stop());
+    }
+    modal.remove();
+  }
+}
+
+/* ============== BLOCK / DELETE ============== */
+async function deleteMessage(convId, msgId) {
+  if (!confirm('Supprimer ce message ?')) return;
+  try {
+    await db.collection('conversations').doc(convId).collection('messages').doc(msgId).delete();
+    showToast('Message supprimé');
+  } catch (err) {
+    showToast('Erreur');
+  }
+}
+
+async function deleteConversation(convId) {
+  if (!confirm('Supprimer cette conversation et tous les messages ?')) return;
+  showLoading();
+  try {
+    const msgsSnap = await db.collection('conversations').doc(convId).collection('messages').get();
+    for (const doc of msgsSnap.docs) await doc.ref.delete();
+    await db.collection('conversations').doc(convId).delete();
+    hideLoading();
+    showToast('Conversation supprimée');
+    backToMessages();
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur');
+  }
+}
+
+async function blockUser(userId, userName) {
+  if (!confirm('Bloquer ' + userName + ' ? Il ne pourra plus t\'envoyer de messages.')) return;
+  showLoading();
+  try {
+    // Add to blocked list
+    await db.collection('users').doc(currentUser.uid).update({
+      blockedUsers: firebase.firestore.FieldValue.arrayUnion(userId)
+    });
+    // Remove from approved contacts
+    await db.collection('users').doc(currentUser.uid).update({
+      approvedContacts: firebase.firestore.FieldValue.arrayRemove(userId)
+    });
+    // Remove from other's contacts too
+    await db.collection('users').doc(userId).update({
+      approvedContacts: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+    });
+    // If parent, also log the block
+    if (currentUserData.parentId) {
+      await db.collection('parentNotifications').add({
+        parentId: currentUserData.parentId,
+        childId: currentUser.uid,
+        childPseudo: currentUserData.pseudo,
+        blockedUserId: userId,
+        blockedUserPseudo: userName,
+        type: 'child_blocked_user',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+    hideLoading();
+    showToast(userName + ' bloqué');
+    loadContacts();
+    loadConversations();
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur');
+  }
+}
+
+async function unblockUser(userId, userName) {
+  if (!confirm('Débloquer ' + userName + ' ?')) return;
+  try {
+    await db.collection('users').doc(currentUser.uid).update({
+      blockedUsers: firebase.firestore.FieldValue.arrayRemove(userId)
+    });
+    showToast(userName + ' débloqué');
+    loadContacts();
+  } catch (err) {
+    showToast('Erreur');
+  }
+}
+
+/* ============== GROUPS ============== */
+function showCreateGroupModal() {
+  if (!currentUser || !currentUserData) return;
+  openModal('createGroupModal');
+  document.getElementById('groupName').value = '';
+  loadGroupMembersList();
+}
+
+async function loadGroupMembersList() {
+  const container = document.getElementById('groupMembersList');
+  if (!container) return;
+
+  let contacts = [];
+  if (currentUserData.role === 'parent') {
+    const childIds = currentUserData.childrenIds || [];
+    for (const id of childIds) {
+      try {
+        const doc = await db.collection('users').doc(id).get();
+        if (doc.exists) contacts.push({ uid: id, pseudo: doc.data().pseudo, color: doc.data().avatarColor || '#7C5CFC' });
+      } catch (e) {}
+    }
+    // Also get adults from conversations
+    const convSnap = await db.collection('conversations').where('members', 'array-contains', currentUser.uid).get();
+    convSnap.forEach(doc => {
+      const conv = doc.data();
+      conv.members.forEach(m => {
+        if (m !== currentUser.uid && !childIds.includes(m) && !contacts.find(c => c.uid === m)) {
+          const name = conv.memberNames ? (conv.memberNames[m] || 'Inconnu') : 'Inconnu';
+          const color = conv.memberColors ? (conv.memberColors[m] || '#7C5CFC') : '#7C5CFC';
+          contacts.push({ uid: m, pseudo: name, color: color });
+        }
+      });
+    });
+  } else if (currentUserData.role === 'child') {
+    if (currentUserData.parentId) {
+      try {
+        const doc = await db.collection('users').doc(currentUserData.parentId).get();
+        if (doc.exists) contacts.push({ uid: currentUserData.parentId, pseudo: doc.data().pseudo, color: '#7C5CFC' });
+      } catch (e) {}
+    }
+    const approved = currentUserData.approvedContacts || [];
+    for (const id of approved) {
+      try {
+        const doc = await db.collection('users').doc(id).get();
+        if (doc.exists) contacts.push({ uid: id, pseudo: doc.data().pseudo, color: doc.data().avatarColor || '#7C5CFC' });
+      } catch (e) {}
+    }
+  }
+
+  let html = '';
+  contacts.forEach(c => {
+    html += `
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer">
+        <input type="checkbox" class="group-member-cb" value="${c.uid}" data-pseudo="${c.pseudo}" data-color="${c.color}" style="width:20px;height:20px;accent-color:var(--primary)">
+        <div style="width:32px;height:32px;border-radius:50%;background:${c.color};display:flex;align-items:center;justify-content:center;color:white;font-weight:600;font-size:13px">${c.pseudo.charAt(0).toUpperCase()}</div>
+        <span style="font-size:14px">${c.pseudo}</span>
+      </label>`;
+  });
+
+  if (!html) html = '<div style="text-align:center;color:var(--text-secondary);padding:20px;font-size:13px">Aucun contact disponible</div>';
+  container.innerHTML = html;
+}
+
+async function createGroup() {
+  const name = document.getElementById('groupName').value.trim();
+  if (!name) return showToast('Entre un nom de groupe');
+
+  const checkboxes = document.querySelectorAll('.group-member-cb:checked');
+  if (checkboxes.length === 0) return showToast('Sélectionne au moins un membre');
+
+  showLoading();
+  try {
+    const members = [currentUser.uid];
+    const memberNames = { [currentUser.uid]: currentUserData.pseudo };
+    const memberColors = { [currentUser.uid]: currentUserData.avatarColor || '#7C5CFC' };
+
+    checkboxes.forEach(cb => {
+      members.push(cb.value);
+      memberNames[cb.value] = cb.getAttribute('data-pseudo');
+      memberColors[cb.value] = cb.getAttribute('data-color');
+    });
+
+    const convRef = db.collection('conversations').doc();
+    await convRef.set({
+      type: 'group',
+      groupName: name,
+      members: members,
+      memberNames: memberNames,
+      memberColors: memberColors,
+      createdBy: currentUser.uid,
+      createdByRole: currentUserData.role,
+      admins: [currentUser.uid],
+      lastMessage: 'Groupe créé ! 🎉',
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+      lastSenderId: 'system',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await convRef.collection('messages').add({
+      senderId: 'system',
+      senderPseudo: 'Zamis',
+      type: 'text',
+      content: currentUserData.pseudo + ' a créé le groupe "' + name + '" 🎉',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    hideLoading();
+    closeModal('createGroupModal');
+    showToast('Groupe créé !');
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur : ' + err.message);
   }
 }
 
