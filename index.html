@@ -1986,10 +1986,11 @@ function loadConversations() {
         const lastMsgTime = conv.lastMessageAt ? conv.lastMessageAt.toMillis() : 0;
         const lastSenderId = conv.lastSenderId || '';
         const isUnread = (lastMsgTime > myLastRead && lastSenderId !== currentUser.uid);
-        if (isUnread) totalUnread++;
+        const unreadNum = isUnread ? (conv.unreadCount && conv.unreadCount[currentUser.uid] ? conv.unreadCount[currentUser.uid] : 1) : 0;
+        if (unreadNum > 0) totalUnread += unreadNum;
 
-        const badgeHtml = isUnread ? '<div class="message-badge">●</div>' : '';
-        const unreadStyle = isUnread ? 'background:var(--primary-light);' : '';
+        const badgeHtml = unreadNum > 0 ? `<div class="message-badge">${unreadNum}</div>` : '';
+        const unreadStyle = unreadNum > 0 ? 'background:var(--primary-light);' : '';
 
         const safeName = otherName.replace(/'/g, "\\'");
         html += `
@@ -2080,10 +2081,11 @@ function openConversation(convId, name, color) {
     avatarEl.textContent = name.charAt(0).toUpperCase();
   }
 
-  // Mark as read
+  // Mark as read + reset unread count
   if (currentUser) {
     const updateData = {};
     updateData['lastReadBy.' + currentUser.uid] = firebase.firestore.FieldValue.serverTimestamp();
+    updateData['unreadCount.' + currentUser.uid] = 0;
     db.collection('conversations').doc(convId).update(updateData).catch(() => {});
   }
 
@@ -2165,11 +2167,19 @@ async function sendMessage() {
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
 
-    await db.collection('conversations').doc(currentConvId).update({
-      lastMessage: text,
-      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
-      lastSenderId: currentUser.uid
+    // Increment unread for other members
+    const convDoc = await db.collection('conversations').doc(currentConvId).get();
+    const convData = convDoc.data();
+    const unreadUpdate = {};
+    convData.members.forEach(m => {
+      if (m !== currentUser.uid) {
+        unreadUpdate['unreadCount.' + m] = firebase.firestore.FieldValue.increment(1);
+      }
     });
+    unreadUpdate.lastMessage = text;
+    unreadUpdate.lastMessageAt = firebase.firestore.FieldValue.serverTimestamp();
+    unreadUpdate.lastSenderId = currentUser.uid;
+    await db.collection('conversations').doc(currentConvId).update(unreadUpdate);
   } catch (err) {
     showToast('Erreur d\'envoi');
   }
@@ -2191,11 +2201,18 @@ async function sendSticker(emoji) {
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
 
-    await db.collection('conversations').doc(currentConvId).update({
-      lastMessage: emoji,
-      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
-      lastSenderId: currentUser.uid
+    const convDoc = await db.collection('conversations').doc(currentConvId).get();
+    const convData = convDoc.data();
+    const unreadUpdate = {};
+    convData.members.forEach(m => {
+      if (m !== currentUser.uid) {
+        unreadUpdate['unreadCount.' + m] = firebase.firestore.FieldValue.increment(1);
+      }
     });
+    unreadUpdate.lastMessage = emoji;
+    unreadUpdate.lastMessageAt = firebase.firestore.FieldValue.serverTimestamp();
+    unreadUpdate.lastSenderId = currentUser.uid;
+    await db.collection('conversations').doc(currentConvId).update(unreadUpdate);
   } catch (err) {
     showToast('Erreur d\'envoi');
   }
@@ -2263,11 +2280,18 @@ async function stopAndSendRecording() {
             duration: duration,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
-        await db.collection('conversations').doc(currentConvId).update({
-          lastMessage: '🎤 Message audio',
-          lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
-          lastSenderId: currentUser.uid
+        const convDoc = await db.collection('conversations').doc(currentConvId).get();
+        const convData = convDoc.data();
+        const unreadUpdate = {};
+        convData.members.forEach(m => {
+          if (m !== currentUser.uid) {
+            unreadUpdate['unreadCount.' + m] = firebase.firestore.FieldValue.increment(1);
+          }
         });
+        unreadUpdate.lastMessage = '🎤 Message audio';
+        unreadUpdate.lastMessageAt = firebase.firestore.FieldValue.serverTimestamp();
+        unreadUpdate.lastSenderId = currentUser.uid;
+        await db.collection('conversations').doc(currentConvId).update(unreadUpdate);
       } catch (err) {
         showToast('Erreur d\'envoi audio');
       }
