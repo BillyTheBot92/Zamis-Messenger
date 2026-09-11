@@ -46,18 +46,21 @@
   --border: #333350;
   --shadow: rgba(0,0,0,0.3);
 }
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+input, textarea { -webkit-user-select: text; user-select: text; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg);
   color: var(--text);
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
   max-width: 480px;
   margin: 0 auto;
-  overflow-x: hidden;
+  overflow: hidden;
   -webkit-tap-highlight-color: transparent;
+  position: relative;
 }
-.page { display: none; flex-direction: column; min-height: 100vh; }
+.page { display: none; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
 .page.active { display: flex; }
 
 /* Status bar */
@@ -125,6 +128,7 @@ body {
 .auth-container {
   flex: 1; padding: 30px 24px;
   display: flex; flex-direction: column; align-items: center;
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
 }
 .auth-logo {
   width: 70px; height: 70px;
@@ -229,7 +233,7 @@ body {
 [data-theme="dark"] .success-msg { background: #1A2D1F; }
 
 /* Parent dashboard */
-.dashboard-content { flex: 1; padding: 16px; overflow-y: auto; }
+.dashboard-content { flex: 1; padding: 16px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .section-title {
   font-size: 14px; font-weight: 600;
   color: var(--primary);
@@ -334,8 +338,7 @@ body {
   display: flex;
   border-top: 1px solid var(--border);
   background: var(--bg);
-  position: sticky;
-  bottom: 0;
+  flex-shrink: 0;
 }
 .nav-item {
   flex: 1; padding: 8px 0;
@@ -398,7 +401,7 @@ body {
 }
 
 /* Messages list */
-.messages-list { flex: 1; overflow-y: auto; }
+.messages-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .message-item {
   padding: 12px 16px;
   display: flex;
@@ -470,6 +473,7 @@ body {
   flex: 1;
   padding: 12px 16px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   background: var(--primary-light);
   display: flex;
   flex-direction: column;
@@ -540,6 +544,7 @@ body {
   align-items: center;
   gap: 8px;
   border-top: 1px solid var(--border);
+  flex-shrink: 0;
 }
 .chat-input-bar button {
   background: none; border: none;
@@ -611,7 +616,7 @@ body {
 .sticker-item:hover { background: var(--bg-secondary); }
 
 /* Contacts */
-.contacts-list { flex: 1; overflow-y: auto; }
+.contacts-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .contacts-search {
   margin: 10px 16px;
   background: var(--bg-secondary);
@@ -657,7 +662,7 @@ body {
 }
 
 /* Invite */
-.invite-content { flex: 1; padding: 20px; }
+.invite-content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .invite-icon-box {
   width: 70px; height: 70px;
   background: var(--primary-light);
@@ -719,7 +724,7 @@ body {
 }
 
 /* Profile */
-.profile-content { flex: 1; padding: 20px; }
+.profile-content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .profile-avatar-box { text-align: center; margin-bottom: 20px; }
 .profile-avatar {
   width: 90px; height: 90px;
@@ -859,6 +864,17 @@ body {
 #parentDashboard .statusbar { background: #085041; }
 #parentDashboard .section-title-pink { color: var(--pink); }
 #parentDashboard .add-child-card { border-color: rgba(93,202,165,0.3); }
+
+/* Parent theme on all pages */
+body.parent-mode .header { background: linear-gradient(135deg, #0F6E56 0%, #085041 100%); }
+body.parent-mode .statusbar { background: #085041; }
+body.parent-mode .conv-header { background: linear-gradient(135deg, #0F6E56 0%, #085041 100%); }
+body.parent-mode .nav-item.active { color: #5DCAA5; }
+body.parent-mode .section-title { color: #5DCAA5; }
+body.parent-mode .profile-info-value { color: #5DCAA5; }
+body.parent-mode .my-code-value { color: #5DCAA5; }
+body.parent-mode .btn-primary { background: #0F6E56; }
+body.parent-mode .toggle.active { background: #5DCAA5; }
 </style>
 </head>
 <body>
@@ -924,7 +940,7 @@ body {
       </div>
       <div class="form-group">
         <label class="form-label">Code secret</label>
-        <input class="form-input" type="password" id="childPin" placeholder="••••" maxlength="4" autocomplete="off">
+        <input class="form-input" type="password" id="childPin" placeholder="••••••" maxlength="6" autocomplete="off">
       </div>
       <button class="btn btn-pink" onclick="loginChild()">Se connecter</button>
     </div>
@@ -1010,7 +1026,7 @@ body {
         <div class="quick-action-icon">👥</div>
         <div class="quick-action-text">Groupe</div>
       </button>
-      <button class="quick-action" onclick="showPage('profilePage')">
+      <button class="quick-action" onclick="switchTab('profilePage')">
         <div class="quick-action-icon">⚙️</div>
         <div class="quick-action-text">Réglages</div>
       </button>
@@ -1030,8 +1046,8 @@ body {
       <input class="form-input" type="text" id="childPseudo" placeholder="Lucas">
     </div>
     <div class="form-group">
-      <label class="form-label">Code secret (4 chiffres)</label>
-      <input class="form-input" type="text" id="childPinSetup" placeholder="1234" maxlength="4" inputmode="numeric">
+      <label class="form-label">Code secret (6 chiffres)</label>
+      <input class="form-input" type="text" id="childPinSetup" placeholder="123456" maxlength="6" inputmode="numeric">
     </div>
     <div class="form-group">
       <label class="form-label">Couleur de l'avatar</label>
@@ -1100,7 +1116,7 @@ body {
     <span id="clockConv"></span>
   </div>
   <div class="conv-header">
-    <button class="header-back" onclick="showPage('messagesPage')">←</button>
+    <button class="header-back" onclick="backToMessages()">←</button>
     <div class="conv-avatar" id="convAvatar" style="background:var(--orange)">T</div>
     <div>
       <div class="conv-name" id="convName">Contact</div>
@@ -1281,13 +1297,16 @@ body {
       <div class="profile-code" id="profileCodeDisplay">---</div>
     </div>
     <div class="profile-info-box">
-      <div class="profile-info-row">
+      <div class="profile-info-row" onclick="editPseudo()" style="cursor:pointer">
         <div class="profile-info-label"><span>👤</span><span>Pseudo</span></div>
-        <div class="profile-info-value" id="profilePseudoVal">---</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="profile-info-value" id="profilePseudoVal">---</div>
+          <span style="font-size:14px;color:var(--text-light)">✏️</span>
+        </div>
       </div>
-      <div class="profile-info-row">
+      <div class="profile-info-row" onclick="switchTab('avatarPage')" style="cursor:pointer">
         <div class="profile-info-label"><span>😊</span><span>Avatar</span></div>
-        <div style="font-size:18px;cursor:pointer" onclick="switchTab('avatarPage')">›</div>
+        <div style="font-size:18px;color:var(--text-light)">›</div>
       </div>
     </div>
     <div class="section-title">Paramètres</div>
@@ -1432,7 +1451,7 @@ function generateFriendCode(pseudo) {
   const clean = pseudo.toLowerCase().replace(/[^a-z0-9]/g, '');
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
   let code = '';
-  for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
   return clean.substring(0, 8) + '.' + code;
 }
 
@@ -1610,6 +1629,8 @@ async function loadParentDashboard(user) {
   if (!doc.exists) return;
   currentUserData = doc.data();
   isParentBrowsingChild = false;
+  document.body.classList.add('parent-mode');
+  document.body.classList.remove('child-mode');
 
   const welcome = document.getElementById('parentWelcome');
   if (welcome) welcome.textContent = 'Bienvenue, ' + currentUserData.pseudo;
@@ -1672,7 +1693,7 @@ async function addChild() {
   const pin = document.getElementById('childPinSetup').value.trim();
 
   if (!pseudo) return showError('addChildError', 'Entre le prénom de l\'enfant');
-  if (pin.length !== 4 || !/^\d{4}$/.test(pin)) return showError('addChildError', 'Le code secret doit être 4 chiffres');
+  if (pin.length !== 6 || !/^\d{6}$/.test(pin)) return showError('addChildError', 'Le code secret doit être 6 chiffres');
 
   showLoading();
   try {
@@ -1795,6 +1816,8 @@ async function loginAsChild(childId) {
 function loadChildApp(childData) {
   currentUserData = childData;
   currentUser = { uid: childData.uid };
+  document.body.classList.remove('parent-mode');
+  document.body.classList.add('child-mode');
 
   updateProfileDisplay();
 
@@ -1881,9 +1904,18 @@ function updateMessageBadge(count) {
   });
 }
 
+/* ============== BACK TO MESSAGES ============== */
+function backToMessages() {
+  if (unsubMessages) unsubMessages();
+  unsubMessages = null;
+  currentConvId = null;
+  switchTab('messagesPage');
+  loadConversations();
+}
+
 /* ============== PARENT WRITE MESSAGE ============== */
 function parentWriteMessage() {
-  showPage('messagesPage');
+  switchTab('messagesPage');
   loadConversations();
 }
 
@@ -2154,44 +2186,103 @@ async function loadContacts() {
 
   let html = '';
 
-  if (currentUserData.role === 'child' && currentUserData.parentId) {
+  if (currentUserData.role === 'parent') {
+    // Parent: show children
+    const childIds = currentUserData.childrenIds || [];
+    if (childIds.length > 0) {
+      html += `<div class="contact-section-title" style="color:var(--green)">Mes enfants</div>`;
+      for (const id of childIds) {
+        try {
+          const doc = await db.collection('users').doc(id).get();
+          if (doc.exists) {
+            const child = doc.data();
+            html += `
+              <div class="contact-item" onclick="openConvWith('${id}','${child.pseudo}','${child.avatarColor || '#FFB347'}')" style="cursor:pointer">
+                <div class="contact-avatar" style="background:${child.avatarColor || '#FFB347'}">${child.avatar || child.pseudo.charAt(0).toUpperCase()}</div>
+                <div class="contact-info">
+                  <div class="contact-name">${child.pseudo}</div>
+                  <div class="contact-status-text" style="color:var(--green-online)">Enfant</div>
+                </div>
+                <button class="contact-action">💬</button>
+              </div>`;
+          }
+        } catch (e) {}
+      }
+    }
+    // Parent: show other adults from conversations
     try {
-      const parentDoc = await db.collection('users').doc(currentUserData.parentId).get();
-      if (parentDoc.exists) {
-        const parent = parentDoc.data();
-        html += `<div class="contact-section-title" style="color:var(--primary)">Famille</div>`;
-        html += `
-          <div class="contact-item" onclick="openConvWith('${currentUserData.parentId}','${parent.pseudo}','#7C5CFC')" style="cursor:pointer">
-            <div class="contact-avatar" style="background:#7C5CFC">${parent.pseudo.charAt(0).toUpperCase()}</div>
-            <div class="contact-info">
-              <div class="contact-name">${parent.pseudo}</div>
-              <div class="contact-status-text" style="color:var(--green-online)">Parent</div>
-            </div>
-            <button class="contact-action">💬</button>
-          </div>`;
+      const convSnap = await db.collection('conversations')
+        .where('members', 'array-contains', currentUser.uid)
+        .get();
+      const adultIds = new Set();
+      convSnap.forEach(doc => {
+        const conv = doc.data();
+        conv.members.forEach(m => {
+          if (m !== currentUser.uid && !childIds.includes(m)) adultIds.add(m);
+        });
+      });
+      if (adultIds.size > 0) {
+        html += `<div class="contact-section-title" style="color:var(--primary)">Autres contacts</div>`;
+        for (const id of adultIds) {
+          try {
+            const doc = await db.collection('users').doc(id).get();
+            if (doc.exists) {
+              const user = doc.data();
+              html += `
+                <div class="contact-item" onclick="openConvWith('${id}','${user.pseudo}','${user.avatarColor || '#7C5CFC'}')" style="cursor:pointer">
+                  <div class="contact-avatar" style="background:${user.avatarColor || '#7C5CFC'}">${user.pseudo.charAt(0).toUpperCase()}</div>
+                  <div class="contact-info">
+                    <div class="contact-name">${user.pseudo}</div>
+                    <div class="contact-status-text" style="color:var(--text-secondary)">Adulte</div>
+                  </div>
+                  <button class="contact-action">💬</button>
+                </div>`;
+            }
+          } catch (e) {}
+        }
       }
     } catch (e) {}
-  }
-
-  const approved = currentUserData.approvedContacts || [];
-  if (approved.length > 0) {
-    html += `<div class="contact-section-title" style="color:var(--pink)">Amis</div>`;
-    for (const id of approved) {
+  } else if (currentUserData.role === 'child') {
+    // Child: show parent
+    if (currentUserData.parentId) {
       try {
-        const doc = await db.collection('users').doc(id).get();
-        if (doc.exists) {
-          const friend = doc.data();
+        const parentDoc = await db.collection('users').doc(currentUserData.parentId).get();
+        if (parentDoc.exists) {
+          const parent = parentDoc.data();
+          html += `<div class="contact-section-title" style="color:var(--primary)">Famille</div>`;
           html += `
-            <div class="contact-item" onclick="openConvWith('${id}','${friend.pseudo}','${friend.avatarColor || '#FFB347'}')" style="cursor:pointer">
-              <div class="contact-avatar" style="background:${friend.avatarColor || '#FFB347'}">${friend.pseudo.charAt(0).toUpperCase()}</div>
+            <div class="contact-item" onclick="openConvWith('${currentUserData.parentId}','${parent.pseudo}','#7C5CFC')" style="cursor:pointer">
+              <div class="contact-avatar" style="background:#7C5CFC">${parent.pseudo.charAt(0).toUpperCase()}</div>
               <div class="contact-info">
-                <div class="contact-name">${friend.pseudo}</div>
-                <div class="contact-status-text" style="color:var(--text-secondary)">Ami</div>
+                <div class="contact-name">${parent.pseudo}</div>
+                <div class="contact-status-text" style="color:var(--green-online)">Parent</div>
               </div>
               <button class="contact-action">💬</button>
             </div>`;
         }
       } catch (e) {}
+    }
+    // Child: show approved friends
+    const approved = currentUserData.approvedContacts || [];
+    if (approved.length > 0) {
+      html += `<div class="contact-section-title" style="color:var(--pink)">Amis</div>`;
+      for (const id of approved) {
+        try {
+          const doc = await db.collection('users').doc(id).get();
+          if (doc.exists) {
+            const friend = doc.data();
+            html += `
+              <div class="contact-item" onclick="openConvWith('${id}','${friend.pseudo}','${friend.avatarColor || '#FFB347'}')" style="cursor:pointer">
+                <div class="contact-avatar" style="background:${friend.avatarColor || '#FFB347'}">${friend.pseudo.charAt(0).toUpperCase()}</div>
+                <div class="contact-info">
+                  <div class="contact-name">${friend.pseudo}</div>
+                  <div class="contact-status-text" style="color:var(--text-secondary)">Ami</div>
+                </div>
+                <button class="contact-action">💬</button>
+              </div>`;
+          }
+        } catch (e) {}
+      }
     }
   }
 
@@ -2225,6 +2316,29 @@ async function sendFriendRequest() {
       return showToast('C\'est ton propre code !');
     }
 
+    // Anti-doublon: check if already in contacts
+    const myApproved = currentUserData.approvedContacts || [];
+    if (myApproved.includes(targetUser.uid)) {
+      hideLoading();
+      return showToast('Zamis déjà dans ta liste !');
+    }
+
+    // Anti-doublon: check if invitation already exists
+    const invCheck1 = await db.collection('invitations')
+      .where('fromChildId', '==', currentUser.uid)
+      .where('toChildId', '==', targetUser.uid)
+      .where('status', '==', 'pending')
+      .get();
+    const invCheck2 = await db.collection('invitations')
+      .where('fromChildId', '==', targetUser.uid)
+      .where('toChildId', '==', currentUser.uid)
+      .where('status', '==', 'pending')
+      .get();
+    if (!invCheck1.empty || !invCheck2.empty) {
+      hideLoading();
+      return showToast('Invitation déjà envoyée !');
+    }
+
     const parentId = targetUser.role === 'child' ? targetUser.parentId : targetUser.uid;
 
     await db.collection('invitations').add({
@@ -2239,7 +2353,7 @@ async function sendFriendRequest() {
 
     hideLoading();
     document.getElementById('friendCodeInput').value = '';
-    showToast('Invitation envoyée ! En attente de validation du parent.');
+    showToast('Invitation envoyée ! En attente de validation.');
   } catch (err) {
     hideLoading();
     showToast('Erreur : ' + err.message);
@@ -2394,6 +2508,35 @@ function goHome() {
   } else {
     hideLoading();
     showToast('Connexion parent requise');
+  }
+}
+
+/* ============== EDIT PSEUDO ============== */
+async function editPseudo() {
+  const newPseudo = prompt('Nouveau pseudo :', currentUserData.pseudo);
+  if (!newPseudo || newPseudo.trim() === '' || newPseudo.trim() === currentUserData.pseudo) return;
+
+  showLoading();
+  try {
+    await db.collection('users').doc(currentUser.uid).update({ pseudo: newPseudo.trim() });
+    currentUserData.pseudo = newPseudo.trim();
+
+    // Update pseudo in all conversations
+    const convSnap = await db.collection('conversations')
+      .where('members', 'array-contains', currentUser.uid)
+      .get();
+    for (const convDoc of convSnap.docs) {
+      const updateData = {};
+      updateData['memberNames.' + currentUser.uid] = newPseudo.trim();
+      await convDoc.ref.update(updateData);
+    }
+
+    updateProfileDisplay();
+    hideLoading();
+    showToast('Pseudo modifié !');
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur');
   }
 }
 
@@ -2569,6 +2712,7 @@ async function deleteChildData(childId) {
 function clearAllData() {
   localStorage.clear();
   sessionStorage.clear();
+  document.body.classList.remove('parent-mode', 'child-mode');
   if ('caches' in window) {
     caches.keys().then(keys => {
       keys.forEach(key => caches.delete(key));
