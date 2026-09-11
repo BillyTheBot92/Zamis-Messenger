@@ -48,6 +48,15 @@
 }
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; }
 input, textarea { -webkit-user-select: text; user-select: text; }
+.pwd-wrapper { position: relative; }
+.pwd-wrapper .form-input { padding-right: 44px; }
+.pwd-toggle {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  font-size: 18px; cursor: pointer;
+  color: var(--text-light); padding: 4px;
+}
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg);
@@ -918,7 +927,10 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
       </div>
       <div class="form-group">
         <label class="form-label">Mot de passe</label>
-        <input class="form-input" type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+        <div class="pwd-wrapper">
+          <input class="form-input" type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" maxlength="20">
+          <button class="pwd-toggle" onclick="togglePwd('loginPassword', this)" type="button">👁️</button>
+        </div>
       </div>
       <button class="btn btn-primary" onclick="loginParent()">Se connecter</button>
       <div class="text-center mt-12">
@@ -932,11 +944,14 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
       <div class="error-msg" id="childLoginError"></div>
       <div class="form-group">
         <label class="form-label">Code Zamis</label>
-        <input class="form-input" type="text" id="childCode" placeholder="ex: lucas.z4k9" autocomplete="off">
+        <input class="form-input" type="text" id="childCode" placeholder="ex: lucas.a9pk1x" autocomplete="off">
       </div>
       <div class="form-group">
-        <label class="form-label">Code secret</label>
-        <input class="form-input" type="password" id="childPin" placeholder="••••••" maxlength="6" autocomplete="off">
+        <label class="form-label">Mot de passe</label>
+        <div class="pwd-wrapper">
+          <input class="form-input" type="password" id="childPin" placeholder="••••••••" maxlength="20" autocomplete="off">
+          <button class="pwd-toggle" onclick="togglePwd('childPin', this)" type="button">👁️</button>
+        </div>
       </div>
       <button class="btn btn-pink" onclick="loginChild()">Se connecter</button>
     </div>
@@ -959,16 +974,34 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
     <div class="error-msg" id="registerError"></div>
     <div class="success-msg" id="registerSuccess"></div>
     <div class="form-group">
-      <label class="form-label">Pseudo</label>
-      <input class="form-input" type="text" id="registerPseudo" placeholder="Papa de Lucas" autocomplete="name">
+      <label class="form-label">Nom</label>
+      <input class="form-input" type="text" id="registerNom" placeholder="Dupont" autocomplete="family-name">
     </div>
     <div class="form-group">
-      <label class="form-label">Mot de passe (6 caractères min.)</label>
-      <input class="form-input" type="password" id="registerPwd" placeholder="••••••••" autocomplete="new-password">
+      <label class="form-label">Prénom</label>
+      <input class="form-input" type="text" id="registerPrenom" placeholder="Alexandre" autocomplete="given-name">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Pseudo (3-15 car., sans espace)</label>
+      <input class="form-input" type="text" id="registerPseudo" placeholder="AlexDupont" autocomplete="username" maxlength="15">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date de naissance</label>
+      <input class="form-input" type="date" id="registerBirth" autocomplete="bday">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mot de passe (6-20 car., lettres/chiffres)</label>
+      <div class="pwd-wrapper">
+        <input class="form-input" type="password" id="registerPwd" placeholder="••••••••" autocomplete="new-password" maxlength="20">
+        <button class="pwd-toggle" onclick="togglePwd('registerPwd', this)" type="button">👁️</button>
+      </div>
     </div>
     <div class="form-group">
       <label class="form-label">Confirmer le mot de passe</label>
-      <input class="form-input" type="password" id="registerPwd2" placeholder="••••••••" autocomplete="new-password">
+      <div class="pwd-wrapper">
+        <input class="form-input" type="password" id="registerPwd2" placeholder="••••••••" autocomplete="new-password" maxlength="20">
+        <button class="pwd-toggle" onclick="togglePwd('registerPwd2', this)" type="button">👁️</button>
+      </div>
     </div>
     <button class="btn btn-pink" onclick="registerParent()">Créer mon compte</button>
     <div class="text-center mt-12">
@@ -1034,21 +1067,39 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
     <div class="modal-title">Ajouter un enfant</div>
     <div class="error-msg" id="addChildError"></div>
     <div class="form-group">
-      <label class="form-label">Prénom / Pseudo</label>
-      <input class="form-input" type="text" id="childPseudo" placeholder="Lucas">
+      <label class="form-label">Nom</label>
+      <input class="form-input" type="text" id="childNom" placeholder="Dupont">
     </div>
     <div class="form-group">
-      <label class="form-label">Code secret (6 chiffres)</label>
-      <input class="form-input" type="text" id="childPinSetup" placeholder="123456" maxlength="6" inputmode="numeric">
+      <label class="form-label">Prénom</label>
+      <input class="form-input" type="text" id="childPrenom" placeholder="Lucas">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Pseudo (3-15 car., sans espace)</label>
+      <input class="form-input" type="text" id="childPseudo" placeholder="Lucas77" maxlength="15">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date de naissance</label>
+      <input class="form-input" type="date" id="childBirth">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mot de passe (6-20 car., lettres/chiffres)</label>
+      <div class="pwd-wrapper">
+        <input class="form-input" type="password" id="childPinSetup" placeholder="••••••••" maxlength="20">
+        <button class="pwd-toggle" onclick="togglePwd('childPinSetup', this)" type="button">👁️</button>
+      </div>
     </div>
     <div class="form-group">
       <label class="form-label">Couleur de l'avatar</label>
-      <div style="display:flex;gap:8px;margin-top:6px;" id="colorPicker">
-        <div class="color-dot" data-color="#FF6B9D" style="width:36px;height:36px;border-radius:50%;background:#FF6B9D;cursor:pointer;border:3px solid transparent" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#FFB347" style="width:36px;height:36px;border-radius:50%;background:#FFB347;cursor:pointer;border:3px solid transparent" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#5DCAA5" style="width:36px;height:36px;border-radius:50%;background:#5DCAA5;cursor:pointer;border:3px solid transparent" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#7C5CFC" style="width:36px;height:36px;border-radius:50%;background:#7C5CFC;cursor:pointer;border:3px solid transparent" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#85B7EB" style="width:36px;height:36px;border-radius:50%;background:#85B7EB;cursor:pointer;border:3px solid transparent" onclick="selectColor(this)"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;" id="colorPicker">
+        <div class="color-dot" data-color="#FF6B9D" style="width:36px;height:36px;border-radius:50%;background:#FF6B9D;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#FFB347" style="width:36px;height:36px;border-radius:50%;background:#FFB347;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#5DCAA5" style="width:36px;height:36px;border-radius:50%;background:#5DCAA5;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#7C5CFC" style="width:36px;height:36px;border-radius:50%;background:#7C5CFC;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#85B7EB" style="width:36px;height:36px;border-radius:50%;background:#85B7EB;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#E57373" style="width:36px;height:36px;border-radius:50%;background:#E57373;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#FFD54F" style="width:36px;height:36px;border-radius:50%;background:#FFD54F;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#4DB6AC" style="width:36px;height:36px;border-radius:50%;background:#4DB6AC;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
       </div>
     </div>
     <button class="btn btn-primary mt-16" onclick="addChild()">Ajouter cet enfant</button>
@@ -1201,12 +1252,11 @@ body.parent-mode .toggle.active { background: #5DCAA5; }
     <div class="my-code-box">
       <div class="my-code-label">Mon code ami</div>
       <div class="my-code-value" id="myFriendCode">---</div>
-      <button class="copy-btn" onclick="copyCode()">📋 Copier</button>
     </div>
     <div class="form-group">
       <label class="form-label">Code ami</label>
       <div class="invite-row">
-        <input class="form-input" type="text" id="friendCodeInput" placeholder="ex: prenom.a3b2" style="flex:1">
+        <input class="form-input" type="text" id="friendCodeInput" placeholder="ex: lucas.a9pk1x" style="flex:1">
         <button class="btn btn-pink" style="width:auto;padding:12px 20px" onclick="sendFriendRequest()">Inviter</button>
       </div>
     </div>
@@ -1454,6 +1504,35 @@ function updateClocks() {
 setInterval(updateClocks, 30000);
 updateClocks();
 
+/* ============== PASSWORD TOGGLE ============== */
+function togglePwd(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (input) {
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.textContent = '🙈';
+    } else {
+      input.type = 'password';
+      btn.textContent = '👁️';
+    }
+  }
+}
+
+/* ============== VALIDATION HELPERS ============== */
+function validatePseudo(pseudo) {
+  if (!pseudo || pseudo.length < 3) return 'Le pseudo doit faire 3 caractères minimum';
+  if (pseudo.length > 15) return 'Le pseudo doit faire 15 caractères maximum';
+  if (/\s/.test(pseudo)) return 'Le pseudo ne doit pas contenir d\'espace';
+  return null;
+}
+
+function validatePassword(pwd) {
+  if (!pwd || pwd.length < 6) return 'Le mot de passe doit faire 6 caractères minimum';
+  if (pwd.length > 20) return 'Le mot de passe doit faire 20 caractères maximum';
+  if (!/^[a-zA-Z0-9]+$/.test(pwd)) return 'Le mot de passe ne doit contenir que des lettres et chiffres';
+  return null;
+}
+
 /* ============== DARK MODE ============== */
 function toggleDarkMode() {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -1496,22 +1575,27 @@ function switchAuthTab(tab) {
 /* ============== REGISTER PARENT ============== */
 async function registerParent() {
   hideError('registerError');
+  const nom = document.getElementById('registerNom').value.trim();
+  const prenom = document.getElementById('registerPrenom').value.trim();
   const pseudo = document.getElementById('registerPseudo').value.trim();
+  const birth = document.getElementById('registerBirth').value;
   const pwd = document.getElementById('registerPwd').value;
   const pwd2 = document.getElementById('registerPwd2').value;
 
-  if (!pseudo) return showError('registerError', 'Entre ton pseudo');
-  if (pseudo.length < 3) return showError('registerError', 'Le pseudo doit faire 3 caractères minimum');
-  if (pwd.length < 6) return showError('registerError', 'Le mot de passe doit faire 6 caractères minimum');
+  if (!nom) return showError('registerError', 'Entre ton nom');
+  if (!prenom) return showError('registerError', 'Entre ton prénom');
+  const pseudoErr = validatePseudo(pseudo);
+  if (pseudoErr) return showError('registerError', pseudoErr);
+  if (!birth) return showError('registerError', 'Entre ta date de naissance');
+  const pwdErr = validatePassword(pwd);
+  if (pwdErr) return showError('registerError', pwdErr);
   if (pwd !== pwd2) return showError('registerError', 'Les mots de passe ne correspondent pas');
 
-  // Check pseudo uniqueness
   const pseudoCheck = await db.collection('users').where('pseudo', '==', pseudo).get();
   if (!pseudoCheck.empty) return showError('registerError', 'Ce pseudo est déjà pris');
 
   showLoading();
   try {
-    // Auto-generate internal email from pseudo
     const cleanPseudo = pseudo.toLowerCase().replace(/[^a-z0-9]/g, '');
     const randomSuffix = Math.random().toString(36).substring(2, 8);
     const autoEmail = cleanPseudo + '.' + randomSuffix + '@zamis.app';
@@ -1520,7 +1604,10 @@ async function registerParent() {
     const friendCode = generateFriendCode(pseudo);
     await db.collection('users').doc(cred.user.uid).set({
       uid: cred.user.uid,
+      nom: nom,
+      prenom: prenom,
       pseudo: pseudo,
+      dateNaissance: birth,
       internalEmail: autoEmail,
       role: 'parent',
       friendCode: friendCode,
@@ -1672,27 +1759,54 @@ function updateProfileDisplay() {
 /* ============== ADD CHILD ============== */
 function showAddChildModal() {
   openModal('addChildModal');
-  document.getElementById('childPseudo').value = '';
-  document.getElementById('childPinSetup').value = '';
+  const fields = ['childNom', 'childPrenom', 'childPseudo', 'childBirth', 'childPinSetup'];
+  fields.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   hideError('addChildError');
   selectedChildColor = '#FF6B9D';
-  document.querySelectorAll('.color-dot').forEach(d => d.style.borderColor = 'transparent');
-  document.querySelector('.color-dot').style.borderColor = selectedChildColor;
+  document.querySelectorAll('.color-dot').forEach(d => {
+    d.style.borderColor = 'transparent';
+    d.style.boxShadow = 'none';
+    d.style.transform = 'scale(1)';
+  });
+  const first = document.querySelector('.color-dot');
+  if (first) {
+    first.style.borderColor = 'white';
+    first.style.boxShadow = '0 0 12px #FF6B9D';
+    first.style.transform = 'scale(1.15)';
+  }
 }
 
 function selectColor(el) {
-  document.querySelectorAll('.color-dot').forEach(d => d.style.borderColor = 'transparent');
+  document.querySelectorAll('.color-dot').forEach(d => {
+    d.style.borderColor = 'transparent';
+    d.style.boxShadow = 'none';
+    d.style.transform = 'scale(1)';
+  });
   selectedChildColor = el.getAttribute('data-color');
-  el.style.borderColor = selectedChildColor;
+  el.style.borderColor = 'white';
+  el.style.boxShadow = '0 0 12px ' + selectedChildColor;
+  el.style.transform = 'scale(1.15)';
 }
 
 async function addChild() {
   hideError('addChildError');
+  const nom = document.getElementById('childNom').value.trim();
+  const prenom = document.getElementById('childPrenom').value.trim();
   const pseudo = document.getElementById('childPseudo').value.trim();
-  const pin = document.getElementById('childPinSetup').value.trim();
+  const birth = document.getElementById('childBirth').value;
+  const pin = document.getElementById('childPinSetup').value;
 
-  if (!pseudo) return showError('addChildError', 'Entre le prénom de l\'enfant');
-  if (pin.length !== 6 || !/^\d{6}$/.test(pin)) return showError('addChildError', 'Le code secret doit être 6 chiffres');
+  if (!nom) return showError('addChildError', 'Entre le nom de l\'enfant');
+  if (!prenom) return showError('addChildError', 'Entre le prénom de l\'enfant');
+  const pseudoErr = validatePseudo(pseudo);
+  if (pseudoErr) return showError('addChildError', pseudoErr);
+  if (!birth) return showError('addChildError', 'Entre la date de naissance');
+  const pwdErr = validatePassword(pin);
+  if (pwdErr) return showError('addChildError', pwdErr);
+
+  // Check pseudo uniqueness
+  const pseudoCheck = await db.collection('users').where('pseudo', '==', pseudo).get();
+  if (!pseudoCheck.empty) return showError('addChildError', 'Ce pseudo est déjà pris');
 
   showLoading();
   try {
@@ -1702,7 +1816,10 @@ async function addChild() {
 
     await childRef.set({
       uid: childUid,
+      nom: nom,
+      prenom: prenom,
       pseudo: pseudo,
+      dateNaissance: birth,
       role: 'child',
       parentId: currentUser.uid,
       friendCode: friendCode,
