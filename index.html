@@ -925,7 +925,7 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
     <div class="auth-app-name">Zamis Messenger</div>
     <div class="auth-label">Connexion</div>
     <div class="toggle-tabs">
-      <button class="toggle-tab active" onclick="switchAuthTab('parent')">👤 Parent</button>
+      <button class="toggle-tab active" onclick="switchAuthTab('parent')">👤 Adulte</button>
       <button class="toggle-tab" onclick="switchAuthTab('child')">👦 Enfant</button>
     </div>
 
@@ -977,7 +977,7 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
   <div class="header">
     <div class="header-row">
       <button class="header-back" onclick="showPage('loginPage')">←</button>
-      <span class="header-title">Inscription parent</span>
+      <span class="header-title">Inscription adulte</span>
       <span></span>
     </div>
   </div>
@@ -1030,7 +1030,7 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
   <div class="header parent-header">
     <div style="display:flex;align-items:center;justify-content:space-between">
       <div>
-        <div class="header-title">🔒 Espace parent</div>
+        <div class="header-title">🔒 Espace adulte</div>
         <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
       </div>
       <span style="font-size:13px;color:rgba(255,255,255,0.5)">v1.0.0</span>
@@ -1045,9 +1045,17 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
       </div>
     </div>
 
-    <div class="section-title mt-16" style="color:#0F6E56">👥 Co-parents / Adultes</div>
+    <div class="section-title mt-16" style="color:#0F6E56">🔑 Co-parents</div>
     <div class="children-grid" id="coParentsGrid">
       <div class="add-child-card" onclick="openCoParentsModal()">
+        <div class="add-child-icon">+</div>
+        <div class="add-child-text">Ajouter</div>
+      </div>
+    </div>
+
+    <div class="section-title mt-16" style="color:#4A90D9">💬 Amis adultes</div>
+    <div class="children-grid" id="adultFriendsGrid">
+      <div class="add-child-card" onclick="openAddAdultFriendModal()">
         <div class="add-child-icon">+</div>
         <div class="add-child-text">Ajouter</div>
       </div>
@@ -1150,7 +1158,7 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
 <div class="modal-overlay" id="coParentsModal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('coParentsModal')">×</button>
-    <div class="modal-title">👥 Co-parents</div>
+    <div class="modal-title">🔑 Co-parents</div>
     <div id="coParentsList" style="margin-bottom:12px"></div>
     <div class="form-group">
       <label class="form-label">Code ami du co-parent</label>
@@ -1158,6 +1166,20 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
     </div>
     <button class="btn btn-primary" onclick="inviteCoParent()">Inviter un co-parent</button>
     <div class="error-msg" id="coParentError" style="margin-top:8px"></div>
+  </div>
+</div>
+
+<!-- ===================== ADULT FRIEND MODAL ===================== -->
+<div class="modal-overlay" id="adultFriendModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('adultFriendModal')">×</button>
+    <div class="modal-title">💬 Ajouter un ami adulte</div>
+    <div class="form-group">
+      <label class="form-label">Code ami de l'adulte</label>
+      <input class="form-input" type="text" id="adultFriendCodeInput" placeholder="pseudo.xxxxxx">
+    </div>
+    <button class="btn btn-primary" onclick="addAdultFriend()">Ajouter</button>
+    <div class="error-msg" id="adultFriendError" style="margin-top:8px"></div>
   </div>
 </div>
 
@@ -1193,11 +1215,12 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
     <div class="form-group">
       <label class="form-label">Couleur</label>
       <div style="display:flex;gap:10px;margin-top:6px;" id="colorPicker">
-        <div class="color-dot" data-color="#FF4081" style="width:32px;height:32px;border-radius:50%;background:#FF4081;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#FF9800" style="width:32px;height:32px;border-radius:50%;background:#FF9800;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#4CAF50" style="width:32px;height:32px;border-radius:50%;background:#4CAF50;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#7C5CFC" style="width:32px;height:32px;border-radius:50%;background:#7C5CFC;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#2196F3" style="width:32px;height:32px;border-radius:50%;background:#2196F3;cursor:pointer;border:3px solid transparent;transition:all 0.2s" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#4A90D9" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#4A90D9,#2563EB);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(74,144,217,0.4)" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#10B981" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#10B981,#059669);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(16,185,129,0.4)" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#EF4444" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#EF4444,#DC2626);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(239,68,68,0.4)" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#F59E0B" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#F59E0B,#D97706);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(245,158,11,0.4)" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#EC4899" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#EC4899,#DB2777);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(236,72,153,0.4)" onclick="selectColor(this)"></div>
+        <div class="color-dot" data-color="#8B5CF6" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#8B5CF6,#7C3AED);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(139,92,246,0.4)" onclick="selectColor(this)"></div>
       </div>
     </div>
     <button class="btn btn-primary mt-16" onclick="addChild()">Ajouter cet enfant</button>
@@ -1268,7 +1291,7 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
   <!-- Conv menu -->
   <div id="convMenu" style="display:none;position:absolute;right:8px;top:80px;background:var(--bg);border-radius:12px;box-shadow:0 4px 20px var(--shadow);z-index:50;min-width:180px;overflow:hidden">
     <div style="padding:12px 16px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border)" onclick="deleteConversation(currentConvId)">🗑️ Supprimer la conversation</div>
-    <div style="padding:12px 16px;cursor:pointer;font-size:13px;color:var(--red)" id="convBlockBtn" onclick="blockFromConv()">🚫 Bloquer ce contact</div>
+    <div style="padding:12px 16px;cursor:pointer;font-size:13px;color:var(--red)" id="convBlockBtn" onclick="showGroupBlockMenu()">🚫 Bloquer</div>
   </div>
   <div class="conv-messages" id="convMessages"></div>
   <div class="sticker-panel" id="stickerPanel">
@@ -1429,14 +1452,12 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
     <div style="padding:12px 16px">
       <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">Couleur du thème</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
-        <span class="color-theme-dot" onclick="changeThemeColor(this,'#FF4081')" data-color="#FF4081" style="width:36px;height:36px;border-radius:50%;background:#FF4081;display:inline-block;cursor:pointer;border:3px solid transparent"></span>
-        <span class="color-theme-dot" onclick="changeThemeColor(this,'#FF6B9D')" data-color="#FF6B9D" style="width:36px;height:36px;border-radius:50%;background:#FF6B9D;display:inline-block;cursor:pointer;border:3px solid transparent"></span>
-        <span class="color-theme-dot" onclick="changeThemeColor(this,'#FFB347')" data-color="#FFB347" style="width:36px;height:36px;border-radius:50%;background:#FFB347;display:inline-block;cursor:pointer;border:3px solid transparent"></span>
-        <span class="color-theme-dot" onclick="changeThemeColor(this,'#5DCAA5')" data-color="#5DCAA5" style="width:36px;height:36px;border-radius:50%;background:#5DCAA5;display:inline-block;cursor:pointer;border:3px solid transparent"></span>
-        <span class="color-theme-dot" onclick="changeThemeColor(this,'#7C5CFC')" data-color="#7C5CFC" style="width:36px;height:36px;border-radius:50%;background:#7C5CFC;display:inline-block;cursor:pointer;border:3px solid transparent"></span>
-        <span class="color-theme-dot" onclick="changeThemeColor(this,'#4A90D9')" data-color="#4A90D9" style="width:36px;height:36px;border-radius:50%;background:#4A90D9;display:inline-block;cursor:pointer;border:3px solid transparent"></span>
-        <span class="color-theme-dot" onclick="changeThemeColor(this,'#E91E63')" data-color="#E91E63" style="width:36px;height:36px;border-radius:50%;background:#E91E63;display:inline-block;cursor:pointer;border:3px solid transparent"></span>
-        <span class="color-theme-dot" onclick="changeThemeColor(this,'#9C27B0')" data-color="#9C27B0" style="width:36px;height:36px;border-radius:50%;background:#9C27B0;display:inline-block;cursor:pointer;border:3px solid transparent"></span>
+        <span class="color-theme-dot" onclick="changeThemeColor(this,'#4A90D9')" data-color="#4A90D9" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#4A90D9,#2563EB);display:inline-block;cursor:pointer;border:3px solid transparent;box-shadow:0 2px 8px rgba(74,144,217,0.4)"></span>
+        <span class="color-theme-dot" onclick="changeThemeColor(this,'#10B981')" data-color="#10B981" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#10B981,#059669);display:inline-block;cursor:pointer;border:3px solid transparent;box-shadow:0 2px 8px rgba(16,185,129,0.4)"></span>
+        <span class="color-theme-dot" onclick="changeThemeColor(this,'#EF4444')" data-color="#EF4444" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#EF4444,#DC2626);display:inline-block;cursor:pointer;border:3px solid transparent;box-shadow:0 2px 8px rgba(239,68,68,0.4)"></span>
+        <span class="color-theme-dot" onclick="changeThemeColor(this,'#F59E0B')" data-color="#F59E0B" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#F59E0B,#D97706);display:inline-block;cursor:pointer;border:3px solid transparent;box-shadow:0 2px 8px rgba(245,158,11,0.4)"></span>
+        <span class="color-theme-dot" onclick="changeThemeColor(this,'#EC4899')" data-color="#EC4899" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#EC4899,#DB2777);display:inline-block;cursor:pointer;border:3px solid transparent;box-shadow:0 2px 8px rgba(236,72,153,0.4)"></span>
+        <span class="color-theme-dot" onclick="changeThemeColor(this,'#8B5CF6')" data-color="#8B5CF6" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#8B5CF6,#7C3AED);display:inline-block;cursor:pointer;border:3px solid transparent;box-shadow:0 2px 8px rgba(139,92,246,0.4)"></span>
       </div>
     </div>
   </div>
@@ -1719,6 +1740,17 @@ async function registerParent() {
   if (pwdErr) return showError('registerError', pwdErr);
   if (pwd !== pwd2) return showError('registerError', 'Les mots de passe ne correspondent pas');
 
+  // Vérification âge ≥ 18 ans
+  const birthDate = new Date(birth);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+  if (age < 18) return showError('registerError', 'Vous devez avoir 18 ans pour créer un compte adulte. Demandez à vos parents de vous créer un compte enfant.');
+
+  // Popup confirmation responsabilité
+  if (!confirm('Vous confirmez avoir plus de 18 ans.\n\nVous êtes responsable de l\'utilisation de ce compte et des comptes enfants que vous gérez.\n\nConfirmer ?')) return;
+
   const pseudoCheck = await db.collection('users').where('pseudo', '==', pseudo).get();
   if (!pseudoCheck.empty) return showError('registerError', 'Ce pseudo est déjà pris');
 
@@ -1742,6 +1774,7 @@ async function registerParent() {
       avatar: '😊',
       childrenIds: [],
       coParents: [],
+      adultFriends: [],
       blockedUsers: [],
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -1868,6 +1901,7 @@ async function loadParentDashboard(user) {
   loadPendingRequests();
   updateParentWriteBadge();
   loadCoParentsGrid();
+  loadAdultFriendsGrid();
 }
 
 function updateProfileDisplay() {
@@ -2323,12 +2357,19 @@ function loadMessages(convId) {
   unsubMessages = db.collection('conversations').doc(convId)
     .collection('messages')
     .orderBy('createdAt', 'asc')
-    .onSnapshot(snap => {
+    .onSnapshot(async snap => {
       let html = '';
       let lastDate = '';
       let hasNewFromOther = false;
 
-      snap.forEach(doc => {
+      // Pre-fetch blocked list once
+      let myBlockedList = [];
+      try {
+        const myUserDoc = await db.collection('users').doc(currentUser.uid).get();
+        myBlockedList = myUserDoc.data().blockedUsers || [];
+      } catch(e){}
+
+      for (const doc of snap.docs) {
         const msg = doc.data();
         const isMe = msg.senderId === currentUser.uid;
         const isSystem = msg.senderId === 'system';
@@ -2341,8 +2382,10 @@ function loadMessages(convId) {
           lastDate = date;
         }
 
-        // Pseudo above received bubbles
-        const pseudoHtml = (!isMe && !isSystem && msg.senderPseudo) ? `<div class="bubble-pseudo" style="font-size:11px;font-weight:600;color:var(--primary);margin-bottom:2px;padding-left:4px">${msg.senderPseudo}</div>` : '';
+        // Pseudo above received bubbles (barré si bloqué)
+        const senderBlocked = (!isMe && !isSystem && msg.senderId) ? myBlockedList.includes(msg.senderId) : false;
+        const pseudoStyle = senderBlocked ? 'font-size:11px;font-weight:600;color:var(--text-light);margin-bottom:2px;padding-left:4px;text-decoration:line-through' : 'font-size:11px;font-weight:600;color:var(--primary);margin-bottom:2px;padding-left:4px';
+        const pseudoHtml = (!isMe && !isSystem && msg.senderPseudo) ? `<div class="bubble-pseudo" style="${pseudoStyle}">${msg.senderPseudo}</div>` : '';
 
         // Bubble color for my messages (accusé de réception)
         let bubbleClass = isMe ? 'bubble-out' : 'bubble-in';
@@ -2386,7 +2429,7 @@ function loadMessages(convId) {
               <div class="bubble-time">${time}</div>
             </div>`;
         }
-      });
+      }
 
       container.innerHTML = html;
       container.scrollTop = container.scrollHeight;
@@ -2412,6 +2455,10 @@ async function sendMessage() {
   if (!input) return;
   const text = input.value.trim();
   if (!text) return;
+
+  // Check blocage bidirectionnel
+  const blocked = await isBlockedInConversation(currentConvId);
+  if (blocked) { showToast('Envoi bloqué — contact bloqué'); return; }
 
   input.value = '';
 
@@ -2448,6 +2495,10 @@ async function sendSticker(emoji) {
   if (!currentConvId || !currentUser) return;
   const panel = document.getElementById('stickerPanel');
   if (panel) panel.classList.remove('active');
+
+  // Check blocage bidirectionnel
+  const blocked = await isBlockedInConversation(currentConvId);
+  if (blocked) { showToast('Envoi bloqué — contact bloqué'); return; }
 
   try {
     await db.collection('conversations').doc(currentConvId)
@@ -3600,6 +3651,194 @@ function updateParentWriteBadge() {
         }
       });
     });
+}
+
+/* ============== ADULT FRIENDS ============== */
+function openAddAdultFriendModal() {
+  hideError('adultFriendError');
+  document.getElementById('adultFriendCodeInput').value = '';
+  openModal('adultFriendModal');
+}
+
+async function addAdultFriend() {
+  hideError('adultFriendError');
+  const code = document.getElementById('adultFriendCodeInput').value.trim().toLowerCase();
+  if (!code) return showError('adultFriendError', 'Entre un code ami');
+
+  showLoading();
+  try {
+    const snap = await db.collection('users').where('friendCode', '==', code).where('role', '==', 'parent').get();
+    if (snap.empty) { hideLoading(); return showError('adultFriendError', 'Code ami adulte introuvable'); }
+
+    const friendId = snap.docs[0].id;
+    if (friendId === currentUser.uid) { hideLoading(); return showError('adultFriendError', 'C\'est ton propre code !'); }
+
+    const myDoc = await db.collection('users').doc(currentUser.uid).get();
+    const myFriends = myDoc.data().adultFriends || [];
+    if (myFriends.includes(friendId)) { hideLoading(); return showError('adultFriendError', 'Déjà dans tes amis'); }
+
+    // Check not already co-parent
+    const myCoParents = myDoc.data().coParents || [];
+    if (myCoParents.includes(friendId)) { hideLoading(); return showError('adultFriendError', 'Déjà co-parent'); }
+
+    await db.collection('users').doc(currentUser.uid).update({
+      adultFriends: firebase.firestore.FieldValue.arrayUnion(friendId)
+    });
+    await db.collection('users').doc(friendId).update({
+      adultFriends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+    });
+
+    // Create conversation if none exists
+    const convSnap = await db.collection('conversations').where('members', 'array-contains', currentUser.uid).get();
+    let hasConv = false;
+    convSnap.forEach(doc => { if (doc.data().members.includes(friendId)) hasConv = true; });
+
+    if (!hasConv) {
+      const friendData = snap.docs[0].data();
+      await db.collection('conversations').add({
+        type: 'direct',
+        members: [currentUser.uid, friendId],
+        memberNames: { [currentUser.uid]: currentUserData.pseudo, [friendId]: friendData.pseudo },
+        memberColors: { [currentUser.uid]: '#7C5CFC', [friendId]: '#4A90D9' },
+        lastMessage: 'Vous êtes maintenant amis ! 🎉',
+        lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy: currentUser.uid,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    hideLoading();
+    closeModal('adultFriendModal');
+    showToast('Ami ajouté !');
+    loadAdultFriendsGrid();
+  } catch (err) {
+    hideLoading();
+    showError('adultFriendError', 'Erreur : ' + err.message);
+  }
+}
+
+async function removeAdultFriend(friendId) {
+  if (!confirm('Retirer cet ami ?')) return;
+  try {
+    await db.collection('users').doc(currentUser.uid).update({
+      adultFriends: firebase.firestore.FieldValue.arrayRemove(friendId)
+    });
+    await db.collection('users').doc(friendId).update({
+      adultFriends: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+    });
+    showToast('Ami retiré');
+    loadAdultFriendsGrid();
+  } catch (e) {
+    showToast('Erreur');
+  }
+}
+
+async function loadAdultFriendsGrid() {
+  const grid = document.getElementById('adultFriendsGrid');
+  if (!grid) return;
+
+  let html = '';
+  try {
+    const userDoc = await db.collection('users').doc(currentUser.uid).get();
+    const friends = userDoc.data().adultFriends || [];
+
+    for (const id of friends) {
+      try {
+        const doc = await db.collection('users').doc(id).get();
+        if (doc.exists) {
+          const u = doc.data();
+          html += `
+            <div class="child-card" style="position:relative">
+              <div style="position:absolute;top:6px;right:6px;width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:white;z-index:2" onclick="event.stopPropagation();removeAdultFriend('${id}')">✕</div>
+              <div onclick="openConvWith('${id}','${u.pseudo}','#4A90D9')" style="cursor:pointer">
+                <div class="child-avatar" style="background:#4A90D9">${(u.pseudo || '?').charAt(0).toUpperCase()}</div>
+                <div class="child-name">${u.pseudo || 'Inconnu'}</div>
+              </div>
+            </div>`;
+        }
+      } catch (e) {}
+    }
+  } catch (e) {}
+
+  html += `
+    <div class="add-child-card" onclick="openAddAdultFriendModal()">
+      <div class="add-child-icon">+</div>
+      <div class="add-child-text">Ajouter</div>
+    </div>`;
+
+  grid.innerHTML = html;
+}
+
+/* ============== GROUP MENU: BLOCK MEMBER LIST ============== */
+async function showGroupBlockMenu() {
+  hideConvMenu();
+  if (!currentConvId) return;
+
+  try {
+    const convDoc = await db.collection('conversations').doc(currentConvId).get();
+    if (!convDoc.exists) return;
+    const conv = convDoc.data();
+    if (conv.type !== 'group') {
+      blockFromConv();
+      return;
+    }
+
+    const otherMembers = conv.members.filter(m => m !== currentUser.uid);
+    const myDoc = await db.collection('users').doc(currentUser.uid).get();
+    const myBlocked = myDoc.data().blockedUsers || [];
+
+    let html = '<div class="modal-title">Bloquer un membre</div>';
+    for (const memberId of otherMembers) {
+      const memberName = conv.memberNames ? (conv.memberNames[memberId] || 'Inconnu') : 'Inconnu';
+      const isBlocked = myBlocked.includes(memberId);
+      html += `
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="flex:1;font-size:14px;${isBlocked ? 'text-decoration:line-through;color:var(--text-light)' : ''}">${memberName}</div>
+          <button class="btn ${isBlocked ? 'btn-outline' : 'btn-pink'}" style="width:auto;padding:6px 12px;font-size:12px"
+            onclick="${isBlocked ? `unblockUser('${memberId}','${memberName}')` : `blockUser('${memberId}','${memberName}')`};closeModal('groupBlockModal')">
+            ${isBlocked ? 'Débloquer' : 'Bloquer'}
+          </button>
+        </div>`;
+    }
+
+    // Create modal dynamically
+    let modal = document.getElementById('groupBlockModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.id = 'groupBlockModal';
+      modal.innerHTML = '<div class="modal" id="groupBlockModalContent"></div>';
+      document.body.appendChild(modal);
+    }
+    document.getElementById('groupBlockModalContent').innerHTML = html + '<button class="btn btn-outline mt-16" onclick="closeModal(\'groupBlockModal\')" style="width:100%">Fermer</button>';
+    openModal('groupBlockModal');
+  } catch (e) {
+    showToast('Erreur');
+  }
+}
+
+/* ============== BLOCAGE BIDIRECTIONNEL CHECK ============== */
+async function isBlockedInConversation(convId) {
+  try {
+    const convDoc = await db.collection('conversations').doc(convId).get();
+    if (!convDoc.exists) return false;
+    const conv = convDoc.data();
+    const otherMembers = conv.members.filter(m => m !== currentUser.uid);
+
+    // Check if I blocked any of them or they blocked me
+    const myDoc = await db.collection('users').doc(currentUser.uid).get();
+    const myBlocked = myDoc.data().blockedUsers || [];
+
+    for (const otherId of otherMembers) {
+      if (myBlocked.includes(otherId)) return true;
+      const otherDoc = await db.collection('users').doc(otherId).get();
+      if (otherDoc.exists) {
+        const otherBlocked = otherDoc.data().blockedUsers || [];
+        if (otherBlocked.includes(currentUser.uid)) return true;
+      }
+    }
+  } catch (e) {}
+  return false;
 }
 
 /* ============== CHANGE THEME COLOR (CHILD) ============== */
