@@ -1,0 +1,18 @@
+{
+  "name": "Zamis Messenger",
+  "short_name": "Zamis",
+  "description": "Messagerie sécurisée pour les enfants",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#7C5CFC",
+  "background_color": "#7C5CFC",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%237C5CFC'/><text x='256' y='340' text-anchor='middle' font-size='280' font-weight='bold' fill='white'>Z</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
