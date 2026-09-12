@@ -1045,6 +1045,14 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
       </div>
     </div>
 
+    <div class="section-title mt-16" style="color:#0F6E56">👥 Co-parents / Adultes</div>
+    <div class="children-grid" id="coParentsGrid">
+      <div class="add-child-card" onclick="openCoParentsModal()">
+        <div class="add-child-icon">+</div>
+        <div class="add-child-text">Ajouter</div>
+      </div>
+    </div>
+
     <div class="section-title section-title-pink">Demandes en attente</div>
     <div id="pendingRequests">
       <div class="empty-state" style="padding:20px">
@@ -1097,7 +1105,7 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
 <div class="modal-overlay" id="aboutModal">
   <div class="modal" style="text-align:center">
     <button class="modal-close" onclick="closeModal('aboutModal')">×</button>
-    <div style="font-size:48px;margin-bottom:8px">💬</div>
+    <div style="text-align:left;font-size:12px;color:var(--text-secondary);margin-bottom:12px">À propos</div>
     <div style="font-size:20px;font-weight:700;margin-bottom:4px">Zamis Messenger</div>
     <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">Version 1.0.0</div>
     <div style="background:var(--bg-secondary);border-radius:12px;padding:14px;text-align:left;margin-bottom:12px">
@@ -1418,6 +1426,19 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
         <span class="sticker-item avatar-choice" onclick="setAvatar(this,'🦁')" style="border:2px solid transparent;border-radius:12px;padding:6px">🦁</span>
       </div>
     </div>
+    <div style="padding:12px 16px">
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">Couleur du thème</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+        <span class="color-theme-dot" onclick="changeThemeColor(this,'#FF4081')" data-color="#FF4081" style="width:36px;height:36px;border-radius:50%;background:#FF4081;display:inline-block;cursor:pointer;border:3px solid transparent"></span>
+        <span class="color-theme-dot" onclick="changeThemeColor(this,'#FF6B9D')" data-color="#FF6B9D" style="width:36px;height:36px;border-radius:50%;background:#FF6B9D;display:inline-block;cursor:pointer;border:3px solid transparent"></span>
+        <span class="color-theme-dot" onclick="changeThemeColor(this,'#FFB347')" data-color="#FFB347" style="width:36px;height:36px;border-radius:50%;background:#FFB347;display:inline-block;cursor:pointer;border:3px solid transparent"></span>
+        <span class="color-theme-dot" onclick="changeThemeColor(this,'#5DCAA5')" data-color="#5DCAA5" style="width:36px;height:36px;border-radius:50%;background:#5DCAA5;display:inline-block;cursor:pointer;border:3px solid transparent"></span>
+        <span class="color-theme-dot" onclick="changeThemeColor(this,'#7C5CFC')" data-color="#7C5CFC" style="width:36px;height:36px;border-radius:50%;background:#7C5CFC;display:inline-block;cursor:pointer;border:3px solid transparent"></span>
+        <span class="color-theme-dot" onclick="changeThemeColor(this,'#4A90D9')" data-color="#4A90D9" style="width:36px;height:36px;border-radius:50%;background:#4A90D9;display:inline-block;cursor:pointer;border:3px solid transparent"></span>
+        <span class="color-theme-dot" onclick="changeThemeColor(this,'#E91E63')" data-color="#E91E63" style="width:36px;height:36px;border-radius:50%;background:#E91E63;display:inline-block;cursor:pointer;border:3px solid transparent"></span>
+        <span class="color-theme-dot" onclick="changeThemeColor(this,'#9C27B0')" data-color="#9C27B0" style="width:36px;height:36px;border-radius:50%;background:#9C27B0;display:inline-block;cursor:pointer;border:3px solid transparent"></span>
+      </div>
+    </div>
   </div>
   <div class="bottom-nav">
     <button class="nav-item" onclick="switchTab('messagesPage')"><span class="nav-icon" style="position:relative">💬<span class="msg-badge" style="display:none;position:absolute;top:-6px;right:-10px;background:#FF6B9D;color:white;font-size:9px;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px">0</span></span><span class="nav-label">Messages</span></button>
@@ -1475,21 +1496,7 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
           <div class="toggle-knob"></div>
         </button>
       </div>
-      <div class="settings-item" onclick="openCoParentsModal()">
-        <div class="settings-item-left">
-          <span class="settings-icon">👥</span>
-          <span>Co-parents</span>
-        </div>
-        <span style="color:var(--text-light)">›</span>
-      </div>
-      <div class="settings-item" onclick="openBlockedListModal()">
-        <div class="settings-item-left">
-          <span class="settings-icon">🚨</span>
-          <span>Contacts bloqués</span>
-        </div>
-        <span style="color:var(--text-light)">›</span>
-      </div>
-      <div class="settings-item" onclick="openModal('aboutModal')">
+      <div class="settings-item parent-only-setting" onclick="openModal('aboutModal')">
         <div class="settings-item-left">
           <span class="settings-icon">ℹ️</span>
           <span>À propos</span>
@@ -1860,6 +1867,7 @@ async function loadParentDashboard(user) {
   loadChildren();
   loadPendingRequests();
   updateParentWriteBadge();
+  loadCoParentsGrid();
 }
 
 function updateProfileDisplay() {
@@ -2071,6 +2079,30 @@ function loadChildApp(childData) {
   updateProfileDisplay();
   setTimeout(generateQRCode, 500);
 
+  // Hide/show tabs based on parent browsing or real child
+  const hiddenTabs = ['invitePage', 'avatarPage', 'profilePage'];
+  document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
+    const onclickAttr = btn.getAttribute('onclick') || '';
+    const isHiddenTab = hiddenTabs.some(t => onclickAttr.includes(t));
+    if (isParentBrowsingChild && isHiddenTab) {
+      btn.style.display = 'none';
+    } else {
+      btn.style.display = '';
+    }
+  });
+
+  // Hide/show parent-only settings (À propos)
+  document.querySelectorAll('.parent-only-setting').forEach(el => {
+    el.style.display = (currentUserData.role === 'parent' || isParentBrowsingChild) ? '' : 'none';
+  });
+
+  // Hide 🏠 for real child login (no parent auth)
+  if (!isParentBrowsingChild && !auth.currentUser) {
+    document.querySelectorAll('.home-btn').forEach(b => b.style.display = 'none');
+    const homeBtn = document.getElementById('homeBtn');
+    if (homeBtn) homeBtn.style.display = 'none';
+  }
+
   showPage('messagesPage');
   loadConversations();
   loadContacts();
@@ -2255,22 +2287,9 @@ async function openConversation(convId, name, color) {
   const readOnlyBar = document.getElementById('readOnlyBar');
 
   if (isParentBrowsingChild) {
-    // Get conversation to check if it's a group created by someone else
-    try {
-      const convDoc = await db.collection('conversations').doc(convId).get();
-      const conv = convDoc.data();
-      if (conv && conv.type === 'group' && conv.createdBy !== currentUser.uid) {
-        // Parent viewing child's group = read only
-        if (chatInputBar) chatInputBar.style.display = 'none';
-        if (readOnlyBar) readOnlyBar.style.display = 'flex';
-      } else {
-        if (chatInputBar) chatInputBar.style.display = 'flex';
-        if (readOnlyBar) readOnlyBar.style.display = 'none';
-      }
-    } catch (e) {
-      if (chatInputBar) chatInputBar.style.display = 'flex';
-      if (readOnlyBar) readOnlyBar.style.display = 'none';
-    }
+    // Parent viewing child = always read only
+    if (chatInputBar) chatInputBar.style.display = 'none';
+    if (readOnlyBar) readOnlyBar.style.display = 'flex';
   } else {
     if (chatInputBar) chatInputBar.style.display = 'flex';
     if (readOnlyBar) readOnlyBar.style.display = 'none';
@@ -2564,41 +2583,28 @@ function playAudio(btn, src) {
 }
 
 /* ============== CONTACTS ============== */
+let allContactsCache = [];
+
 async function loadContacts() {
   if (!currentUser || !currentUserData) return;
   const list = document.getElementById('contactsList');
   if (!list) return;
 
-  let html = '';
+  allContactsCache = [];
 
   if (currentUserData.role === 'parent') {
-    // Parent: show children
     const childIds = currentUserData.childrenIds || [];
-    if (childIds.length > 0) {
-      html += `<div class="contact-section-title" style="color:var(--green)">Mes enfants</div>`;
-      for (const id of childIds) {
-        try {
-          const doc = await db.collection('users').doc(id).get();
-          if (doc.exists) {
-            const child = doc.data();
-            html += `
-              <div class="contact-item" onclick="openConvWith('${id}','${child.pseudo}','${child.avatarColor || '#FFB347'}')" style="cursor:pointer">
-                <div class="contact-avatar" style="background:${child.avatarColor || '#FFB347'}">${child.avatar || child.pseudo.charAt(0).toUpperCase()}</div>
-                <div class="contact-info">
-                  <div class="contact-name">${child.pseudo}</div>
-                  <div class="contact-status-text" style="color:var(--green-online)">Enfant</div>
-                </div>
-                <button class="contact-action">💬</button>
-              </div>`;
-          }
-        } catch (e) {}
-      }
+    for (const id of childIds) {
+      try {
+        const doc = await db.collection('users').doc(id).get();
+        if (doc.exists) {
+          const child = doc.data();
+          allContactsCache.push({ uid: id, pseudo: child.pseudo, avatar: child.avatar, color: child.avatarColor || '#FFB347' });
+        }
+      } catch (e) {}
     }
-    // Parent: show other adults from conversations
     try {
-      const convSnap = await db.collection('conversations')
-        .where('members', 'array-contains', currentUser.uid)
-        .get();
+      const convSnap = await db.collection('conversations').where('members', 'array-contains', currentUser.uid).get();
       const adultIds = new Set();
       convSnap.forEach(doc => {
         const conv = doc.data();
@@ -2606,80 +2612,83 @@ async function loadContacts() {
           if (m !== currentUser.uid && !childIds.includes(m)) adultIds.add(m);
         });
       });
-      if (adultIds.size > 0) {
-        html += `<div class="contact-section-title" style="color:var(--primary)">Autres contacts</div>`;
-        for (const id of adultIds) {
-          try {
-            const doc = await db.collection('users').doc(id).get();
-            if (doc.exists) {
-              const user = doc.data();
-              html += `
-                <div class="contact-item" onclick="openConvWith('${id}','${user.pseudo}','${user.avatarColor || '#7C5CFC'}')" style="cursor:pointer">
-                  <div class="contact-avatar" style="background:${user.avatarColor || '#7C5CFC'}">${user.pseudo.charAt(0).toUpperCase()}</div>
-                  <div class="contact-info">
-                    <div class="contact-name">${user.pseudo}</div>
-                    <div class="contact-status-text" style="color:var(--text-secondary)">Adulte</div>
-                  </div>
-                  <button class="contact-action">💬</button>
-                </div>`;
-            }
-          } catch (e) {}
-        }
+      for (const id of adultIds) {
+        try {
+          const doc = await db.collection('users').doc(id).get();
+          if (doc.exists) {
+            const user = doc.data();
+            allContactsCache.push({ uid: id, pseudo: user.pseudo, avatar: null, color: user.avatarColor || '#7C5CFC' });
+          }
+        } catch (e) {}
       }
     } catch (e) {}
   } else if (currentUserData.role === 'child') {
-    // Child: show parent
     if (currentUserData.parentId) {
       try {
         const parentDoc = await db.collection('users').doc(currentUserData.parentId).get();
         if (parentDoc.exists) {
           const parent = parentDoc.data();
-          html += `<div class="contact-section-title" style="color:var(--primary)">Famille</div>`;
-          html += `
-            <div class="contact-item" onclick="openConvWith('${currentUserData.parentId}','${parent.pseudo}','#7C5CFC')" style="cursor:pointer">
-              <div class="contact-avatar" style="background:#7C5CFC">${parent.pseudo.charAt(0).toUpperCase()}</div>
-              <div class="contact-info">
-                <div class="contact-name">${parent.pseudo}</div>
-                <div class="contact-status-text" style="color:var(--green-online)">Parent</div>
-              </div>
-              <button class="contact-action">💬</button>
-            </div>`;
+          allContactsCache.push({ uid: currentUserData.parentId, pseudo: parent.pseudo, avatar: null, color: '#7C5CFC' });
         }
       } catch (e) {}
     }
-    // Child: show approved friends
     const approved = currentUserData.approvedContacts || [];
-    if (approved.length > 0) {
-      html += `<div class="contact-section-title" style="color:var(--pink)">Amis</div>`;
-      for (const id of approved) {
-        try {
-          const doc = await db.collection('users').doc(id).get();
-          if (doc.exists) {
-            const friend = doc.data();
-            html += `
-              <div class="contact-item" onclick="openConvWith('${id}','${friend.pseudo}','${friend.avatarColor || '#FFB347'}')" style="cursor:pointer">
-                <div class="contact-avatar" style="background:${friend.avatarColor || '#FFB347'}">${friend.pseudo.charAt(0).toUpperCase()}</div>
-                <div class="contact-info">
-                  <div class="contact-name">${friend.pseudo}</div>
-                  <div class="contact-status-text" style="color:var(--text-secondary)">Ami</div>
-                </div>
-                <button class="contact-action">💬</button>
-              </div>`;
-          }
-        } catch (e) {}
-      }
+    for (const id of approved) {
+      try {
+        const doc = await db.collection('users').doc(id).get();
+        if (doc.exists) {
+          const friend = doc.data();
+          allContactsCache.push({ uid: id, pseudo: friend.pseudo, avatar: null, color: friend.avatarColor || '#FFB347' });
+        }
+      } catch (e) {}
     }
   }
 
-  if (!html) {
-    html = '<div class="empty-state"><div class="empty-icon">📇</div><div class="empty-text">Aucun contact pour l\'instant</div></div>';
+  renderContacts('');
+}
+
+function renderContacts(filter) {
+  const list = document.getElementById('contactsList');
+  if (!list) return;
+
+  let contacts = allContactsCache.slice();
+  if (filter) {
+    const f = filter.toLowerCase();
+    contacts = contacts.filter(c => c.pseudo.toLowerCase().includes(f));
   }
+
+  contacts.sort((a, b) => a.pseudo.toLowerCase().localeCompare(b.pseudo.toLowerCase()));
+
+  if (contacts.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">📇</div><div class="empty-text">Aucun contact trouvé</div></div>';
+    return;
+  }
+
+  let html = '';
+  let lastLetter = '';
+  contacts.forEach(c => {
+    const letter = c.pseudo.charAt(0).toUpperCase();
+    if (letter !== lastLetter) {
+      html += `<div class="contact-section-title" style="color:var(--primary);font-size:14px;font-weight:700;padding:8px 16px;margin-top:4px">${letter}</div>`;
+      lastLetter = letter;
+    }
+    const safePseudo = c.pseudo.replace(/'/g, "\\'");
+    html += `
+      <div class="contact-item" onclick="openConvWith('${c.uid}','${safePseudo}','${c.color}')" style="cursor:pointer">
+        <div class="contact-avatar" style="background:${c.color}">${c.pseudo.charAt(0).toUpperCase()}</div>
+        <div class="contact-info">
+          <div class="contact-name">${c.pseudo}</div>
+        </div>
+        <button class="contact-action">💬</button>
+      </div>`;
+  });
 
   list.innerHTML = html;
 }
 
 function filterContacts() {
-  // Simple filter future improvement
+  const input = document.querySelector('.contacts-search input');
+  if (input) renderContacts(input.value);
 }
 
 /* ============== INVITE ============== */
@@ -2699,6 +2708,12 @@ async function sendFriendRequest() {
     if (targetUser.uid === currentUser.uid) {
       hideLoading();
       return showToast('C\'est ton propre code !');
+    }
+
+    // Sécurité anti-prédateur : un enfant ne peut pas inviter un adulte
+    if (currentUserData.role === 'child' && targetUser.role === 'parent') {
+      hideLoading();
+      return showToast('Code adulte reconnu. Demandez à vos parents de l\'ajouter.');
     }
 
     // Anti-doublon: check if already in contacts
@@ -3130,6 +3145,16 @@ let parentUserData = null;
 let parentAuthUser = null;
 
 function goHome() {
+  // Parent sur ses propres pages → retour direct
+  if (!isParentBrowsingChild) {
+    const authUser = auth.currentUser;
+    if (authUser) {
+      loadParentDashboard(authUser);
+    }
+    return;
+  }
+
+  // Parent en mode enfant → mot de passe requis
   const pwd = prompt('🔒 Mot de passe parent :');
   if (!pwd) return;
 
@@ -3140,11 +3165,9 @@ function goHome() {
     const credential = firebase.auth.EmailAuthProvider.credential(authUser.email, pwd);
     authUser.reauthenticateWithCredential(credential).then(() => {
       hideLoading();
-      if (isParentBrowsingChild && parentAuthUser && parentUserData) {
-        isParentBrowsingChild = false;
-        currentUser = parentAuthUser;
-        currentUserData = parentUserData;
-      }
+      isParentBrowsingChild = false;
+      currentUser = parentAuthUser;
+      currentUserData = parentUserData;
       loadParentDashboard(authUser);
     }).catch(() => {
       hideLoading();
@@ -3579,8 +3602,64 @@ function updateParentWriteBadge() {
     });
 }
 
-/* ============== CO-PARENTS BUTTON IN PROFILE ============== */
-/* Added via the quick-actions and menu */
+/* ============== CHANGE THEME COLOR (CHILD) ============== */
+async function changeThemeColor(el, color) {
+  document.querySelectorAll('.color-theme-dot').forEach(d => {
+    d.style.borderColor = 'transparent';
+    d.style.boxShadow = 'none';
+    d.style.transform = 'scale(1)';
+  });
+  el.style.borderColor = 'white';
+  el.style.boxShadow = '0 0 12px ' + color;
+  el.style.transform = 'scale(1.15)';
+
+  document.documentElement.style.setProperty('--child-color', color);
+  document.documentElement.style.setProperty('--child-color-dark', color + 'CC');
+
+  if (currentUser) {
+    try {
+      await db.collection('users').doc(currentUser.uid).update({ avatarColor: color });
+      currentUserData.avatarColor = color;
+      showToast('Couleur changée !');
+    } catch (e) {}
+  }
+}
+
+/* ============== LOAD CO-PARENTS GRID (DASHBOARD) ============== */
+async function loadCoParentsGrid() {
+  const grid = document.getElementById('coParentsGrid');
+  if (!grid) return;
+
+  let html = '';
+  try {
+    const userDoc = await db.collection('users').doc(currentUser.uid).get();
+    const coParents = userDoc.data().coParents || [];
+
+    for (const id of coParents) {
+      try {
+        const doc = await db.collection('users').doc(id).get();
+        if (doc.exists) {
+          const u = doc.data();
+          html += `
+            <div class="child-card" style="position:relative">
+              <div style="position:absolute;top:6px;right:6px;width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:white;z-index:2" onclick="event.stopPropagation();removeCoParent('${id}')">✕</div>
+              <div class="child-avatar" style="background:#0F6E56">${(u.pseudo || '?').charAt(0).toUpperCase()}</div>
+              <div class="child-name">${u.pseudo || 'Inconnu'}</div>
+              <div class="child-status">${u.prenom || ''}</div>
+            </div>`;
+        }
+      } catch (e) {}
+    }
+  } catch (e) {}
+
+  html += `
+    <div class="add-child-card" onclick="openCoParentsModal()">
+      <div class="add-child-icon">+</div>
+      <div class="add-child-text">Ajouter</div>
+    </div>`;
+
+  grid.innerHTML = html;
+}
 
 /* ============== SPLASH TIMEOUT ============== */
 setTimeout(() => {
