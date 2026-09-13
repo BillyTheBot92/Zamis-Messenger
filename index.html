@@ -165,6 +165,14 @@ body {
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
+#splash.splash-exit {
+  animation: splashFadeOut 0.6s ease-out forwards;
+}
+@keyframes splashFadeOut {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.05); filter: blur(4px); }
+  100% { opacity: 0; transform: scale(1.2); filter: blur(12px); }
+}
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* Auth */
@@ -400,8 +408,7 @@ body {
 .nav-badge::after {
   content: attr(data-count);
   position: absolute;
-  top: -4px; right: 50%;
-  transform: translateX(16px);
+  top: -6px; right: -6px;
   background: var(--pink);
   color: white;
   font-size: 9px;
@@ -946,10 +953,10 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
     <div class="glow-ring"></div>
     <div class="glow-ring"></div>
     <div class="glow-sweep"></div>
-    <div class="splash-logo"><span>Z</span></div>
+    <div class="splash-logo" onclick="dismissSplash()" style="cursor:pointer"><span>Z</span></div>
   </div>
   <div class="splash-title">Zamis Messenger</div>
-  <div class="splash-loader"></div>
+  <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:12px">Appuie sur le Z pour continuer</div>
   <div class="splash-version">v1.0.0</div>
 </div>
 
@@ -1441,6 +1448,13 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
         </div>
       </button>
     </div>
+
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+      <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text-secondary)">Mes invitations</div>
+      <div id="myInvitationsList">
+        <div style="text-align:center;color:var(--text-light);font-size:13px;padding:12px">Aucune invitation</div>
+      </div>
+    </div>
   </div>
   <div class="bottom-nav">
     <button class="nav-item" onclick="switchTab('messagesPage')"><span class="nav-icon" style="position:relative">💬<span class="msg-badge" style="display:none;position:absolute;top:-6px;right:-10px;background:#FF6B9D;color:white;font-size:9px;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px">0</span></span><span class="nav-label">Messages</span></button>
@@ -1624,6 +1638,7 @@ function showPage(pageId) {
 
 function switchTab(pageId) {
   showPage(pageId);
+  if (pageId === 'invitePage') loadMyInvitations();
   // Show home button if parent (to return to dashboard)
   if (currentUserData && currentUserData.role === 'parent') {
     document.querySelectorAll('.home-btn').forEach(b => b.style.display = 'inline');
@@ -1950,6 +1965,13 @@ async function loadParentDashboard(user) {
   document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
     btn.style.display = '';
   });
+
+  // Hide theme color section for parents (they have fixed green theme)
+  const themeColorSection = document.getElementById('themeColorSection');
+  if (themeColorSection) themeColorSection.style.display = 'none';
+
+  // Show home buttons for parent pages
+  document.querySelectorAll('.home-btn').forEach(b => b.style.display = '');
 
   loadChildren();
   loadPendingRequests();
@@ -2306,33 +2328,40 @@ function backToMessages() {
 async function showConvMenu() {
   const menu = document.getElementById('convMenu');
   if (!menu) return;
-  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
 
-  // Hide block/delete for family conversations
+  // If menu is visible, just hide it
+  if (menu.style.display === 'block') {
+    menu.style.display = 'none';
+    return;
+  }
+
+  // Pre-check family status BEFORE showing menu
   const blockBtn = document.getElementById('convBlockBtn');
   const deleteBtn = document.getElementById('convDeleteBtn');
+  let isFamily = false;
+
   if (currentConvId && blockBtn && deleteBtn) {
     try {
       const convDoc = await db.collection('conversations').doc(currentConvId).get();
       if (convDoc.exists) {
         const conv = convDoc.data();
         const otherIds = conv.members.filter(m => m !== currentUser.uid);
-        let isFamily = false;
         for (const otherId of otherIds) {
           const otherDoc = await db.collection('users').doc(otherId).get();
           if (otherDoc.exists) {
             const other = otherDoc.data();
-            // Parent↔enfant
             if (other.parentId === currentUser.uid || currentUserData.parentId === otherId) isFamily = true;
-            // Co-parent
             if ((currentUserData.coParents || []).includes(otherId)) isFamily = true;
           }
         }
-        blockBtn.style.display = isFamily ? 'none' : '';
-        deleteBtn.style.display = isFamily ? 'none' : '';
       }
     } catch (e) {}
+    blockBtn.style.display = isFamily ? 'none' : '';
+    deleteBtn.style.display = isFamily ? 'none' : '';
   }
+
+  // NOW show the menu after async work is done
+  menu.style.display = 'block';
 }
 
 function hideConvMenu() {
@@ -2487,10 +2516,8 @@ function loadMessages(convId) {
           }
           if (isRead) {
             bubbleStyle = 'background:#4CAF50;'; // green = read
-          } else if (isDelivered) {
-            bubbleStyle = 'background:linear-gradient(135deg, #9E9E9E 0%, #4CAF50 100%);'; // gradient = delivered
           } else {
-            bubbleStyle = 'background:#9E9E9E;'; // grey = sent
+            bubbleStyle = 'background:#9E9E9E;'; // grey = sent/delivered but not read
           }
         }
 
@@ -2731,25 +2758,61 @@ async function loadContacts() {
 
   if (currentUserData.role === 'parent') {
     const childIds = currentUserData.childrenIds || [];
+    const addedIds = new Set();
+
+    // 1. Children
     for (const id of childIds) {
+      if (addedIds.has(id)) continue;
       try {
         const doc = await db.collection('users').doc(id).get();
         if (doc.exists) {
           const child = doc.data();
           allContactsCache.push({ uid: id, pseudo: child.pseudo, avatar: child.avatar, color: child.avatarColor || '#FFB347' });
+          addedIds.add(id);
         }
       } catch (e) {}
     }
+
+    // 2. Co-parents
+    const coParentIds = currentUserData.coParents || [];
+    for (const id of coParentIds) {
+      if (addedIds.has(id)) continue;
+      try {
+        const doc = await db.collection('users').doc(id).get();
+        if (doc.exists) {
+          const u = doc.data();
+          allContactsCache.push({ uid: id, pseudo: u.pseudo, avatar: null, color: '#0F6E56' });
+          addedIds.add(id);
+        }
+      } catch (e) {}
+    }
+
+    // 3. Adult friends (Invités)
+    const friendIds = currentUserData.adultFriends || [];
+    for (const id of friendIds) {
+      if (addedIds.has(id)) continue;
+      try {
+        const doc = await db.collection('users').doc(id).get();
+        if (doc.exists) {
+          const u = doc.data();
+          allContactsCache.push({ uid: id, pseudo: u.pseudo, avatar: null, color: u.avatarColor || '#4A90D9' });
+          addedIds.add(id);
+        }
+      } catch (e) {}
+    }
+
+    // 4. Other contacts from conversations (catch-all)
     try {
       const convSnap = await db.collection('conversations').where('members', 'array-contains', currentUser.uid).get();
-      const adultIds = new Set();
       convSnap.forEach(doc => {
         const conv = doc.data();
         conv.members.forEach(m => {
-          if (m !== currentUser.uid && !childIds.includes(m)) adultIds.add(m);
+          if (m !== currentUser.uid && !addedIds.has(m)) addedIds.add(m);
         });
       });
-      for (const id of adultIds) {
+      // Fetch any remaining that weren't in the lists above
+      for (const id of addedIds) {
+        if (allContactsCache.find(c => c.uid === id)) continue;
         try {
           const doc = await db.collection('users').doc(id).get();
           if (doc.exists) {
@@ -3346,6 +3409,7 @@ async function deleteChild(childId) {
     });
 
     // Supprimer le document enfant
+    await cleanupDeletedUser(childId);
     await db.collection('users').doc(childId).delete();
 
     // Mettre à jour localement
@@ -3406,6 +3470,9 @@ async function deleteAccount() {
     for (const d of invSnap2.docs) await d.ref.delete();
     const invSnap3 = await db.collection('invitations').where('parentApprovalId', '==', uid).get();
     for (const d of invSnap3.docs) await d.ref.delete();
+
+    // Nettoyer toutes les références chez les autres utilisateurs
+    await cleanupDeletedUser(uid);
 
     // Supprimer le document user
     await db.collection('users').doc(uid).delete();
@@ -3478,44 +3545,83 @@ async function logout() {
   showPage('loginPage');
 }
 
-/* ============== AUTO LOGIN ============== */
-auth.onAuthStateChanged(async user => {
-  if (user) {
-    try {
-      const doc = await db.collection('users').doc(user.uid).get();
-      if (doc.exists) {
-        const data = doc.data();
-        if (data.role === 'parent') {
-          loadParentDashboard(user);
-        } else {
-          loadChildApp(data);
-        }
-        return;
-      }
-    } catch (e) {}
-  }
+/* ============== MY INVITATIONS LIST ============== */
+async function loadMyInvitations() {
+  if (!currentUser) return;
+  const container = document.getElementById('myInvitationsList');
+  if (!container) return;
 
-  // Try child auto-login
-  const savedCode = localStorage.getItem('zamis-child-code');
-  const savedPin = localStorage.getItem('zamis-child-pin');
-  if (savedCode && savedPin) {
-    try {
-      const snap = await db.collection('users')
-        .where('friendCode', '==', savedCode)
-        .where('role', '==', 'child')
-        .get();
-      if (!snap.empty) {
-        const childData = snap.docs[0].data();
-        if (childData.pin === savedPin) {
-          loadChildApp(childData);
-          return;
-        }
-      }
-    } catch (e) {}
-  }
+  try {
+    const snap = await db.collection('invitations').where('fromId', '==', currentUser.uid).orderBy('createdAt', 'desc').get();
+    if (snap.empty) {
+      container.innerHTML = '<div style="text-align:center;color:var(--text-light);font-size:13px;padding:12px">Aucune invitation</div>';
+      return;
+    }
 
-  setTimeout(() => showPage('loginPage'), 2000);
-});
+    let html = '';
+    snap.forEach(doc => {
+      const inv = doc.data();
+      let statusIcon = '🕐';
+      let statusText = 'En attente';
+      let statusColor = 'var(--text-secondary)';
+      if (inv.status === 'accepted') { statusIcon = '✅'; statusText = 'Acceptée'; statusColor = 'var(--green)'; }
+      else if (inv.status === 'rejected') { statusIcon = '❌'; statusText = 'Refusée'; statusColor = 'var(--red)'; }
+
+      html += `
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:14px">${statusIcon}</div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500">${inv.toPseudo || 'Inconnu'}</div>
+            <div style="font-size:11px;color:${statusColor}">${statusText}</div>
+          </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+  } catch (e) {
+    // Index may not exist yet — silently fail
+    container.innerHTML = '<div style="text-align:center;color:var(--text-light);font-size:13px;padding:12px">Aucune invitation</div>';
+  }
+}
+
+/* ============== ACCOUNT DELETION CLEANUP ============== */
+async function cleanupDeletedUser(userId) {
+  try {
+    // Remove from all users' approvedContacts, adultFriends, coParents, blockedUsers
+    const allUsers = await db.collection('users').get();
+    const batch = db.batch();
+    allUsers.forEach(doc => {
+      const data = doc.data();
+      let needsUpdate = false;
+      const updates = {};
+
+      if ((data.approvedContacts || []).includes(userId)) {
+        updates.approvedContacts = firebase.firestore.FieldValue.arrayRemove(userId);
+        needsUpdate = true;
+      }
+      if ((data.adultFriends || []).includes(userId)) {
+        updates.adultFriends = firebase.firestore.FieldValue.arrayRemove(userId);
+        needsUpdate = true;
+      }
+      if ((data.coParents || []).includes(userId)) {
+        updates.coParents = firebase.firestore.FieldValue.arrayRemove(userId);
+        needsUpdate = true;
+      }
+      if ((data.blockedUsers || []).includes(userId)) {
+        updates.blockedUsers = firebase.firestore.FieldValue.arrayRemove(userId);
+        needsUpdate = true;
+      }
+      if ((data.childrenIds || []).includes(userId)) {
+        updates.childrenIds = firebase.firestore.FieldValue.arrayRemove(userId);
+        needsUpdate = true;
+      }
+
+      if (needsUpdate) batch.update(doc.ref, updates);
+    });
+    await batch.commit();
+  } catch (e) {
+    console.error('Cleanup error:', e);
+  }
+}
 
 /* ============== BLOCKED LIST (PARENT) ============== */
 async function openBlockedListModal() {
@@ -3923,12 +4029,81 @@ async function loadCoParentsGrid() {
   grid.innerHTML = html;
 }
 
-/* ============== SPLASH TIMEOUT ============== */
-setTimeout(() => {
-  if (document.getElementById('splash').classList.contains('active')) {
-    showPage('loginPage');
+/* ============== SPLASH ============== */
+let splashReady = false;
+let splashTarget = 'loginPage'; // default
+
+// Auth detects where to go
+auth.onAuthStateChanged(async user => {
+  if (user) {
+    try {
+      const doc = await db.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        const data = doc.data();
+        if (data.role === 'parent') {
+          splashTarget = 'parentDashboard';
+          splashReady = true;
+          // If splash already dismissed, load now
+          if (!document.getElementById('splash').classList.contains('active')) {
+            loadParentDashboard(user);
+          }
+          return;
+        }
+      }
+    } catch (e) {}
   }
-}, 3000);
+
+  // Try child auto-login
+  const savedCode = localStorage.getItem('zamis_childCode');
+  const savedPin = localStorage.getItem('zamis_childPin');
+  if (savedCode && savedPin) {
+    try {
+      const snap = await db.collection('users').where('friendCode', '==', savedCode).where('role', '==', 'child').get();
+      if (!snap.empty && snap.docs[0].data().pin === savedPin) {
+        splashTarget = 'childApp';
+        splashReady = true;
+        if (!document.getElementById('splash').classList.contains('active')) {
+          currentUser = { uid: snap.docs[0].id };
+          loadChildApp(snap.docs[0].data());
+        }
+        return;
+      }
+    } catch (e) {}
+  }
+
+  splashTarget = 'loginPage';
+  splashReady = true;
+});
+
+function dismissSplash() {
+  const splash = document.getElementById('splash');
+  if (!splash) return;
+  splash.classList.add('splash-exit');
+  setTimeout(async () => {
+    splash.classList.remove('active');
+    if (splashTarget === 'parentDashboard') {
+      const user = auth.currentUser;
+      if (user) loadParentDashboard(user);
+      else showPage('loginPage');
+    } else if (splashTarget === 'childApp') {
+      const savedCode = localStorage.getItem('zamis_childCode');
+      const savedPin = localStorage.getItem('zamis_childPin');
+      if (savedCode && savedPin) {
+        try {
+          const snap = await db.collection('users').where('friendCode', '==', savedCode).where('role', '==', 'child').get();
+          if (!snap.empty && snap.docs[0].data().pin === savedPin) {
+            currentUser = { uid: snap.docs[0].id };
+            loadChildApp(snap.docs[0].data());
+            return;
+          }
+        } catch (e) {}
+      }
+      showPage('loginPage');
+    } else {
+      showPage('loginPage');
+    }
+  }, 600);
+}
 </script>
 </body>
 </html>
