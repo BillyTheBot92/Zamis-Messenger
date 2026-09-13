@@ -166,23 +166,33 @@ body {
   animation: spin 0.8s linear infinite;
 }
 #splash.splash-exit {
-  animation: splashVortex 3.5s ease-in forwards;
+  animation: splashDrain 3.5s ease-in forwards;
+  pointer-events: none;
 }
-#splash.splash-exit .splash-logo-wrapper,
+#splash.splash-exit .splash-logo-wrapper {
+  animation: logoDrain 3s ease-in forwards;
+}
 #splash.splash-exit .splash-title,
-#splash.splash-exit > div {
-  animation: splashItemVortex 3s ease-in forwards;
+#splash.splash-exit > div:not(.splash-logo-wrapper):not(.splash-version) {
+  animation: textDrain 2.5s ease-in forwards;
 }
-@keyframes splashVortex {
+@keyframes splashDrain {
   0% { opacity: 1; filter: blur(0); }
-  60% { opacity: 0.8; filter: blur(2px); }
-  100% { opacity: 0; filter: blur(20px); transform: scale(0.3) rotate(720deg); }
+  50% { opacity: 0.7; filter: blur(3px); }
+  80% { opacity: 0.3; filter: blur(10px); }
+  100% { opacity: 0; filter: blur(20px); transform: scale(0.5); }
 }
-@keyframes splashItemVortex {
-  0% { transform: scale(1) rotate(0deg); opacity: 1; }
-  40% { transform: scale(0.9) rotate(180deg); opacity: 0.8; }
-  70% { transform: scale(0.5) rotate(540deg); opacity: 0.4; }
-  100% { transform: scale(0) rotate(900deg); opacity: 0; }
+@keyframes logoDrain {
+  0% { transform: scale(1) rotate(0); opacity: 1; }
+  30% { transform: scale(1.1) rotate(45deg); opacity: 1; }
+  60% { transform: scale(0.6) rotate(360deg); opacity: 0.6; filter: blur(4px); }
+  100% { transform: scale(0) rotate(720deg); opacity: 0; filter: blur(12px); }
+}
+@keyframes textDrain {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  40% { transform: translateY(-20px) scale(0.9); opacity: 0.7; }
+  70% { transform: translateY(40px) scale(0.5); opacity: 0.3; filter: blur(6px); }
+  100% { transform: translateY(80px) scale(0); opacity: 0; filter: blur(12px); }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -1126,23 +1136,37 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
 
     <div class="section-title mt-16">Actions rapides</div>
     <div class="quick-actions">
-      <button class="quick-action" onclick="parentWriteMessage()" style="position:relative">
+      <button class="quick-action" onclick="goToMessagingPage()" style="position:relative">
         <div class="quick-action-icon">💬</div>
-        <div class="quick-action-text">Écrire</div>
+        <div class="quick-action-text">Messagerie</div>
         <span class="parent-write-badge" style="display:none;position:absolute;top:4px;right:4px;background:#FF6B9D;color:white;font-size:9px;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px">0</span>
-      </button>
-      <button class="quick-action" onclick="showCreateGroupModal()">
-        <div class="quick-action-icon">👥</div>
-        <div class="quick-action-text">Groupe</div>
       </button>
       <button class="quick-action" onclick="openBlockedListModal()">
         <div class="quick-action-icon">🚨</div>
         <div class="quick-action-text">Bloqués</div>
       </button>
-      <button class="quick-action" onclick="switchTab('profilePage')">
+      <button class="quick-action" onclick="openParentSettingsModal()">
         <div class="quick-action-icon">⚙️</div>
         <div class="quick-action-text">Réglages</div>
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PARENT SETTINGS MODAL ===================== -->
+<div class="modal-overlay" id="parentSettingsModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('parentSettingsModal')">×</button>
+    <div class="modal-title">⚙️ Réglages</div>
+    <div class="settings-item" onclick="openModal('aboutModal')">
+      <div class="settings-item-left"><span class="settings-icon">ℹ️</span><span>À propos</span></div>
+      <span style="color:var(--text-light)">›</span>
+    </div>
+    <div class="settings-item" style="color:var(--red)" onclick="closeModal('parentSettingsModal');logout()">
+      <div class="settings-item-left"><span class="settings-icon">🚪</span><span>Déconnexion</span></div>
+    </div>
+    <div class="settings-item" style="color:var(--red)" onclick="closeModal('parentSettingsModal');deleteAccount()">
+      <div class="settings-item-left"><span class="settings-icon">🗑️</span><span>Supprimer mon compte</span></div>
     </div>
   </div>
 </div>
@@ -1241,16 +1265,15 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
 
 <!-- ===================== ADD CHILD MODAL ===================== -->
 <div class="modal-overlay" id="addChildModal">
-  <div class="modal" style="padding:0;overflow:hidden">
-    <button class="modal-close" onclick="closeModal('addChildModal')" style="z-index:5;top:16px;right:16px">×</button>
-    <div style="display:flex;border-bottom:1px solid var(--border)">
+  <div class="modal" style="padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:85vh">
+    <div style="display:flex;border-bottom:1px solid var(--border);flex-shrink:0">
       <button id="childTabCreate" style="flex:1;padding:14px;border:none;background:var(--primary);color:white;font-weight:600;font-size:13px;cursor:pointer" onclick="switchChildTab('create')">Créer un compte</button>
       <button id="childTabLink" style="flex:1;padding:14px;border:none;background:var(--bg-secondary);color:var(--text-secondary);font-weight:600;font-size:13px;cursor:pointer" onclick="switchChildTab('link')">Ajouter existant</button>
     </div>
-    <div style="position:relative;overflow:hidden">
-      <div id="childTabsContainer" style="display:flex;transition:transform 0.3s ease;width:200%">
+    <div style="flex:1;overflow:hidden">
+      <div id="childTabsContainer" style="display:flex;transition:transform 0.3s ease;width:200%;height:100%">
         <!-- Tab 1: Créer -->
-        <div style="width:50%;padding:20px;flex-shrink:0">
+        <div style="width:50%;padding:20px;flex-shrink:0;overflow-y:auto">
           <div class="error-msg" id="addChildError"></div>
           <div class="form-group">
             <label class="form-label">Nom</label>
@@ -1310,10 +1333,11 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
         </div>
       </div>
     </div>
+    <div style="flex-shrink:0;padding:12px 20px;border-top:1px solid var(--border)">
+      <button class="btn" style="width:100%;background:#EF4444;color:white;font-weight:600" onclick="closeModal('addChildModal')">Fermer</button>
+    </div>
   </div>
 </div>
-
-<!-- ===================== MESSAGES ===================== -->
 <div class="page" id="messagesPage">
   <div class="statusbar">
     <span class="statusbar-brand">Zamis</span><span class="statusbar-date"></span>
@@ -1353,7 +1377,11 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
       <span class="nav-icon">😊</span>
       <span class="nav-label">Avatar</span>
     </button>
-    <button class="nav-item" onclick="switchTab('profilePage')">
+    <button class="nav-item nav-group-btn" onclick="showCreateGroupModal()">
+      <span class="nav-icon">👥</span>
+      <span class="nav-label">Groupe</span>
+    </button>
+    <button class="nav-item nav-profil-btn" onclick="switchTab('profilePage')">
       <span class="nav-icon">👤</span>
       <span class="nav-label">Profil</span>
     </button>
@@ -1552,6 +1580,21 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
         <span class="color-theme-dot" onclick="changeThemeColor(this,'#8B5CF6')" data-color="#8B5CF6" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#8B5CF6,#7C3AED);display:inline-block;cursor:pointer;border:3px solid transparent;box-shadow:0 2px 8px rgba(139,92,246,0.4)"></span>
       </div>
     </div>
+
+    <div style="padding:12px 16px;border-top:1px solid var(--border)" id="avatarPersonalizationSection">
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">Personnalisation</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:8px"><span>👤</span><span style="font-size:14px">Pseudo</span></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span id="avatarPseudoDisplay" style="font-size:14px;color:var(--primary);font-weight:500"></span>
+          <span style="cursor:pointer;font-size:16px" onclick="editPseudo()">✏️</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0">
+        <div style="display:flex;align-items:center;gap:8px"><span>🌙</span><span style="font-size:14px">Mode sombre</span></div>
+        <div class="toggle-switch" id="avatarDarkModeToggle" onclick="toggleDarkMode()"><div class="toggle-knob"></div></div>
+      </div>
+    </div>
   </div>
   <div class="bottom-nav">
     <button class="nav-item" onclick="switchTab('messagesPage')"><span class="nav-icon" style="position:relative">💬<span class="msg-badge" style="display:none;position:absolute;top:-6px;right:-10px;background:#FF6B9D;color:white;font-size:9px;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px">0</span></span><span class="nav-label">Messages</span></button>
@@ -1675,6 +1718,9 @@ function showPage(pageId) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const page = document.getElementById(pageId);
   if (page) page.classList.add('active');
+  if (pageId === 'loginPage') {
+    try { switchAuthTab('parent'); } catch(e) {}
+  }
 }
 
 function switchTab(pageId) {
@@ -2034,6 +2080,8 @@ function updateProfileDisplay() {
   if (avatarName) avatarName.textContent = currentUserData.pseudo || '---';
   const avatarPreview = document.getElementById('avatarPreview');
   if (avatarPreview) avatarPreview.textContent = currentUserData.avatar || '😊';
+  const avatarPseudoDisplay = document.getElementById('avatarPseudoDisplay');
+  if (avatarPseudoDisplay) avatarPseudoDisplay.textContent = currentUserData.pseudo || '---';
   currentAvatar = currentUserData.avatar || '😊';
 
   // Hide delete account for children
@@ -2249,6 +2297,12 @@ function loadChildApp(childData) {
       btn.style.display = '';
     }
   });
+
+  // Parent messaging: show Groupe, hide Profil (réglages are in dashboard)
+  // Child/Invité: show Profil, hide Groupe (groups via contacts)
+  const isParentUser = (currentUserData.role === 'parent' && !isParentBrowsingChild);
+  document.querySelectorAll('.nav-group-btn').forEach(b => b.style.display = isParentUser ? '' : 'none');
+  document.querySelectorAll('.nav-profil-btn').forEach(b => b.style.display = isParentUser ? 'none' : '');
 
   // Hide/show parent-only settings (À propos)
   document.querySelectorAll('.parent-only-setting').forEach(el => {
@@ -3785,6 +3839,22 @@ async function cleanupDeletedUser(userId) {
   } catch (e) {
     console.error('Cleanup error:', e);
   }
+}
+
+/* ============== PARENT NAVIGATION ============== */
+function goToMessagingPage() {
+  // Parent goes from dashboard to messaging pages
+  showPage('messagesPage');
+  loadConversations();
+  loadContacts();
+  // Show home button to return to dashboard
+  document.querySelectorAll('.home-btn').forEach(b => b.style.display = 'inline');
+  const homeBtn = document.getElementById('homeBtn');
+  if (homeBtn) homeBtn.style.display = 'inline';
+}
+
+function openParentSettingsModal() {
+  openModal('parentSettingsModal');
 }
 
 /* ============== BLOCKED LIST (PARENT) ============== */
