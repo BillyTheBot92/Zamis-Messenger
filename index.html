@@ -104,30 +104,63 @@ body {
 
 /* Splash */
 #splash {
-  background: linear-gradient(160deg, #7C5CFC 0%, #FF6B9D 50%, #FFB347 100%);
+  background: linear-gradient(160deg, #7C5CFC, #A855F7, #FF6B9D, #FFB347, #7C5CFC);
+  background-size: 400% 400%;
+  animation: waterFlow 8s ease-in-out infinite;
   justify-content: center;
   align-items: center;
   text-align: center;
+  position: relative;
 }
+@keyframes waterFlow {
+  0% { background-position: 0% 50%; }
+  25% { background-position: 100% 25%; }
+  50% { background-position: 50% 100%; }
+  75% { background-position: 25% 0%; }
+  100% { background-position: 0% 50%; }
+}
+.splash-logo-wrapper { position: relative; margin-bottom: 28px; }
+.glow-ring {
+  position: absolute; top: 50%; left: 50%;
+  width: 130px; height: 130px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3);
+  animation: glowPulse 2.5s ease-in-out infinite;
+}
+.glow-ring:nth-child(2) { width: 160px; height: 160px; border-color: rgba(255,255,255,0.15); animation-delay: 0.5s; }
+.glow-ring:nth-child(3) { width: 190px; height: 190px; border-color: rgba(255,255,255,0.08); animation-delay: 1s; }
+@keyframes glowPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  50% { transform: translate(-50%, -50%) scale(1.12); opacity: 0.4; }
+}
+.glow-sweep {
+  position: absolute; top: 50%; left: 50%;
+  width: 140px; height: 140px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.25) 20%, transparent 40%);
+  animation: rotateSweep 3s linear infinite;
+}
+@keyframes rotateSweep { to { transform: translate(-50%, -50%) rotate(360deg); } }
 .splash-logo {
-  width: 100px; height: 100px;
+  position: relative; z-index: 2;
+  width: 110px; height: 110px;
   background: white;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  margin-bottom: 20px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.15), 0 0 60px rgba(124,92,252,0.3);
 }
-.splash-logo span { font-size: 42px; font-weight: 700; color: #7C5CFC; }
-.splash-title { color: white; font-size: 32px; font-weight: 700; }
-.splash-sub { color: rgba(255,255,255,0.85); font-size: 16px; margin-top: 4px; }
+.splash-logo span { font-size: 48px; font-weight: 700; color: #7C5CFC; }
+.splash-title { color: white; font-size: 28px; font-weight: 700; letter-spacing: 0.5px; text-shadow: 0 2px 12px rgba(0,0,0,0.15); }
 .splash-version {
-  position: absolute; bottom: 20px;
-  color: rgba(255,255,255,0.5); font-size: 12px;
+  position: absolute; bottom: 24px;
+  color: rgba(255,255,255,0.45); font-size: 12px;
 }
 .splash-loader {
   margin-top: 40px;
-  width: 40px; height: 40px;
-  border: 3px solid rgba(255,255,255,0.3);
+  width: 36px; height: 36px;
+  border: 3px solid rgba(255,255,255,0.25);
   border-top-color: white;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -908,9 +941,14 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
 
 <!-- ===================== SPLASH ===================== -->
 <div class="page active" id="splash">
-  <div class="splash-logo"><span>Z</span></div>
-  <div class="splash-title">Zamis</div>
-  <div class="splash-sub">Messenger</div>
+  <div class="splash-logo-wrapper">
+    <div class="glow-ring"></div>
+    <div class="glow-ring"></div>
+    <div class="glow-ring"></div>
+    <div class="glow-sweep"></div>
+    <div class="splash-logo"><span>Z</span></div>
+  </div>
+  <div class="splash-title">Zamis Messenger</div>
   <div class="splash-loader"></div>
   <div class="splash-version">v1.0.0</div>
 </div>
@@ -1053,7 +1091,7 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
       </div>
     </div>
 
-    <div class="section-title mt-16" style="color:#4A90D9">💬 Amis adultes</div>
+    <div class="section-title mt-16" style="color:#4A90D9">💬 Invités</div>
     <div class="children-grid" id="adultFriendsGrid">
       <div class="add-child-card" onclick="openAddAdultFriendModal()">
         <div class="add-child-icon">+</div>
@@ -1173,7 +1211,7 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
 <div class="modal-overlay" id="adultFriendModal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('adultFriendModal')">×</button>
-    <div class="modal-title">💬 Ajouter un ami adulte</div>
+    <div class="modal-title">💬 Ajouter un invité</div>
     <div class="form-group">
       <label class="form-label">Code ami de l'adulte</label>
       <input class="form-input" type="text" id="adultFriendCodeInput" placeholder="pseudo.xxxxxx">
@@ -1290,7 +1328,7 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
   </div>
   <!-- Conv menu -->
   <div id="convMenu" style="display:none;position:absolute;right:8px;top:80px;background:var(--bg);border-radius:12px;box-shadow:0 4px 20px var(--shadow);z-index:50;min-width:180px;overflow:hidden">
-    <div style="padding:12px 16px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border)" onclick="deleteConversation(currentConvId)">🗑️ Supprimer la conversation</div>
+    <div style="padding:12px 16px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border)" id="convDeleteBtn" onclick="deleteConversation(currentConvId)">🗑️ Supprimer la conversation</div>
     <div style="padding:12px 16px;cursor:pointer;font-size:13px;color:var(--red)" id="convBlockBtn" onclick="showGroupBlockMenu()">🚫 Bloquer</div>
   </div>
   <div class="conv-messages" id="convMessages"></div>
@@ -1381,7 +1419,6 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
     <div class="my-code-box">
       <div class="my-code-label">Mon code ami</div>
       <div class="my-code-value" id="myFriendCode">---</div>
-      <div id="qrCodeContainer" style="margin:10px auto 0;width:120px;height:120px"></div>
     </div>
     <div class="form-group">
       <label class="form-label">Code ami</label>
@@ -1449,7 +1486,7 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
         <span class="sticker-item avatar-choice" onclick="setAvatar(this,'🦁')" style="border:2px solid transparent;border-radius:12px;padding:6px">🦁</span>
       </div>
     </div>
-    <div style="padding:12px 16px">
+    <div style="padding:12px 16px" id="themeColorSection">
       <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">Couleur du thème</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
         <span class="color-theme-dot" onclick="changeThemeColor(this,'#4A90D9')" data-color="#4A90D9" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#4A90D9,#2563EB);display:inline-block;cursor:pointer;border:3px solid transparent;box-shadow:0 2px 8px rgba(74,144,217,0.4)"></span>
@@ -1551,7 +1588,6 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
 const ZAMIS_VERSION = '1.0.0';
@@ -1709,15 +1745,28 @@ function toggleNotif() {
 /* ============== AUTH TABS ============== */
 function switchAuthTab(tab) {
   const tabs = document.querySelectorAll('.toggle-tab');
+  const connectBtn = document.querySelector('.auth-container .btn-primary');
   tabs.forEach(t => t.classList.remove('active'));
   if (tab === 'parent') {
     tabs[0].classList.add('active');
     document.getElementById('parentLoginForm').style.display = '';
     document.getElementById('childLoginForm').style.display = 'none';
+    // Couleurs adulte = vert/teal
+    tabs[0].style.background = '#0F6E56';
+    tabs[0].style.color = 'white';
+    tabs[1].style.background = '';
+    tabs[1].style.color = '';
+    if (connectBtn) connectBtn.style.background = 'linear-gradient(135deg, #0F6E56, #15967A)';
   } else {
     tabs[1].classList.add('active');
     document.getElementById('parentLoginForm').style.display = 'none';
     document.getElementById('childLoginForm').style.display = '';
+    // Couleurs enfant = violet
+    tabs[1].style.background = '#7C5CFC';
+    tabs[1].style.color = 'white';
+    tabs[0].style.background = '';
+    tabs[0].style.color = '';
+    if (connectBtn) connectBtn.style.background = '';
   }
 }
 
@@ -1889,7 +1938,6 @@ async function loadParentDashboard(user) {
 
   // Populate profile for parent
   updateProfileDisplay();
-  setTimeout(generateQRCode, 500);
 
   // Hide home buttons on dashboard
   document.querySelectorAll('.home-btn').forEach(b => b.style.display = 'none');
@@ -1897,6 +1945,12 @@ async function loadParentDashboard(user) {
   if (homeBtn) homeBtn.style.display = 'none';
 
   showPage('parentDashboard');
+
+  // Restore all bottom-nav items (fix: they get hidden when browsing child)
+  document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
+    btn.style.display = '';
+  });
+
   loadChildren();
   loadPendingRequests();
   updateParentWriteBadge();
@@ -2111,10 +2165,9 @@ function loadChildApp(childData) {
   document.documentElement.style.setProperty('--child-color-dark', childColor + 'CC');
 
   updateProfileDisplay();
-  setTimeout(generateQRCode, 500);
 
   // Hide/show tabs based on parent browsing or real child
-  const hiddenTabs = ['invitePage', 'avatarPage', 'profilePage'];
+  const hiddenTabs = ['avatarPage', 'profilePage'];
   document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
     const onclickAttr = btn.getAttribute('onclick') || '';
     const isHiddenTab = hiddenTabs.some(t => onclickAttr.includes(t));
@@ -2135,6 +2188,12 @@ function loadChildApp(childData) {
     document.querySelectorAll('.home-btn').forEach(b => b.style.display = 'none');
     const homeBtn = document.getElementById('homeBtn');
     if (homeBtn) homeBtn.style.display = 'none';
+  }
+
+  // Hide theme color section for parents
+  const themeColorSection = document.getElementById('themeColorSection');
+  if (themeColorSection) {
+    themeColorSection.style.display = (currentUserData.role === 'parent' || isParentBrowsingChild) ? 'none' : '';
   }
 
   showPage('messagesPage');
@@ -2244,9 +2303,36 @@ function backToMessages() {
   if (!unsubConversations) loadConversations();
 }
 
-function showConvMenu() {
+async function showConvMenu() {
   const menu = document.getElementById('convMenu');
-  if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  if (!menu) return;
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+
+  // Hide block/delete for family conversations
+  const blockBtn = document.getElementById('convBlockBtn');
+  const deleteBtn = document.getElementById('convDeleteBtn');
+  if (currentConvId && blockBtn && deleteBtn) {
+    try {
+      const convDoc = await db.collection('conversations').doc(currentConvId).get();
+      if (convDoc.exists) {
+        const conv = convDoc.data();
+        const otherIds = conv.members.filter(m => m !== currentUser.uid);
+        let isFamily = false;
+        for (const otherId of otherIds) {
+          const otherDoc = await db.collection('users').doc(otherId).get();
+          if (otherDoc.exists) {
+            const other = otherDoc.data();
+            // Parent↔enfant
+            if (other.parentId === currentUser.uid || currentUserData.parentId === otherId) isFamily = true;
+            // Co-parent
+            if ((currentUserData.coParents || []).includes(otherId)) isFamily = true;
+          }
+        }
+        blockBtn.style.display = isFamily ? 'none' : '';
+        deleteBtn.style.display = isFamily ? 'none' : '';
+      }
+    } catch (e) {}
+  }
 }
 
 function hideConvMenu() {
@@ -2434,8 +2520,8 @@ function loadMessages(convId) {
       container.innerHTML = html;
       container.scrollTop = container.scrollHeight;
 
-      // Auto mark as read while conversation is open
-      if (hasNewFromOther && currentUser && currentConvId === convId) {
+      // Auto mark as read while conversation is open (sauf si parent browse enfant)
+      if (hasNewFromOther && currentUser && currentConvId === convId && !isParentBrowsingChild) {
         const updateData = {};
         updateData['lastReadBy.' + currentUser.uid] = firebase.firestore.FieldValue.serverTimestamp();
         updateData['unreadCount.' + currentUser.uid] = 0;
@@ -2830,69 +2916,6 @@ function shareCode() {
     } else {
       showToast(code);
     }
-  }
-}
-
-function generateQRCode() {
-  const container = document.getElementById('qrCodeContainer');
-  if (!container || !currentUserData) return;
-  container.innerHTML = '';
-  try {
-    new QRCode(container, {
-      text: currentUserData.friendCode || '',
-      width: 120,
-      height: 120,
-      colorDark: '#333333',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    });
-  } catch (e) {}
-}
-
-async function scanQRCode() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay active';
-    modal.id = 'qrScanModal';
-    modal.innerHTML = `
-      <div class="modal" style="padding:16px;text-align:center">
-        <button class="modal-close" onclick="closeScanModal()">×</button>
-        <div class="modal-title">Scanner un QR code</div>
-        <video id="qrVideo" style="width:100%;max-width:280px;border-radius:12px;margin-bottom:12px" autoplay playsinline></video>
-        <canvas id="qrCanvas" style="display:none"></canvas>
-        <div style="font-size:12px;color:var(--text-secondary)">Place le QR code devant la caméra</div>
-      </div>`;
-    document.body.appendChild(modal);
-    const video = document.getElementById('qrVideo');
-    video.srcObject = stream;
-    video.play();
-    scanQRLoop(video, stream);
-  } catch (err) {
-    showToast('Caméra non disponible');
-  }
-}
-
-function scanQRLoop(video, stream) {
-  const canvas = document.getElementById('qrCanvas');
-  if (!canvas || !document.getElementById('qrScanModal')) return;
-  const ctx = canvas.getContext('2d');
-  canvas.width = video.videoWidth || 320;
-  canvas.height = video.videoHeight || 240;
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  // Simple detection: look for code pattern in image data
-  // For now, use prompt fallback since jsQR is not loaded
-  requestAnimationFrame(() => scanQRLoop(video, stream));
-}
-
-function closeScanModal() {
-  const modal = document.getElementById('qrScanModal');
-  if (modal) {
-    const video = modal.querySelector('video');
-    if (video && video.srcObject) {
-      video.srcObject.getTracks().forEach(t => t.stop());
-    }
-    modal.remove();
   }
 }
 
