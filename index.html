@@ -166,12 +166,23 @@ body {
   animation: spin 0.8s linear infinite;
 }
 #splash.splash-exit {
-  animation: splashFadeOut 0.6s ease-out forwards;
+  animation: splashVortex 3.5s ease-in forwards;
 }
-@keyframes splashFadeOut {
-  0% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.05); filter: blur(4px); }
-  100% { opacity: 0; transform: scale(1.2); filter: blur(12px); }
+#splash.splash-exit .splash-logo-wrapper,
+#splash.splash-exit .splash-title,
+#splash.splash-exit > div {
+  animation: splashItemVortex 3s ease-in forwards;
+}
+@keyframes splashVortex {
+  0% { opacity: 1; filter: blur(0); }
+  60% { opacity: 0.8; filter: blur(2px); }
+  100% { opacity: 0; filter: blur(20px); transform: scale(0.3) rotate(720deg); }
+}
+@keyframes splashItemVortex {
+  0% { transform: scale(1) rotate(0deg); opacity: 1; }
+  40% { transform: scale(0.9) rotate(180deg); opacity: 0.8; }
+  70% { transform: scale(0.5) rotate(540deg); opacity: 0.4; }
+  100% { transform: scale(0) rotate(900deg); opacity: 0; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -956,7 +967,7 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
     <div class="splash-logo" onclick="dismissSplash()" style="cursor:pointer"><span>Z</span></div>
   </div>
   <div class="splash-title">Zamis Messenger</div>
-  <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:12px">Appuie sur le Z pour continuer</div>
+  <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:12px">Appuyer sur le Z pour continuer</div>
   <div class="splash-version">v1.0.0</div>
 </div>
 
@@ -1230,45 +1241,75 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
 
 <!-- ===================== ADD CHILD MODAL ===================== -->
 <div class="modal-overlay" id="addChildModal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('addChildModal')">×</button>
-    <div class="modal-title">Ajouter un enfant</div>
-    <div class="error-msg" id="addChildError"></div>
-    <div class="form-group">
-      <label class="form-label">Nom</label>
-      <input class="form-input" type="text" id="childNom" placeholder="Dupont">
+  <div class="modal" style="padding:0;overflow:hidden">
+    <button class="modal-close" onclick="closeModal('addChildModal')" style="z-index:5;top:16px;right:16px">×</button>
+    <div style="display:flex;border-bottom:1px solid var(--border)">
+      <button id="childTabCreate" style="flex:1;padding:14px;border:none;background:var(--primary);color:white;font-weight:600;font-size:13px;cursor:pointer" onclick="switchChildTab('create')">Créer un compte</button>
+      <button id="childTabLink" style="flex:1;padding:14px;border:none;background:var(--bg-secondary);color:var(--text-secondary);font-weight:600;font-size:13px;cursor:pointer" onclick="switchChildTab('link')">Ajouter existant</button>
     </div>
-    <div class="form-group">
-      <label class="form-label">Prénom</label>
-      <input class="form-input" type="text" id="childPrenom" placeholder="Lucas">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Pseudo (3-15 car., sans espace)</label>
-      <input class="form-input" type="text" id="childPseudo" placeholder="Lucas77" maxlength="15">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Date de naissance</label>
-      <input class="form-input" type="date" id="childBirth">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Mot de passe (6-20 car., lettres/chiffres)</label>
-      <div class="pwd-wrapper">
-        <input class="form-input" type="password" id="childPinSetup" placeholder="••••••••" maxlength="20">
-        <button class="pwd-toggle" onclick="togglePwd('childPinSetup', this)" type="button">👁️</button>
+    <div style="position:relative;overflow:hidden">
+      <div id="childTabsContainer" style="display:flex;transition:transform 0.3s ease;width:200%">
+        <!-- Tab 1: Créer -->
+        <div style="width:50%;padding:20px;flex-shrink:0">
+          <div class="error-msg" id="addChildError"></div>
+          <div class="form-group">
+            <label class="form-label">Nom</label>
+            <input class="form-input" type="text" id="childNom" placeholder="Dupont">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Prénom</label>
+            <input class="form-input" type="text" id="childPrenom" placeholder="Lucas">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pseudo (3-15 car., sans espace)</label>
+            <input class="form-input" type="text" id="childPseudo" placeholder="Lucas77" maxlength="15">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date de naissance</label>
+            <input class="form-input" type="date" id="childBirth">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mot de passe (6-20 car., lettres/chiffres)</label>
+            <div class="pwd-wrapper">
+              <input class="form-input" type="password" id="childPinSetup" placeholder="••••••••" maxlength="20">
+              <button class="pwd-toggle" onclick="togglePwd('childPinSetup', this)" type="button">👁️</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Couleur</label>
+            <div style="display:flex;gap:10px;margin-top:6px;" id="colorPicker">
+              <div class="color-dot" data-color="#4A90D9" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#4A90D9,#2563EB);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(74,144,217,0.4)" onclick="selectColor(this)"></div>
+              <div class="color-dot" data-color="#10B981" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#10B981,#059669);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(16,185,129,0.4)" onclick="selectColor(this)"></div>
+              <div class="color-dot" data-color="#EF4444" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#EF4444,#DC2626);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(239,68,68,0.4)" onclick="selectColor(this)"></div>
+              <div class="color-dot" data-color="#F59E0B" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#F59E0B,#D97706);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(245,158,11,0.4)" onclick="selectColor(this)"></div>
+              <div class="color-dot" data-color="#EC4899" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#EC4899,#DB2777);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(236,72,153,0.4)" onclick="selectColor(this)"></div>
+              <div class="color-dot" data-color="#8B5CF6" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#8B5CF6,#7C3AED);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(139,92,246,0.4)" onclick="selectColor(this)"></div>
+            </div>
+          </div>
+          <button class="btn btn-primary mt-16" onclick="addChild()">Créer le compte enfant</button>
+        </div>
+        <!-- Tab 2: Ajouter existant -->
+        <div style="width:50%;padding:20px;flex-shrink:0">
+          <div class="error-msg" id="linkChildError"></div>
+          <div style="text-align:center;margin-bottom:16px">
+            <div style="font-size:40px;margin-bottom:8px">🔗</div>
+            <div style="font-size:13px;color:var(--text-secondary)">Ajoutez un enfant qui a déjà un compte Zamis créé par un autre parent</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Code Zamis de l'enfant</label>
+            <input class="form-input" type="text" id="linkChildCode" placeholder="pseudo.xxxxxx">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mot de passe de l'enfant</label>
+            <div class="pwd-wrapper">
+              <input class="form-input" type="password" id="linkChildPin" placeholder="••••••••" maxlength="20">
+              <button class="pwd-toggle" onclick="togglePwd('linkChildPin', this)" type="button">👁️</button>
+            </div>
+          </div>
+          <button class="btn btn-primary mt-16" onclick="linkExistingChild()">Ajouter cet enfant</button>
+        </div>
       </div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Couleur</label>
-      <div style="display:flex;gap:10px;margin-top:6px;" id="colorPicker">
-        <div class="color-dot" data-color="#4A90D9" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#4A90D9,#2563EB);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(74,144,217,0.4)" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#10B981" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#10B981,#059669);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(16,185,129,0.4)" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#EF4444" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#EF4444,#DC2626);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(239,68,68,0.4)" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#F59E0B" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#F59E0B,#D97706);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(245,158,11,0.4)" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#EC4899" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#EC4899,#DB2777);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(236,72,153,0.4)" onclick="selectColor(this)"></div>
-        <div class="color-dot" data-color="#8B5CF6" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#8B5CF6,#7C3AED);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(139,92,246,0.4)" onclick="selectColor(this)"></div>
-      </div>
-    </div>
-    <button class="btn btn-primary mt-16" onclick="addChild()">Ajouter cet enfant</button>
   </div>
 </div>
 
@@ -1781,7 +1822,7 @@ function switchAuthTab(tab) {
     tabs[1].style.color = 'white';
     tabs[0].style.background = '';
     tabs[0].style.color = '';
-    if (connectBtn) connectBtn.style.background = '';
+    if (connectBtn) connectBtn.style.background = 'linear-gradient(135deg, #7C5CFC, #5A3FD6)';
   }
 }
 
@@ -2118,17 +2159,26 @@ async function loadChildren() {
   const grid = document.getElementById('childrenGrid');
   if (!grid) return;
 
-  const ids = currentUserData.childrenIds || [];
+  const directIds = currentUserData.childrenIds || [];
+  const allChildIds = new Set(directIds);
+
+  // Also load children shared via co-parenting
+  try {
+    const coSnap = await db.collection('users').where('coParentIds', 'array-contains', currentUser.uid).where('role', '==', 'child').get();
+    coSnap.forEach(doc => allChildIds.add(doc.id));
+  } catch (e) {}
+
   let html = '';
 
-  for (const id of ids) {
+  for (const id of allChildIds) {
     try {
       const doc = await db.collection('users').doc(id).get();
       if (doc.exists) {
         const child = doc.data();
+        const isDirect = directIds.includes(id);
         html += `
           <div class="child-card" style="position:relative">
-            <div style="position:absolute;top:6px;right:6px;width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:white;z-index:2" onclick="event.stopPropagation();confirmDeleteChild('${id}','${child.pseudo}')">✕</div>
+            ${isDirect ? `<div style="position:absolute;top:6px;right:6px;width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:white;z-index:2" onclick="event.stopPropagation();confirmDeleteChild('${id}','${child.pseudo}')">✕</div>` : ''}
             <div onclick="loginAsChild('${id}')" style="cursor:pointer">
               <div class="child-avatar" style="background:${child.avatarColor || '#FFB347'}">
                 ${child.avatar || child.pseudo.charAt(0).toUpperCase()}
@@ -2463,102 +2513,108 @@ function loadMessages(convId) {
 
   if (unsubMessages) unsubMessages();
 
-  // Listen to conversation doc for read status
   let convData = null;
+  let currentSnap = null;
+  let lastReadByJson = '';
+
+  // 1. Listen to conversation doc for read status changes
   const unsubConv = db.collection('conversations').doc(convId).onSnapshot(doc => {
-    if (doc.exists) convData = doc.data();
+    if (doc.exists) {
+      convData = doc.data();
+      const newJson = JSON.stringify(convData.lastReadBy || {});
+      if (lastReadByJson && newJson !== lastReadByJson && currentSnap) {
+        renderMsgs(currentSnap); // re-render on read status change
+      }
+      lastReadByJson = newJson;
+    }
   });
 
-  unsubMessages = db.collection('conversations').doc(convId)
+  // 2. Listen to messages collection
+  const unsubMsgs = db.collection('conversations').doc(convId)
     .collection('messages')
     .orderBy('createdAt', 'asc')
-    .onSnapshot(async snap => {
-      let html = '';
-      let lastDate = '';
-      let hasNewFromOther = false;
-
-      // Pre-fetch blocked list once
-      let myBlockedList = [];
-      try {
-        const myUserDoc = await db.collection('users').doc(currentUser.uid).get();
-        myBlockedList = myUserDoc.data().blockedUsers || [];
-      } catch(e){}
-
-      for (const doc of snap.docs) {
-        const msg = doc.data();
-        const isMe = msg.senderId === currentUser.uid;
-        const isSystem = msg.senderId === 'system';
-        if (!isMe && !isSystem) hasNewFromOther = true;
-        const time = msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
-        const date = msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleDateString('fr-FR') : '';
-
-        if (date !== lastDate) {
-          html += `<div class="conv-date">${date}</div>`;
-          lastDate = date;
-        }
-
-        // Pseudo above received bubbles (barré si bloqué)
-        const senderBlocked = (!isMe && !isSystem && msg.senderId) ? myBlockedList.includes(msg.senderId) : false;
-        const pseudoStyle = senderBlocked ? 'font-size:11px;font-weight:600;color:var(--text-light);margin-bottom:2px;padding-left:4px;text-decoration:line-through' : 'font-size:11px;font-weight:600;color:var(--primary);margin-bottom:2px;padding-left:4px';
-        const pseudoHtml = (!isMe && !isSystem && msg.senderPseudo) ? `<div class="bubble-pseudo" style="${pseudoStyle}">${msg.senderPseudo}</div>` : '';
-
-        // Bubble color for my messages (accusé de réception)
-        let bubbleClass = isMe ? 'bubble-out' : 'bubble-in';
-        let bubbleStyle = '';
-        if (isMe && msg.createdAt && convData) {
-          const msgTime = msg.createdAt.toMillis();
-          const otherMembers = (convData.members || []).filter(m => m !== currentUser.uid);
-          let isRead = false;
-          let isDelivered = true; // if in Firestore, it's delivered
-          for (const m of otherMembers) {
-            const readTime = convData.lastReadBy && convData.lastReadBy[m] ? convData.lastReadBy[m].toMillis() : 0;
-            if (readTime >= msgTime) isRead = true;
-          }
-          if (isRead) {
-            bubbleStyle = 'background:#4CAF50;'; // green = read
-          } else {
-            bubbleStyle = 'background:#9E9E9E;'; // grey = sent/delivered but not read
-          }
-        }
-
-        if (isSystem) {
-          html += `<div class="conv-date" style="background:var(--primary-light);padding:8px 12px;border-radius:10px;font-size:12px">${msg.content}</div>`;
-        } else if (msg.type === 'sticker') {
-          html += `${pseudoHtml}<div class="bubble ${bubbleClass}" style="background:transparent;font-size:40px;padding:4px;${isMe ? bubbleStyle : ''}">${msg.content}<div class="bubble-time">${time}</div></div>`;
-        } else if (msg.type === 'audio') {
-          html += `${pseudoHtml}
-            <div class="bubble ${bubbleClass}" ${isMe ? `style="${bubbleStyle}"` : ''}>
-              <div class="bubble-audio">
-                <button class="audio-play" onclick="playAudio(this, '${msg.content}')">▶</button>
-                <div class="audio-bar"><div class="audio-bar-fill"></div></div>
-                <span class="audio-duration">0:${String(msg.duration || 0).padStart(2, '0')}</span>
-              </div>
-              <div class="bubble-time">${time}</div>
-            </div>`;
-        } else {
-          html += `${pseudoHtml}
-            <div class="bubble ${bubbleClass}" ${isMe ? `style="${bubbleStyle}"` : ''}>
-              ${msg.content}
-              <div class="bubble-time">${time}</div>
-            </div>`;
-        }
-      }
-
-      container.innerHTML = html;
-      container.scrollTop = container.scrollHeight;
-
-      // Auto mark as read while conversation is open (sauf si parent browse enfant)
-      if (hasNewFromOther && currentUser && currentConvId === convId && !isParentBrowsingChild) {
-        const updateData = {};
-        updateData['lastReadBy.' + currentUser.uid] = firebase.firestore.FieldValue.serverTimestamp();
-        updateData['unreadCount.' + currentUser.uid] = 0;
-        db.collection('conversations').doc(convId).update(updateData).catch(() => {});
-      }
+    .onSnapshot(snap => {
+      currentSnap = snap;
+      renderMsgs(snap);
     });
 
-  // Store both unsubs
-  const originalUnsub = unsubMessages;
-  unsubMessages = () => { originalUnsub(); unsubConv(); };
+  // 3. Render function
+  async function renderMsgs(snap) {
+    let html = '';
+    let lastDate = '';
+    let hasNewFromOther = false;
+
+    let myBlockedList = [];
+    try {
+      const myUserDoc = await db.collection('users').doc(currentUser.uid).get();
+      myBlockedList = myUserDoc.data().blockedUsers || [];
+    } catch(e){}
+
+    for (const doc of snap.docs) {
+      const msg = doc.data();
+      const isMe = msg.senderId === currentUser.uid;
+      const isSystem = msg.senderId === 'system';
+      if (!isMe && !isSystem) hasNewFromOther = true;
+      const time = msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
+      const date = msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleDateString('fr-FR') : '';
+
+      if (date !== lastDate) {
+        html += `<div class="conv-date">${date}</div>`;
+        lastDate = date;
+      }
+
+      const senderBlocked = (!isMe && !isSystem && msg.senderId) ? myBlockedList.includes(msg.senderId) : false;
+      const pseudoStyle = senderBlocked ? 'font-size:11px;font-weight:600;color:var(--text-light);margin-bottom:2px;padding-left:4px;text-decoration:line-through' : 'font-size:11px;font-weight:600;color:var(--primary);margin-bottom:2px;padding-left:4px';
+      const pseudoHtml = (!isMe && !isSystem && msg.senderPseudo) ? `<div class="bubble-pseudo" style="${pseudoStyle}">${msg.senderPseudo}</div>` : '';
+
+      let bubbleClass = isMe ? 'bubble-out' : 'bubble-in';
+      let bubbleStyle = '';
+      if (isMe && msg.createdAt && convData) {
+        const msgTime = msg.createdAt.toMillis();
+        const otherMembers = (convData.members || []).filter(m => m !== currentUser.uid);
+        let isRead = false;
+        for (const m of otherMembers) {
+          const readTime = convData.lastReadBy && convData.lastReadBy[m] ? convData.lastReadBy[m].toMillis() : 0;
+          if (readTime >= msgTime) isRead = true;
+        }
+        bubbleStyle = isRead ? 'background:#4CAF50;' : 'background:#9E9E9E;';
+      }
+
+      if (isSystem) {
+        html += `<div class="conv-date" style="background:var(--primary-light);padding:8px 12px;border-radius:10px;font-size:12px">${msg.content}</div>`;
+      } else if (msg.type === 'sticker') {
+        html += `${pseudoHtml}<div class="bubble ${bubbleClass}" style="background:transparent;font-size:40px;padding:4px;${isMe ? bubbleStyle : ''}">${msg.content}<div class="bubble-time">${time}</div></div>`;
+      } else if (msg.type === 'audio') {
+        html += `${pseudoHtml}
+          <div class="bubble ${bubbleClass}" ${isMe ? `style="${bubbleStyle}"` : ''}>
+            <div class="bubble-audio">
+              <button class="audio-play" onclick="playAudio(this, '${msg.content}')">▶</button>
+              <div class="audio-bar"><div class="audio-bar-fill"></div></div>
+              <span class="audio-duration">0:${String(msg.duration || 0).padStart(2, '0')}</span>
+            </div>
+            <div class="bubble-time">${time}</div>
+          </div>`;
+      } else {
+        html += `${pseudoHtml}
+          <div class="bubble ${bubbleClass}" ${isMe ? `style="${bubbleStyle}"` : ''}>
+            ${msg.content}
+            <div class="bubble-time">${time}</div>
+          </div>`;
+      }
+    }
+
+    container.innerHTML = html;
+    container.scrollTop = container.scrollHeight;
+
+    if (hasNewFromOther && currentUser && currentConvId === convId && !isParentBrowsingChild) {
+      const updateData = {};
+      updateData['lastReadBy.' + currentUser.uid] = firebase.firestore.FieldValue.serverTimestamp();
+      updateData['unreadCount.' + currentUser.uid] = 0;
+      db.collection('conversations').doc(convId).update(updateData).catch(() => {});
+    }
+  }
+
+  unsubMessages = () => { unsubMsgs(); unsubConv(); };
 }
 
 /* ============== SEND MESSAGE ============== */
@@ -3545,6 +3601,114 @@ async function logout() {
   showPage('loginPage');
 }
 
+/* ============== CHILD TABS (CREATE / LINK) ============== */
+function switchChildTab(tab) {
+  const container = document.getElementById('childTabsContainer');
+  const createBtn = document.getElementById('childTabCreate');
+  const linkBtn = document.getElementById('childTabLink');
+  if (!container || !createBtn || !linkBtn) return;
+
+  if (tab === 'create') {
+    container.style.transform = 'translateX(0)';
+    createBtn.style.background = 'var(--primary)';
+    createBtn.style.color = 'white';
+    linkBtn.style.background = 'var(--bg-secondary)';
+    linkBtn.style.color = 'var(--text-secondary)';
+  } else {
+    container.style.transform = 'translateX(-50%)';
+    linkBtn.style.background = 'var(--primary)';
+    linkBtn.style.color = 'white';
+    createBtn.style.background = 'var(--bg-secondary)';
+    createBtn.style.color = 'var(--text-secondary)';
+  }
+}
+
+// Touch swipe support for child tabs
+(function() {
+  let startX = 0;
+  document.addEventListener('touchstart', function(e) {
+    const container = document.getElementById('childTabsContainer');
+    if (!container || !container.closest('.modal.active, .modal-overlay.active')) return;
+    startX = e.touches[0].clientX;
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    const container = document.getElementById('childTabsContainer');
+    if (!container || !container.closest('.modal.active, .modal-overlay.active')) return;
+    const diff = startX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) {
+      switchChildTab(diff > 0 ? 'link' : 'create');
+    }
+  }, { passive: true });
+})();
+
+async function linkExistingChild() {
+  hideError('linkChildError');
+  const code = document.getElementById('linkChildCode').value.trim();
+  const pin = document.getElementById('linkChildPin').value;
+
+  if (!code) return showError('linkChildError', 'Entre le code Zamis');
+  if (!pin) return showError('linkChildError', 'Entre le mot de passe');
+
+  showLoading();
+  try {
+    const snap = await db.collection('users').where('friendCode', '==', code).where('role', '==', 'child').get();
+    if (snap.empty) { hideLoading(); return showError('linkChildError', 'Code Zamis introuvable'); }
+
+    const childDoc = snap.docs[0];
+    const childData = childDoc.data();
+    const childId = childDoc.id;
+
+    if (childData.pin !== pin) { hideLoading(); return showError('linkChildError', 'Mot de passe incorrect'); }
+
+    // Check if already linked
+    if ((currentUserData.childrenIds || []).includes(childId)) {
+      hideLoading();
+      return showError('linkChildError', 'Cet enfant est déjà dans votre liste');
+    }
+
+    // Add to childrenIds
+    await db.collection('users').doc(currentUser.uid).update({
+      childrenIds: firebase.firestore.FieldValue.arrayUnion(childId)
+    });
+
+    // Add co-parent reference on child
+    await db.collection('users').doc(childId).update({
+      coParentIds: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+    });
+
+    // Create parent-child conversation if none exists
+    const convSnap = await db.collection('conversations').where('members', 'array-contains', currentUser.uid).get();
+    let hasConv = false;
+    convSnap.forEach(doc => { if (doc.data().members.includes(childId)) hasConv = true; });
+
+    if (!hasConv) {
+      await db.collection('conversations').add({
+        type: 'direct',
+        members: [currentUser.uid, childId],
+        memberNames: { [currentUser.uid]: currentUserData.pseudo, [childId]: childData.pseudo },
+        memberColors: { [currentUser.uid]: '#0F6E56', [childId]: childData.avatarColor || '#7C5CFC' },
+        lastMessage: 'Bienvenue sur Zamis Messenger ! 🎉 Vous pouvez maintenant discuter ensemble.',
+        lastSenderId: 'system',
+        lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy: currentUser.uid,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    // Update local data
+    currentUserData.childrenIds = (currentUserData.childrenIds || []);
+    currentUserData.childrenIds.push(childId);
+
+    hideLoading();
+    closeModal('addChildModal');
+    showToast('Enfant ajouté !');
+    loadChildren();
+  } catch (err) {
+    hideLoading();
+    showError('linkChildError', 'Erreur : ' + err.message);
+  }
+}
+
 /* ============== MY INVITATIONS LIST ============== */
 async function loadMyInvitations() {
   if (!currentUser) return;
@@ -4084,7 +4248,7 @@ function dismissSplash() {
     if (splashTarget === 'parentDashboard') {
       const user = auth.currentUser;
       if (user) loadParentDashboard(user);
-      else showPage('loginPage');
+      else { showPage('loginPage'); switchAuthTab('parent'); }
     } else if (splashTarget === 'childApp') {
       const savedCode = localStorage.getItem('zamis_childCode');
       const savedPin = localStorage.getItem('zamis_childPin');
@@ -4101,8 +4265,9 @@ function dismissSplash() {
       showPage('loginPage');
     } else {
       showPage('loginPage');
+      switchAuthTab('parent');
     }
-  }, 600);
+  }, 3500);
 }
 </script>
 </body>
