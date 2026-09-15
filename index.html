@@ -965,7 +965,7 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
   </div>
   <div class="splash-title">Zamis Messenger</div>
   <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:12px">Appuyer sur le Z pour continuer</div>
-  <div class="splash-version">v1.2.2</div>
+  <div class="splash-version">v1.2.3</div>
 </div>
 
 <!-- ===================== LOGIN ===================== -->
@@ -1086,7 +1086,7 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
         <div class="header-title">🔒 Espace adulte</div>
         <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
       </div>
-      <span style="font-size:13px;color:rgba(255,255,255,0.5)">v1.2.2</span>
+      <span style="font-size:13px;color:rgba(255,255,255,0.5)">v1.2.3</span>
     </div>
   </div>
   <div class="dashboard-content">
@@ -1645,7 +1645,7 @@ body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
-const ZAMIS_VERSION = '1.2.2';
+const ZAMIS_VERSION = '1.2.3';
 const firebaseConfig = {
   apiKey: "AIzaSyCgR7u4UDjSSNIicavPAuDuwQHWg4YTmPA",
   authDomain: "zamis-messenger.firebaseapp.com",
@@ -1683,7 +1683,6 @@ function showPage(pageId) {
 function switchTab(pageId) {
   showPage(pageId);
   if (pageId === 'invitePage') loadMyInvitations();
-  if (pageId === 'groupsPage') loadGroupsList();
   renderNav(pageId);
 
   // Avatar page: hide theme colors for parents
@@ -2131,28 +2130,41 @@ async function addChild() {
     // Partager l'enfant avec les co-parents
     const myCoParents = currentUserData.coParents || [];
     if (myCoParents.length > 0) {
-      // Ajouter l'enfant à chaque co-parent
-      const batch = db.batch();
+      const coParentBatch = db.batch();
       for (const coParentId of myCoParents) {
-        batch.update(db.collection('users').doc(coParentId), {
+        coParentBatch.update(db.collection('users').doc(coParentId), {
           childrenIds: firebase.firestore.FieldValue.arrayUnion(childUid)
         });
       }
-      await batch.commit();
+      await coParentBatch.commit();
 
-      // Ajouter les co-parents à la liste coParentIds de l'enfant
       await db.collection('users').doc(childUid).update({
         coParentIds: myCoParents
       });
     }
 
-    // Create parent-child conversation
+    // Create parent-child conversation (avec co-parents comme membres)
+    const allMembers = [currentUser.uid, childUid, ...myCoParents];
+    const memberNames = { [currentUser.uid]: currentUserData.pseudo, [childUid]: pseudo };
+    const memberColors = { [currentUser.uid]: '#7C5CFC', [childUid]: selectedChildColor };
+
+    // Ajouter noms/couleurs des co-parents
+    for (const coParentId of myCoParents) {
+      try {
+        const coParentDoc = await db.collection('users').doc(coParentId).get();
+        if (coParentDoc.exists) {
+          memberNames[coParentId] = coParentDoc.data().pseudo;
+          memberColors[coParentId] = coParentDoc.data().avatarColor || '#0F6E56';
+        }
+      } catch (e) {}
+    }
+
     const convRef = db.collection('conversations').doc();
     await convRef.set({
       type: 'direct',
-      members: [currentUser.uid, childUid],
-      memberNames: { [currentUser.uid]: currentUserData.pseudo, [childUid]: pseudo },
-      memberColors: { [currentUser.uid]: '#7C5CFC', [childUid]: selectedChildColor },
+      members: allMembers,
+      memberNames: memberNames,
+      memberColors: memberColors,
       lastMessage: 'Bienvenue sur Zamis ! 🎉',
       lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
       createdBy: currentUser.uid,
@@ -2166,6 +2178,52 @@ async function addChild() {
       content: 'Bienvenue sur Zamis Messenger ! 🎉 Vous pouvez maintenant discuter ensemble.',
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+
+    // Créer conversation entre co-parents si n'existe pas
+    for (const coParentId of myCoParents) {
+      const existingCoConv = await db.collection('conversations')
+        .where('type', '==', 'direct')
+        .where('members', 'array-contains', currentUser.uid)
+        .get();
+      
+      let coConvExists = false;
+      for (const doc of existingCoConv.docs) {
+        const members = doc.data().members || [];
+        // Conversation entre les 2 co-parents seulement (2 membres)
+        if (members.length === 2 && members.includes(coParentId)) {
+          coConvExists = true;
+          break;
+        }
+      }
+
+      if (!coConvExists) {
+        try {
+          const coParentDoc = await db.collection('users').doc(coParentId).get();
+          if (coParentDoc.exists) {
+            const coParentData = coParentDoc.data();
+            const coConvRef = db.collection('conversations').doc();
+            await coConvRef.set({
+              type: 'direct',
+              members: [currentUser.uid, coParentId],
+              memberNames: { [currentUser.uid]: currentUserData.pseudo, [coParentId]: coParentData.pseudo },
+              memberColors: { [currentUser.uid]: '#7C5CFC', [coParentId]: coParentData.avatarColor || '#0F6E56' },
+              lastMessage: 'Vous êtes co-parents ! 🎉',
+              lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+              createdBy: currentUser.uid,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            await coConvRef.collection('messages').add({
+              senderId: 'system',
+              senderPseudo: 'Zamis',
+              type: 'text',
+              content: 'Vous êtes maintenant co-parents ! 🎉 Collaborez pour vos enfants.',
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+          }
+        } catch (e) {}
+      }
+    }
 
     currentUserData.childrenIds = currentUserData.childrenIds || [];
     currentUserData.childrenIds.push(childUid);
@@ -2832,8 +2890,52 @@ async function loadContacts() {
   allContactsCache = [];
   const addedIds = new Set();
 
-  // Toujours loader depuis conversations (source de vérité)
   try {
+    // 1. Ajouter directement les co-parents (même sans conversation)
+    if (currentUserData.role === 'parent') {
+      const coParentIds = currentUserData.coParents || [];
+      for (const id of coParentIds) {
+        if (addedIds.has(id)) continue;
+        try {
+          const doc = await db.collection('users').doc(id).get();
+          if (doc.exists) {
+            const u = doc.data();
+            allContactsCache.push({ uid: id, pseudo: u.pseudo || 'Inconnu', avatar: null, color: u.avatarColor || '#0F6E56' });
+            addedIds.add(id);
+          }
+        } catch (e) {}
+      }
+
+      // 2. Ajouter directement les adultFriends (invités)
+      const friendIds = currentUserData.adultFriends || [];
+      for (const id of friendIds) {
+        if (addedIds.has(id)) continue;
+        try {
+          const doc = await db.collection('users').doc(id).get();
+          if (doc.exists) {
+            const u = doc.data();
+            allContactsCache.push({ uid: id, pseudo: u.pseudo || 'Inconnu', avatar: null, color: u.avatarColor || '#4A90D9' });
+            addedIds.add(id);
+          }
+        } catch (e) {}
+      }
+
+      // 3. Ajouter directement les enfants
+      const childIds = currentUserData.childrenIds || [];
+      for (const id of childIds) {
+        if (addedIds.has(id)) continue;
+        try {
+          const doc = await db.collection('users').doc(id).get();
+          if (doc.exists) {
+            const u = doc.data();
+            allContactsCache.push({ uid: id, pseudo: u.pseudo || 'Inconnu', avatar: u.avatar, color: u.avatarColor || '#FFB347' });
+            addedIds.add(id);
+          }
+        } catch (e) {}
+      }
+    }
+
+    // 4. Compléter depuis conversations (autres contacts)
     const convSnap = await db.collection('conversations').where('members', 'array-contains', currentUser.uid).get();
     for (const convDoc of convSnap.docs) {
       const conv = convDoc.data();
@@ -2923,10 +3025,40 @@ async function sendFriendRequest() {
       return showToast('C\'est ton propre code !');
     }
 
-    // Sécurité anti-prédateur : un enfant ne peut pas inviter un adulte
+    // Sécurité anti-prédateur : enfant vers adulte → crée une demande aux parents
     if (currentUserData.role === 'child' && targetUser.role === 'parent') {
+      // Créer une demande d'approbation pour chaque parent de l'enfant
+      const parentIds = [currentUserData.parentId, ...(currentUserData.coParentIds || [])].filter(Boolean);
+      
+      // Check si déjà une invitation en cours
+      const existingInv = await db.collection('invitations')
+        .where('fromChildId', '==', currentUser.uid)
+        .where('toChildId', '==', targetUser.uid)
+        .where('status', '==', 'pending')
+        .get();
+      
+      if (!existingInv.empty) {
+        hideLoading();
+        return showToast('Demande déjà envoyée aux parents');
+      }
+
+      // Créer une invitation pour chaque parent
+      for (const parentId of parentIds) {
+        await db.collection('invitations').add({
+          fromChildId: currentUser.uid,
+          fromChildPseudo: currentUserData.pseudo,
+          toChildId: targetUser.uid,
+          toChildPseudo: targetUser.pseudo,
+          targetIsAdult: true,
+          parentApprovalId: parentId,
+          status: 'pending',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+
       hideLoading();
-      return showToast('Code adulte reconnu. Demandez à vos parents de l\'ajouter.');
+      document.getElementById('friendCodeInput').value = '';
+      return showToast('Demande envoyée aux parents pour validation');
     }
 
     // Anti-doublon: check if already in contacts
@@ -3104,113 +3236,6 @@ function showCreateGroupModal() {
   loadGroupMembersList();
 }
 
-async function loadGroupMembersList() {
-  const container = document.getElementById('groupMembersList');
-  if (!container) return;
-
-  let contacts = [];
-  if (currentUserData.role === 'parent') {
-    const childIds = currentUserData.childrenIds || [];
-    for (const id of childIds) {
-      try {
-        const doc = await db.collection('users').doc(id).get();
-        if (doc.exists) contacts.push({ uid: id, pseudo: doc.data().pseudo, color: doc.data().avatarColor || '#7C5CFC' });
-      } catch (e) {}
-    }
-    // Also get adults from conversations
-    const convSnap = await db.collection('conversations').where('members', 'array-contains', currentUser.uid).get();
-    convSnap.forEach(doc => {
-      const conv = doc.data();
-      conv.members.forEach(m => {
-        if (m !== currentUser.uid && !childIds.includes(m) && !contacts.find(c => c.uid === m)) {
-          const name = conv.memberNames ? (conv.memberNames[m] || 'Inconnu') : 'Inconnu';
-          const color = conv.memberColors ? (conv.memberColors[m] || '#7C5CFC') : '#7C5CFC';
-          contacts.push({ uid: m, pseudo: name, color: color });
-        }
-      });
-    });
-  } else if (currentUserData.role === 'child') {
-    if (currentUserData.parentId) {
-      try {
-        const doc = await db.collection('users').doc(currentUserData.parentId).get();
-        if (doc.exists) contacts.push({ uid: currentUserData.parentId, pseudo: doc.data().pseudo, color: '#7C5CFC' });
-      } catch (e) {}
-    }
-    const approved = currentUserData.approvedContacts || [];
-    for (const id of approved) {
-      try {
-        const doc = await db.collection('users').doc(id).get();
-        if (doc.exists) contacts.push({ uid: id, pseudo: doc.data().pseudo, color: doc.data().avatarColor || '#7C5CFC' });
-      } catch (e) {}
-    }
-  }
-
-  let html = '';
-  contacts.forEach(c => {
-    html += `
-      <label style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer">
-        <input type="checkbox" class="group-member-cb" value="${c.uid}" data-pseudo="${c.pseudo}" data-color="${c.color}" style="width:20px;height:20px;accent-color:var(--primary)">
-        <div style="width:32px;height:32px;border-radius:50%;background:${c.color};display:flex;align-items:center;justify-content:center;color:white;font-weight:600;font-size:13px">${c.pseudo.charAt(0).toUpperCase()}</div>
-        <span style="font-size:14px">${c.pseudo}</span>
-      </label>`;
-  });
-
-  if (!html) html = '<div style="text-align:center;color:var(--text-secondary);padding:20px;font-size:13px">Aucun contact disponible</div>';
-  container.innerHTML = html;
-}
-
-async function createGroup() {
-  const name = document.getElementById('groupName').value.trim();
-  if (!name) return showToast('Entre un nom de groupe');
-
-  const checkboxes = document.querySelectorAll('.group-member-cb:checked');
-  if (checkboxes.length === 0) return showToast('Sélectionne au moins un membre');
-
-  showLoading();
-  try {
-    const members = [currentUser.uid];
-    const memberNames = { [currentUser.uid]: currentUserData.pseudo };
-    const memberColors = { [currentUser.uid]: currentUserData.avatarColor || '#7C5CFC' };
-
-    checkboxes.forEach(cb => {
-      members.push(cb.value);
-      memberNames[cb.value] = cb.getAttribute('data-pseudo');
-      memberColors[cb.value] = cb.getAttribute('data-color');
-    });
-
-    const convRef = db.collection('conversations').doc();
-    await convRef.set({
-      type: 'group',
-      groupName: name,
-      members: members,
-      memberNames: memberNames,
-      memberColors: memberColors,
-      createdBy: currentUser.uid,
-      createdByRole: currentUserData.role,
-      admins: [currentUser.uid],
-      lastMessage: 'Groupe créé ! 🎉',
-      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
-      lastSenderId: 'system',
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    await convRef.collection('messages').add({
-      senderId: 'system',
-      senderPseudo: 'Zamis',
-      type: 'text',
-      content: currentUserData.pseudo + ' a créé le groupe "' + name + '" 🎉',
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    hideLoading();
-    closeModal('createGroupModal');
-    showToast('Groupe créé !');
-  } catch (err) {
-    hideLoading();
-    showToast('Erreur : ' + err.message);
-  }
-}
-
 /* ============== PENDING REQUESTS (PARENT) ============== */
 async function loadPendingRequests() {
   if (!currentUser) return;
@@ -3257,16 +3282,23 @@ async function approveRequest(invId) {
     const invDoc = await db.collection('invitations').doc(invId).get();
     const inv = invDoc.data();
 
-    // Vérifier si le contact est déjà approuvé (éviter doublons)
+    // Vérifier si déjà approuvé (éviter doublons)
     const fromChildDoc = await db.collection('users').doc(inv.fromChildId).get();
     const toChildDoc = await db.collection('users').doc(inv.toChildId).get();
     
     const fromApproved = fromChildDoc.data().approvedContacts || [];
     const toApproved = toChildDoc.data().approvedContacts || [];
 
-    // Si déjà approuvé, juste marquer l'invitation comme approved et sortir
     if (fromApproved.includes(inv.toChildId) && toApproved.includes(inv.fromChildId)) {
-      await db.collection('invitations').doc(invId).update({ status: 'approved' });
+      // Marquer TOUTES les invitations comme approuvées et sortir
+      const allInv = await db.collection('invitations')
+        .where('fromChildId', '==', inv.fromChildId)
+        .where('toChildId', '==', inv.toChildId)
+        .get();
+      const batch = db.batch();
+      allInv.forEach(d => batch.update(d.ref, { status: 'approved' }));
+      await batch.commit();
+      
       hideLoading();
       showToast('Déjà approuvé !');
       loadPendingRequests();
@@ -3281,24 +3313,22 @@ async function approveRequest(invId) {
       approvedContacts: firebase.firestore.FieldValue.arrayUnion(inv.fromChildId)
     });
 
-    // Vérifier si une conversation existe déjà pour cette paire
+    // Vérifier si conversation existe déjà
     const existingConv = await db.collection('conversations')
       .where('type', '==', 'direct')
       .where('members', 'array-contains', inv.fromChildId)
       .get();
     
     let convExists = false;
-    let convId = null;
     for (const doc of existingConv.docs) {
       const members = doc.data().members || [];
       if (members.includes(inv.toChildId)) {
         convExists = true;
-        convId = doc.id;
         break;
       }
     }
 
-    // Créer la conversation seulement si elle n'existe pas
+    // Créer conversation SEULEMENT si elle n'existe pas
     if (!convExists) {
       const fromData = fromChildDoc.data();
       const toData = toChildDoc.data();
@@ -3314,7 +3344,6 @@ async function approveRequest(invId) {
         createdBy: currentUser.uid,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
-      convId = convRef.id;
 
       await convRef.collection('messages').add({
         senderId: 'system',
@@ -3325,16 +3354,13 @@ async function approveRequest(invId) {
       });
     }
 
-    // Marquer TOUTES les invitations de cette paire comme 'approved'
+    // Marquer TOUTES les invitations de cette paire comme approuvées
     const allInvitations = await db.collection('invitations')
       .where('fromChildId', '==', inv.fromChildId)
       .where('toChildId', '==', inv.toChildId)
       .get();
-    
     const batch = db.batch();
-    allInvitations.forEach(invDoc => {
-      batch.update(invDoc.ref, { status: 'approved' });
-    });
+    allInvitations.forEach(d => batch.update(d.ref, { status: 'approved' }));
     await batch.commit();
 
     hideLoading();
@@ -3342,7 +3368,7 @@ async function approveRequest(invId) {
     loadPendingRequests();
   } catch (err) {
     hideLoading();
-    showToast('Erreur : ' + err.message);
+    showToast('Erreur');
   }
 }
 
@@ -3352,16 +3378,13 @@ async function rejectRequest(invId) {
     const invDoc = await db.collection('invitations').doc(invId).get();
     const inv = invDoc.data();
 
-    // Rejeter TOUTES les invitations de cette même paire
+    // Rejeter TOUTES les invitations de cette paire
     const allInvitations = await db.collection('invitations')
       .where('fromChildId', '==', inv.fromChildId)
       .where('toChildId', '==', inv.toChildId)
       .get();
-    
     const batch = db.batch();
-    allInvitations.forEach(invDoc => {
-      batch.update(invDoc.ref, { status: 'rejected' });
-    });
+    allInvitations.forEach(d => batch.update(d.ref, { status: 'rejected' }));
     await batch.commit();
 
     showToast('Demande refusée');
@@ -3459,7 +3482,7 @@ async function setAvatar(el, emoji) {
 
 /* ============== DELETE CHILD ============== */
 function confirmDeleteChild(childId, pseudo) {
-  const pwd = prompt('Entrez le mot de passe de l\'enfant pour confirmer la suppression:\n\n(Supprimer ' + pseudo + ' et TOUTES ses conversations)\n\nCette action est irréversible.');
+  const pwd = prompt('Entrez le mot de passe de ' + pseudo + ' pour confirmer la suppression:\n\n(Supprimer ' + pseudo + ' et TOUTES ses conversations)\n\nCette action est irréversible.');
   if (!pwd) return;
   deleteChild(childId, pwd);
 }
@@ -3501,13 +3524,16 @@ async function deleteChild(childId, passwordPin) {
     for (const d of invSnap2.docs) await d.ref.delete();
 
     // Retirer l'enfant des contacts approuvés des autres
-    const approved = childData.approvedContacts || [];
-    for (const friendId of approved) {
-      try {
-        await db.collection('users').doc(friendId).update({
-          approvedContacts: firebase.firestore.FieldValue.arrayRemove(childId)
-        });
-      } catch (e) {}
+    const childDoc = await db.collection('users').doc(childId).get();
+    if (childDoc.exists) {
+      const approved = childDoc.data().approvedContacts || [];
+      for (const friendId of approved) {
+        try {
+          await db.collection('users').doc(friendId).update({
+            approvedContacts: firebase.firestore.FieldValue.arrayRemove(childId)
+          });
+        } catch (e) {}
+      }
     }
 
     // Supprimer l'enfant de la liste du parent
@@ -3517,13 +3543,15 @@ async function deleteChild(childId, passwordPin) {
 
     // Supprimer aussi de la liste de tous les co-parents
     const myCoParents = currentUserData.coParents || [];
-    const batch = db.batch();
-    for (const coParentId of myCoParents) {
-      batch.update(db.collection('users').doc(coParentId), {
-        childrenIds: firebase.firestore.FieldValue.arrayRemove(childId)
-      });
+    if (myCoParents.length > 0) {
+      const batch = db.batch();
+      for (const coParentId of myCoParents) {
+        batch.update(db.collection('users').doc(coParentId), {
+          childrenIds: firebase.firestore.FieldValue.arrayRemove(childId)
+        });
+      }
+      await batch.commit();
     }
-    await batch.commit();
 
     // Supprimer le document enfant
     await cleanupDeletedUser(childId);
@@ -4057,14 +4085,12 @@ async function inviteCoParent() {
 async function removeCoParent(coParentId) {
   if (!confirm('Retirer ce co-parent ?')) return;
   try {
-    // Récupérer les enfants du co-parent à retirer
+    // Récupérer les enfants du co-parent
     const coParentDoc = await db.collection('users').doc(coParentId).get();
     const coParentChildren = coParentDoc.data().childrenIds || [];
-
-    // Récupérer mes enfants
     const myChildren = currentUserData.childrenIds || [];
 
-    // Retirer bidirectionnellement les co-parents
+    // Retirer bidirectionnel co-parents
     await db.collection('users').doc(currentUser.uid).update({
       coParents: firebase.firestore.FieldValue.arrayRemove(coParentId)
     });
@@ -4072,28 +4098,23 @@ async function removeCoParent(coParentId) {
       coParents: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
     });
 
-    // Retirer l'accès aux enfants mutuels
+    // Retirer accès aux enfants mutuels
     const batch = db.batch();
-    
-    // Mes enfants: retirer le co-parent de leur coParentIds
     for (const childId of myChildren) {
       batch.update(db.collection('users').doc(childId), {
         coParentIds: firebase.firestore.FieldValue.arrayRemove(coParentId)
       });
     }
-
-    // Enfants du co-parent: retirer moi de leur coParentIds
     for (const childId of coParentChildren) {
       batch.update(db.collection('users').doc(childId), {
         coParentIds: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
       });
     }
-
     await batch.commit();
 
     showToast('Co-parent retiré');
     
-    // Rafraîchir immédiatement le dashboard
+    // Rafraîchir dashboard immédiatement
     const authUser = auth.currentUser;
     if (authUser) {
       loadParentDashboard(authUser);
@@ -4444,8 +4465,12 @@ async function loadGroupsList() {
       .get();
     
     convSnap.forEach(doc => {
+      if (groupsLoaded.has(doc.id)) return;
       const conv = doc.data();
       groupsLoaded.add(doc.id);
+      // Aussi tracker par groupId pour éviter les doublons entre les 2 sources
+      if (conv.groupId) groupsLoaded.add(conv.groupId);
+      
       html += `
         <div class="conv-item" onclick="openGroup('${doc.id}')" style="cursor:pointer">
           <div class="conv-avatar" style="background:var(--primary)">👥</div>
@@ -4460,17 +4485,14 @@ async function loadGroupsList() {
   }
 
   try {
-    // 2. Charger aussi depuis collection 'groups' (vieux groupes pour compatibilité)
+    // 2. Charger aussi depuis collection 'groups' (vieux groupes)
     const groupsSnap = await db.collection('groups').get();
     groupsSnap.forEach(doc => {
-      if (groupsLoaded.has(doc.id)) return; // Skip si déjà chargé
+      // Skip si déjà chargé via conversations
+      if (groupsLoaded.has(doc.id)) return;
       
       const grp = doc.data();
-      // Vérifier que l'utilisateur est membre
-      if (!grp.members || !grp.members.includes(currentUser.uid)) {
-        console.log('User not in group members:', doc.id, grp.members);
-        return;
-      }
+      if (!grp.members || !grp.members.includes(currentUser.uid)) return;
       
       groupsLoaded.add(doc.id);
       html += `
@@ -4486,8 +4508,84 @@ async function loadGroupsList() {
     console.error('Error loading groups collection:', e);
   }
   
-  console.log('Total groups loaded:', groupsLoaded.size);
   list.innerHTML = html || '<div style="padding:20px;text-align:center;color:var(--text-secondary);font-size:13px">Aucun groupe</div>';
+}
+
+async function openOldGroup(groupId) {
+  showLoading();
+  try {
+    const groupDoc = await db.collection('groups').doc(groupId).get();
+    if (!groupDoc.exists) {
+      hideLoading();
+      return showToast('Groupe introuvable');
+    }
+
+    const grp = groupDoc.data();
+    let memberNames = grp.memberNames || {};
+    let memberColors = grp.memberColors || {};
+    const members = grp.members || [];
+    
+    for (const memberId of members) {
+      if (!memberNames[memberId]) {
+        try {
+          const userDoc = await db.collection('users').doc(memberId).get();
+          if (userDoc.exists) {
+            memberNames[memberId] = userDoc.data().pseudo || 'Inconnu';
+            memberColors[memberId] = userDoc.data().avatarColor || '#7C5CFC';
+          }
+        } catch (e) {}
+      }
+    }
+
+    // Vérifier si conversation existe déjà (par groupId)
+    let convId = null;
+    try {
+      const existing = await db.collection('conversations')
+        .where('groupId', '==', groupId)
+        .limit(1)
+        .get();
+      if (!existing.empty) convId = existing.docs[0].id;
+    } catch (e) {}
+
+    if (!convId) {
+      const convRef = db.collection('conversations').doc();
+      await convRef.set({
+        type: 'group',
+        groupId: groupId,
+        groupName: grp.name || 'Groupe',
+        members: members,
+        memberNames: memberNames,
+        memberColors: memberColors,
+        createdBy: grp.createdBy || 'system',
+        createdByRole: grp.createdByRole || 'parent',
+        admins: grp.admins || [],
+        lastMessage: grp.lastMessage || '',
+        lastMessageAt: grp.lastMessageAt || firebase.firestore.FieldValue.serverTimestamp(),
+        lastSenderId: grp.lastSenderId || 'system',
+        createdAt: grp.createdAt || firebase.firestore.FieldValue.serverTimestamp()
+      });
+      convId = convRef.id;
+
+      try {
+        const oldMessagesSnap = await db.collection('groups').doc(groupId).collection('messages').get();
+        if (!oldMessagesSnap.empty) {
+          const batch = db.batch();
+          oldMessagesSnap.forEach(msgDoc => {
+            const msgRef = db.collection('conversations').doc(convId).collection('messages').doc(msgDoc.id);
+            batch.set(msgRef, msgDoc.data());
+          });
+          await batch.commit();
+        }
+      } catch (e) {}
+    }
+
+    hideLoading();
+    openConversation(convId, grp.name || 'Groupe', '#7C5CFC');
+  } catch (err) {
+    hideLoading();
+    console.error('Error opening old group:', err);
+    showToast('Erreur: ' + err.message);
+  }
 }
 
 function openCreateGroupModal() {
@@ -4503,7 +4601,50 @@ async function loadGroupMembersList() {
   const addedIds = new Set();
 
   try {
-    // Charger depuis les conversations (source de vérité)
+    // 1. Ajouter co-parents directement
+    if (currentUserData.role === 'parent') {
+      const coParentIds = currentUserData.coParents || [];
+      for (const id of coParentIds) {
+        try {
+          const doc = await db.collection('users').doc(id).get();
+          if (doc.exists) {
+            const u = doc.data();
+            contacts.push({ uid: id, pseudo: u.pseudo || 'Inconnu', color: u.avatarColor || '#0F6E56' });
+            addedIds.add(id);
+          }
+        } catch (e) {}
+      }
+
+      // 2. Ajouter adultFriends
+      const friendIds = currentUserData.adultFriends || [];
+      for (const id of friendIds) {
+        if (addedIds.has(id)) continue;
+        try {
+          const doc = await db.collection('users').doc(id).get();
+          if (doc.exists) {
+            const u = doc.data();
+            contacts.push({ uid: id, pseudo: u.pseudo || 'Inconnu', color: u.avatarColor || '#4A90D9' });
+            addedIds.add(id);
+          }
+        } catch (e) {}
+      }
+
+      // 3. Ajouter enfants
+      const childIds = currentUserData.childrenIds || [];
+      for (const id of childIds) {
+        if (addedIds.has(id)) continue;
+        try {
+          const doc = await db.collection('users').doc(id).get();
+          if (doc.exists) {
+            const u = doc.data();
+            contacts.push({ uid: id, pseudo: u.pseudo || 'Inconnu', color: u.avatarColor || '#FFB347' });
+            addedIds.add(id);
+          }
+        } catch (e) {}
+      }
+    }
+
+    // 4. Compléter depuis conversations
     const convSnap = await db.collection('conversations').where('members', 'array-contains', currentUser.uid).get();
     for (const convDoc of convSnap.docs) {
       const conv = convDoc.data();
@@ -4515,7 +4656,7 @@ async function loadGroupMembersList() {
           const memberDoc = await db.collection('users').doc(memberId).get();
           if (memberDoc.exists) {
             const member = memberDoc.data();
-            const displayName = member.pseudo || member.prenom || 'Inconnu';
+            const displayName = member.pseudo || 'Inconnu';
             contacts.push({ uid: memberId, pseudo: displayName, color: member.avatarColor || '#7C5CFC' });
           }
         } catch (e) {}
@@ -4597,120 +4738,263 @@ async function openGroup(groupId) {
   }
 }
 
-async function openOldGroup(groupId) {
+function showConvParticipants() {
+  closeConvMenu();
+  if (!currentConvId) return;
+  
+  db.collection('conversations').doc(currentConvId).get().then(async snap => {
+    if (!snap.exists) return;
+    const conv = snap.data();
+    const isGroup = conv.type === 'group';
+    const members = conv.members || [];
+    const isCreator = conv.createdBy === currentUser.uid;
+    const isAdmin = (conv.admins || []).includes(currentUser.uid);
+    const canManage = isGroup && (isCreator || isAdmin);
+    
+    // Créer un modal dynamique
+    let modal = document.getElementById('participantsModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'participantsModal';
+      modal.className = 'modal-overlay';
+      modal.innerHTML = `
+        <div class="modal">
+          <button class="modal-close" onclick="closeModal('participantsModal')">×</button>
+          <div class="modal-title" id="participantsTitle">Participants</div>
+          <div id="participantsList" style="max-height:60vh;overflow-y:auto"></div>
+          <div id="participantsActions" style="margin-top:16px"></div>
+        </div>`;
+      document.body.appendChild(modal);
+    }
+    
+    const title = document.getElementById('participantsTitle');
+    if (title) title.textContent = isGroup ? `${conv.groupName || 'Groupe'} (${members.length})` : 'Participants';
+    
+    const list = document.getElementById('participantsList');
+    let html = '';
+    
+    for (const memberId of members) {
+      try {
+        const memberDoc = await db.collection('users').doc(memberId).get();
+        if (memberDoc.exists) {
+          const m = memberDoc.data();
+          const name = m.pseudo || 'Inconnu';
+          const color = m.avatarColor || '#7C5CFC';
+          const isSelf = memberId === currentUser.uid;
+          const isMemberCreator = memberId === conv.createdBy;
+          
+          html += `
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+              <div style="width:36px;height:36px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;color:white;font-weight:600;font-size:15px">${name.charAt(0).toUpperCase()}</div>
+              <div style="flex:1">
+                <div style="font-size:14px;font-weight:500">${name}${isSelf ? ' (toi)' : ''}${isMemberCreator ? ' ⭐' : ''}</div>
+                <div style="font-size:11px;color:var(--text-secondary)">${m.role === 'child' ? 'Enfant' : 'Adulte'}</div>
+              </div>
+              ${canManage && !isSelf && !isMemberCreator ? `<button class="btn btn-outline" style="width:auto;padding:6px 10px;font-size:11px;color:#e74c3c;border-color:#e74c3c" onclick="removeGroupMember('${memberId}','${name.replace(/'/g, "\\'")}');closeModal('participantsModal')">Retirer</button>` : ''}
+            </div>`;
+        }
+      } catch (e) {}
+    }
+    
+    list.innerHTML = html;
+    
+    // Actions (add member if group + can manage)
+    const actions = document.getElementById('participantsActions');
+    if (canManage) {
+      actions.innerHTML = `
+        <button class="btn btn-primary" onclick="openAddMemberModal()" style="margin-bottom:8px">➕ Ajouter un membre</button>
+      `;
+    } else {
+      actions.innerHTML = '';
+    }
+    
+    openModal('participantsModal');
+  }).catch(e => console.error('Error showing participants:', e));
+}
+
+async function removeGroupMember(memberId, memberName) {
+  if (!confirm('Retirer ' + memberName + ' du groupe ?')) return;
+  if (!currentConvId) return;
+  
   showLoading();
   try {
-    // Charger le groupe depuis la collection 'groups'
-    const groupDoc = await db.collection('groups').doc(groupId).get();
-    if (!groupDoc.exists) {
+    const convDoc = await db.collection('conversations').doc(currentConvId).get();
+    if (!convDoc.exists) {
       hideLoading();
       return showToast('Groupe introuvable');
     }
+    
+    const conv = convDoc.data();
+    const newMembers = (conv.members || []).filter(m => m !== memberId);
+    const newMemberNames = { ...conv.memberNames };
+    const newMemberColors = { ...conv.memberColors };
+    delete newMemberNames[memberId];
+    delete newMemberColors[memberId];
+    
+    await db.collection('conversations').doc(currentConvId).update({
+      members: newMembers,
+      memberNames: newMemberNames,
+      memberColors: newMemberColors
+    });
+    
+    // Message system
+    await db.collection('conversations').doc(currentConvId).collection('messages').add({
+      senderId: 'system',
+      senderPseudo: 'Zamis',
+      type: 'text',
+      content: memberName + ' a été retiré du groupe',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    hideLoading();
+    showToast(memberName + ' retiré');
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur : ' + err.message);
+  }
+}
 
-    const grp = groupDoc.data();
+async function openAddMemberModal() {
+  if (!currentConvId) return;
+  
+  // Créer modal si n'existe pas
+  let modal = document.getElementById('addMemberModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'addMemberModal';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal">
+        <button class="modal-close" onclick="closeModal('addMemberModal')">×</button>
+        <div class="modal-title">Ajouter un membre</div>
+        <div id="addMemberList" style="max-height:60vh;overflow-y:auto"></div>
+      </div>`;
+    document.body.appendChild(modal);
+  }
+  
+  openModal('addMemberModal');
+  
+  const container = document.getElementById('addMemberList');
+  container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary)">Chargement...</div>';
+  
+  try {
+    const convDoc = await db.collection('conversations').doc(currentConvId).get();
+    const conv = convDoc.data();
+    const existingMembers = new Set(conv.members || []);
     
-    // Construire memberNames et memberColors s'ils manquent
-    let memberNames = grp.memberNames || {};
-    let memberColors = grp.memberColors || {};
+    // Charger tous les contacts disponibles
+    let contacts = [];
+    const addedIds = new Set();
     
-    // Si les noms/couleurs manquent, les charger depuis les users
-    const members = grp.members || [];
-    for (const memberId of members) {
-      if (!memberNames[memberId]) {
+    if (currentUserData.role === 'parent') {
+      // Co-parents
+      for (const id of (currentUserData.coParents || [])) {
+        if (existingMembers.has(id) || addedIds.has(id)) continue;
         try {
-          const userDoc = await db.collection('users').doc(memberId).get();
-          if (userDoc.exists) {
-            memberNames[memberId] = userDoc.data().pseudo || 'Inconnu';
-            memberColors[memberId] = userDoc.data().avatarColor || '#7C5CFC';
+          const doc = await db.collection('users').doc(id).get();
+          if (doc.exists) {
+            contacts.push({ uid: id, pseudo: doc.data().pseudo, color: doc.data().avatarColor || '#0F6E56' });
+            addedIds.add(id);
+          }
+        } catch (e) {}
+      }
+      // Adult friends
+      for (const id of (currentUserData.adultFriends || [])) {
+        if (existingMembers.has(id) || addedIds.has(id)) continue;
+        try {
+          const doc = await db.collection('users').doc(id).get();
+          if (doc.exists) {
+            contacts.push({ uid: id, pseudo: doc.data().pseudo, color: doc.data().avatarColor || '#4A90D9' });
+            addedIds.add(id);
+          }
+        } catch (e) {}
+      }
+      // Enfants
+      for (const id of (currentUserData.childrenIds || [])) {
+        if (existingMembers.has(id) || addedIds.has(id)) continue;
+        try {
+          const doc = await db.collection('users').doc(id).get();
+          if (doc.exists) {
+            contacts.push({ uid: id, pseudo: doc.data().pseudo, color: doc.data().avatarColor || '#FFB347' });
+            addedIds.add(id);
           }
         } catch (e) {}
       }
     }
     
-    // Vérifier/créer une conversation correspondante
-    let convId = null;
-    try {
-      const existing = await db.collection('conversations')
-        .where('groupId', '==', groupId)
-        .limit(1)
-        .get();
-      
-      if (!existing.empty) {
-        convId = existing.docs[0].id;
-      }
-    } catch (e) {}
-
-    // Si pas de conversation correspondante, la créer
-    if (!convId) {
-      const convRef = db.collection('conversations').doc();
-      await convRef.set({
-        type: 'group',
-        groupId: groupId,
-        groupName: grp.name || 'Groupe',
-        members: members,
-        memberNames: memberNames,
-        memberColors: memberColors,
-        createdBy: grp.createdBy || 'system',
-        createdByRole: grp.createdByRole || 'parent',
-        admins: grp.admins || [],
-        lastMessage: grp.lastMessage || '',
-        lastMessageAt: grp.lastMessageAt || firebase.firestore.FieldValue.serverTimestamp(),
-        lastSenderId: grp.lastSenderId || 'system',
-        createdAt: grp.createdAt || firebase.firestore.FieldValue.serverTimestamp()
-      });
-      convId = convRef.id;
-
-      // Migrer les messages depuis groups/groupId/messages vers conversations/convId/messages
-      try {
-        const oldMessagesSnap = await db.collection('groups').doc(groupId).collection('messages').get();
-        if (!oldMessagesSnap.empty) {
-          const batch = db.batch();
-          oldMessagesSnap.forEach(msgDoc => {
-            const msgRef = db.collection('conversations').doc(convId).collection('messages').doc(msgDoc.id);
-            batch.set(msgRef, msgDoc.data());
-          });
-          await batch.commit();
-        }
-      } catch (e) {
-        console.log('No old messages to migrate');
+    // Compléter depuis conversations
+    const convSnap = await db.collection('conversations').where('members', 'array-contains', currentUser.uid).get();
+    for (const cd of convSnap.docs) {
+      const c = cd.data();
+      for (const memberId of c.members) {
+        if (memberId === currentUser.uid || existingMembers.has(memberId) || addedIds.has(memberId)) continue;
+        addedIds.add(memberId);
+        try {
+          const memberDoc = await db.collection('users').doc(memberId).get();
+          if (memberDoc.exists) {
+            const m = memberDoc.data();
+            contacts.push({ uid: memberId, pseudo: m.pseudo || 'Inconnu', color: m.avatarColor || '#7C5CFC' });
+          }
+        } catch (e) {}
       }
     }
-
-    hideLoading();
-    openConversation(convId, grp.name || 'Groupe', '#7C5CFC');
-  } catch (err) {
-    hideLoading();
-    console.error('Error opening old group:', err);
-    showToast('Erreur: ' + err.message);
+    
+    contacts.sort((a, b) => a.pseudo.toLowerCase().localeCompare(b.pseudo.toLowerCase()));
+    
+    let html = '';
+    contacts.forEach(c => {
+      html += `
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="width:36px;height:36px;border-radius:50%;background:${c.color};display:flex;align-items:center;justify-content:center;color:white;font-weight:600;font-size:15px">${c.pseudo.charAt(0).toUpperCase()}</div>
+          <div style="flex:1;font-size:14px;font-weight:500">${c.pseudo}</div>
+          <button class="btn btn-primary" style="width:auto;padding:6px 12px;font-size:12px" onclick="addGroupMember('${c.uid}','${c.pseudo.replace(/'/g, "\\'")}','${c.color}')">Ajouter</button>
+        </div>`;
+    });
+    
+    container.innerHTML = html || '<div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:13px">Aucun contact disponible</div>';
+  } catch (e) {
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--red)">Erreur de chargement</div>';
   }
 }
 
-function showConvParticipants() {
-  closeConvMenu();
+async function addGroupMember(memberId, memberName, memberColor) {
   if (!currentConvId) return;
   
+  showLoading();
   try {
-    const convDoc = db.collection('conversations').doc(currentConvId).get().then(async snap => {
-      if (!snap.exists) return;
-      const conv = snap.data();
-      const members = conv.members || [];
-      
-      let html = '<div style="padding:16px"><div style="font-size:14px;font-weight:600;margin-bottom:12px">Participants</div>';
-      
-      for (const memberId of members) {
-        const memberDoc = await db.collection('users').doc(memberId).get();
-        if (memberDoc.exists) {
-          const m = memberDoc.data();
-          const name = m.pseudo || m.prenom || 'Inconnu';
-          const isSelf = memberId === currentUser.uid;
-          html += `<div style="padding:8px 0;font-size:13px;border-bottom:1px solid var(--border)">${name}${isSelf ? ' (toi)' : ''}</div>`;
-        }
-      }
-      
-      html += '</div>';
-      showModal(html, 'Participants');
+    const convDoc = await db.collection('conversations').doc(currentConvId).get();
+    if (!convDoc.exists) {
+      hideLoading();
+      return showToast('Groupe introuvable');
+    }
+    
+    const conv = convDoc.data();
+    const newMembers = [...(conv.members || []), memberId];
+    const newMemberNames = { ...conv.memberNames, [memberId]: memberName };
+    const newMemberColors = { ...conv.memberColors, [memberId]: memberColor };
+    
+    await db.collection('conversations').doc(currentConvId).update({
+      members: newMembers,
+      memberNames: newMemberNames,
+      memberColors: newMemberColors
     });
-  } catch (e) {}
+    
+    // Message system
+    await db.collection('conversations').doc(currentConvId).collection('messages').add({
+      senderId: 'system',
+      senderPseudo: 'Zamis',
+      type: 'text',
+      content: memberName + ' a rejoint le groupe ! 🎉',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    hideLoading();
+    closeModal('addMemberModal');
+    showToast(memberName + ' ajouté au groupe');
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur : ' + err.message);
+  }
 }
 
 function closeConvMenu() {
