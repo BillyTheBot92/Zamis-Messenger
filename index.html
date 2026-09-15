@@ -1683,6 +1683,7 @@ function showPage(pageId) {
 function switchTab(pageId) {
   showPage(pageId);
   if (pageId === 'invitePage') loadMyInvitations();
+  if (pageId === 'groupsPage') loadGroupsList();
   renderNav(pageId);
 
   // Avatar page: hide theme colors for parents
@@ -4284,25 +4285,65 @@ async function loadGroupsList() {
   const list = document.getElementById('groupsList');
   if (!list) return;
   
-  let html = '';
-  try {
-    const groupIds = currentUserData.groups || [];
-    for (const gId of groupIds) {
-      const gDoc = await db.collection('groups').doc(gId).get();
-      if (gDoc.exists) {
-        const g = gDoc.data();
-        html += `
-          <div class="conv-item" onclick="openGroup('${gId}')">
-            <div class="conv-avatar" style="background:var(--primary)">👥</div>
-            <div class="conv-info">
-              <div class="conv-name">${g.name}</div>
-              <div class="conv-preview">${g.members.length} membres</div>
-            </div>
-          </div>`;
-      }
-    }
-  } catch (e) {}
+  if (!currentUser) {
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-secondary);font-size:13px">Non connecté</div>';
+    return;
+  }
   
+  let html = '';
+  const groupsLoaded = new Set();
+  
+  try {
+    // 1. Charger depuis conversations avec type='group' (nouveaux groupes)
+    const convSnap = await db.collection('conversations')
+      .where('members', 'array-contains', currentUser.uid)
+      .where('type', '==', 'group')
+      .get();
+    
+    convSnap.forEach(doc => {
+      const conv = doc.data();
+      groupsLoaded.add(doc.id);
+      html += `
+        <div class="conv-item" onclick="openGroup('${doc.id}')" style="cursor:pointer">
+          <div class="conv-avatar" style="background:var(--primary)">👥</div>
+          <div class="conv-info">
+            <div class="conv-name">${conv.groupName || 'Groupe'}</div>
+            <div class="conv-preview">${(conv.members || []).length} membres</div>
+          </div>
+        </div>`;
+    });
+  } catch (e) {
+    console.error('Error loading conversations groups:', e);
+  }
+
+  try {
+    // 2. Charger aussi depuis collection 'groups' (vieux groupes pour compatibilité)
+    const groupsSnap = await db.collection('groups').get();
+    groupsSnap.forEach(doc => {
+      if (groupsLoaded.has(doc.id)) return; // Skip si déjà chargé
+      
+      const grp = doc.data();
+      // Vérifier que l'utilisateur est membre
+      if (!grp.members || !grp.members.includes(currentUser.uid)) {
+        console.log('User not in group members:', doc.id, grp.members);
+        return;
+      }
+      
+      groupsLoaded.add(doc.id);
+      html += `
+        <div class="conv-item" onclick="openOldGroup('${doc.id}')" style="cursor:pointer">
+          <div class="conv-avatar" style="background:var(--primary)">👥</div>
+          <div class="conv-info">
+            <div class="conv-name">${grp.name || 'Groupe'}</div>
+            <div class="conv-preview">${(grp.members || []).length} membres</div>
+          </div>
+        </div>`;
+    });
+  } catch (e) {
+    console.error('Error loading groups collection:', e);
+  }
+  
+  console.log('Total groups loaded:', groupsLoaded.size);
   list.innerHTML = html || '<div style="padding:20px;text-align:center;color:var(--text-secondary);font-size:13px">Aucun groupe</div>';
 }
 
@@ -4410,6 +4451,94 @@ async function openGroup(groupId) {
   } catch (err) {
     hideLoading();
     showToast('Erreur');
+  }
+}
+
+async function openOldGroup(groupId) {
+  showLoading();
+  try {
+    // Charger le groupe depuis la collection 'groups'
+    const groupDoc = await db.collection('groups').doc(groupId).get();
+    if (!groupDoc.exists) {
+      hideLoading();
+      return showToast('Groupe introuvable');
+    }
+
+    const grp = groupDoc.data();
+    
+    // Construire memberNames et memberColors s'ils manquent
+    let memberNames = grp.memberNames || {};
+    let memberColors = grp.memberColors || {};
+    
+    // Si les noms/couleurs manquent, les charger depuis les users
+    const members = grp.members || [];
+    for (const memberId of members) {
+      if (!memberNames[memberId]) {
+        try {
+          const userDoc = await db.collection('users').doc(memberId).get();
+          if (userDoc.exists) {
+            memberNames[memberId] = userDoc.data().pseudo || 'Inconnu';
+            memberColors[memberId] = userDoc.data().avatarColor || '#7C5CFC';
+          }
+        } catch (e) {}
+      }
+    }
+    
+    // Vérifier/créer une conversation correspondante
+    let convId = null;
+    try {
+      const existing = await db.collection('conversations')
+        .where('groupId', '==', groupId)
+        .limit(1)
+        .get();
+      
+      if (!existing.empty) {
+        convId = existing.docs[0].id;
+      }
+    } catch (e) {}
+
+    // Si pas de conversation correspondante, la créer
+    if (!convId) {
+      const convRef = db.collection('conversations').doc();
+      await convRef.set({
+        type: 'group',
+        groupId: groupId,
+        groupName: grp.name || 'Groupe',
+        members: members,
+        memberNames: memberNames,
+        memberColors: memberColors,
+        createdBy: grp.createdBy || 'system',
+        createdByRole: grp.createdByRole || 'parent',
+        admins: grp.admins || [],
+        lastMessage: grp.lastMessage || '',
+        lastMessageAt: grp.lastMessageAt || firebase.firestore.FieldValue.serverTimestamp(),
+        lastSenderId: grp.lastSenderId || 'system',
+        createdAt: grp.createdAt || firebase.firestore.FieldValue.serverTimestamp()
+      });
+      convId = convRef.id;
+
+      // Migrer les messages depuis groups/groupId/messages vers conversations/convId/messages
+      try {
+        const oldMessagesSnap = await db.collection('groups').doc(groupId).collection('messages').get();
+        if (!oldMessagesSnap.empty) {
+          const batch = db.batch();
+          oldMessagesSnap.forEach(msgDoc => {
+            const msgRef = db.collection('conversations').doc(convId).collection('messages').doc(msgDoc.id);
+            batch.set(msgRef, msgDoc.data());
+          });
+          await batch.commit();
+        }
+      } catch (e) {
+        console.log('No old messages to migrate');
+      }
+    }
+
+    hideLoading();
+    openConversation(convId, grp.name || 'Groupe', '#7C5CFC');
+  } catch (err) {
+    hideLoading();
+    console.error('Error opening old group:', err);
+    showToast('Erreur: ' + err.message);
   }
 }
 
