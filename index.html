@@ -1,0 +1,4469 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#7C5CFC">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Zamis Messenger</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%237C5CFC'/><text x='50' y='68' text-anchor='middle' font-size='50' font-weight='bold' fill='white'>Z</text></svg>">
+<style>
+:root {
+  --primary: #7C5CFC;
+  --primary-light: #F3F0FF;
+  --primary-dark: #5A3FD6;
+  --pink: #FF6B9D;
+  --pink-light: #FFF0F5;
+  --orange: #FFB347;
+  --orange-light: #FFF8F0;
+  --green: #5DCAA5;
+  --green-online: #4CAF50;
+  --red: #F44336;
+  --bg: #FFFFFF;
+  --bg-secondary: #F5F5F5;
+  --text: #333333;
+  --text-secondary: #999999;
+  --text-light: #BBBBBB;
+  --border: #EEEEEE;
+  --shadow: rgba(0,0,0,0.08);
+}
+[data-theme="dark"] {
+  --primary: #9B82FC;
+  --primary-light: #2A2040;
+  --primary-dark: #7C5CFC;
+  --pink: #FF85B1;
+  --pink-light: #2D1F25;
+  --orange: #FFB347;
+  --orange-light: #2D2518;
+  --green: #5DCAA5;
+  --bg: #1A1A2E;
+  --bg-secondary: #252540;
+  --text: #E8E8F0;
+  --text-secondary: #8888AA;
+  --text-light: #555570;
+  --border: #333350;
+  --shadow: rgba(0,0,0,0.3);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+input, textarea { -webkit-user-select: text; user-select: text; }
+.pwd-wrapper { position: relative; }
+.pwd-wrapper .form-input { padding-right: 44px; }
+.pwd-toggle {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  font-size: 18px; cursor: pointer;
+  color: var(--text-light); padding: 4px;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+.page { display: none; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
+.page.active { display: flex; }
+
+/* Status bar */
+.statusbar {
+  background: var(--primary);
+  padding: 6px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: rgba(255,255,255,0.8);
+}
+.statusbar-brand { font-weight: 600; color: white; font-size: 12px; }
+
+/* Header */
+.header {
+  background: var(--primary);
+  padding: 12px 20px 16px;
+  color: white;
+}
+.header-title { font-size: 20px; font-weight: 600; }
+.header-subtitle { font-size: 12px; opacity: 0.7; margin-top: 2px; }
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.header-back {
+  background: none; border: none; color: white;
+  font-size: 24px; cursor: pointer; padding: 0 8px 0 0;
+}
+
+/* Splash */
+#splash {
+  background: linear-gradient(160deg, #7C5CFC, #A855F7, #FF6B9D, #FFB347, #7C5CFC);
+  background-size: 400% 400%;
+  animation: waterFlow 8s ease-in-out infinite;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  position: relative;
+}
+@keyframes waterFlow {
+  0% { background-position: 0% 50%; }
+  25% { background-position: 100% 25%; }
+  50% { background-position: 50% 100%; }
+  75% { background-position: 25% 0%; }
+  100% { background-position: 0% 50%; }
+}
+.splash-logo-wrapper { position: relative; margin-bottom: 28px; }
+.glow-ring {
+  position: absolute; top: 50%; left: 50%;
+  width: 130px; height: 130px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3);
+  animation: glowPulse 2.5s ease-in-out infinite;
+}
+.glow-ring:nth-child(2) { width: 160px; height: 160px; border-color: rgba(255,255,255,0.15); animation-delay: 0.5s; }
+.glow-ring:nth-child(3) { width: 190px; height: 190px; border-color: rgba(255,255,255,0.08); animation-delay: 1s; }
+@keyframes glowPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  50% { transform: translate(-50%, -50%) scale(1.12); opacity: 0.4; }
+}
+.glow-sweep {
+  position: absolute; top: 50%; left: 50%;
+  width: 140px; height: 140px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.25) 20%, transparent 40%);
+  animation: rotateSweep 3s linear infinite;
+}
+@keyframes rotateSweep { to { transform: translate(-50%, -50%) rotate(360deg); } }
+.splash-logo {
+  position: relative; z-index: 2;
+  width: 110px; height: 110px;
+  background: white;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.15), 0 0 60px rgba(124,92,252,0.3);
+}
+.splash-logo span { font-size: 48px; font-weight: 700; color: #7C5CFC; }
+.splash-title { color: white; font-size: 28px; font-weight: 700; letter-spacing: 0.5px; text-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+.splash-version {
+  position: absolute; bottom: 24px;
+  color: rgba(255,255,255,0.45); font-size: 12px;
+}
+.splash-loader {
+  margin-top: 40px;
+  width: 36px; height: 36px;
+  border: 3px solid rgba(255,255,255,0.25);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+#splash.splash-exit {
+  animation: splashFade 1.2s ease-out forwards;
+  pointer-events: none;
+}
+#splash.splash-exit .splash-logo {
+  animation: logoGlow 0.6s ease-out forwards;
+}
+@keyframes splashFade {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes logoGlow {
+  0% { box-shadow: 0 8px 40px rgba(0,0,0,0.15), 0 0 60px rgba(124,92,252,0.3); }
+  50% { box-shadow: 0 0 80px rgba(124,92,252,0.8), 0 0 120px rgba(255,107,157,0.5); transform: scale(1.1); }
+  100% { box-shadow: 0 0 100px rgba(255,255,255,0.9), 0 0 150px rgba(124,92,252,0.6); transform: scale(1.15); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Auth */
+.auth-container {
+  flex: 1; padding: 30px 24px;
+  display: flex; flex-direction: column; align-items: center;
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+}
+.auth-logo {
+  width: 70px; height: 70px;
+  background: var(--primary);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 12px;
+}
+.auth-logo span { font-size: 28px; font-weight: 700; color: white; }
+.auth-app-name { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+.auth-label { font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; }
+
+/* Toggle tabs */
+.toggle-tabs {
+  display: flex; width: 100%; border-radius: 25px;
+  overflow: hidden; border: 2px solid var(--primary);
+  margin-bottom: 24px;
+}
+.toggle-tab {
+  flex: 1; padding: 12px; text-align: center;
+  font-size: 14px; font-weight: 500;
+  cursor: pointer; border: none;
+  background: var(--bg);
+  color: var(--primary);
+  transition: all 0.2s;
+}
+.toggle-tab.active {
+  background: var(--primary);
+  color: white;
+}
+
+/* Form elements */
+.form-group { width: 100%; margin-bottom: 10px; }
+.form-label {
+  display: block; font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 6px; padding-left: 4px;
+}
+.form-input {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus { border-color: var(--primary); }
+.form-input::placeholder { color: var(--text-light); }
+
+/* Buttons */
+.btn {
+  width: 100%; padding: 14px;
+  border: none; border-radius: 14px;
+  font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  text-align: center;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-pink { background: var(--pink); color: white; }
+.btn-green { background: var(--green-online); color: white; }
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid var(--primary);
+  color: var(--primary);
+}
+
+.link { color: var(--primary); cursor: pointer; font-size: 13px; }
+.link-pink { color: var(--pink); font-weight: 500; }
+.text-center { text-align: center; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mt-24 { margin-top: 24px; }
+.mb-8 { margin-bottom: 8px; }
+
+/* Error messages */
+.error-msg {
+  background: #FFF0F0;
+  color: var(--red);
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin-bottom: 10px;
+  width: 100%;
+  display: none;
+}
+[data-theme="dark"] .error-msg { background: #2D1A1A; }
+.success-msg {
+  background: #F0FFF4;
+  color: var(--green-online);
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin-bottom: 10px;
+  width: 100%;
+  display: none;
+}
+[data-theme="dark"] .success-msg { background: #1A2D1F; }
+
+/* Parent dashboard */
+.dashboard-content { flex: 1; padding: 16px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.section-title {
+  font-size: 14px; font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 10px;
+}
+.section-title-pink { color: var(--pink); }
+
+/* Children grid */
+.children-grid {
+  display: flex; gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.child-card {
+  flex: 1; min-width: 80px; max-width: 120px;
+  background: var(--primary-light);
+  border-radius: 14px;
+  padding: 14px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.child-card:active { transform: scale(0.96); }
+.child-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 8px;
+  font-size: 20px; font-weight: 600; color: white;
+}
+.child-name { font-size: 13px; font-weight: 500; }
+.child-status { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+
+.add-child-card {
+  flex: 1; min-width: 80px; max-width: 120px;
+  background: var(--bg-secondary);
+  border-radius: 14px;
+  padding: 14px 8px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px dashed var(--text-light);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  transition: border-color 0.2s;
+}
+.add-child-card:hover { border-color: var(--primary); }
+.add-child-icon { font-size: 28px; color: var(--text-light); }
+.add-child-text { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
+
+/* Pending requests */
+.pending-card {
+  background: var(--orange-light);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pending-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 600; color: white;
+}
+.pending-info { flex: 1; }
+.pending-name { font-size: 13px; font-weight: 500; }
+.pending-time { font-size: 10px; color: var(--text-secondary); }
+.pending-actions { display: flex; gap: 6px; }
+.pending-btn {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 18px; color: white;
+}
+.pending-btn-yes { background: var(--green-online); }
+.pending-btn-no { background: var(--red); }
+
+/* Quick actions */
+.quick-actions {
+  display: flex; gap: 10px;
+  margin-top: 8px;
+}
+.quick-action {
+  flex: 1;
+  background: var(--primary-light);
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.2s;
+}
+.quick-action:active { transform: scale(0.96); }
+.quick-action-icon { font-size: 22px; color: var(--primary); margin-bottom: 4px; }
+.quick-action-text { font-size: 11px; color: var(--primary); font-weight: 500; }
+
+/* Bottom nav */
+.bottom-nav {
+  display: flex;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  flex-shrink: 0;
+}
+.nav-item {
+  flex: 1; padding: 8px 0;
+  text-align: center;
+  cursor: pointer; border: none;
+  background: none;
+  color: var(--text-light);
+  transition: color 0.2s;
+}
+.nav-item.active { color: var(--primary); }
+.nav-icon { font-size: 20px; display: block; }
+.nav-label { font-size: 9px; margin-top: 2px; display: block; }
+.nav-badge {
+  position: relative;
+}
+.nav-badge::after {
+  content: attr(data-count);
+  position: absolute;
+  top: -6px; right: -6px;
+  background: var(--pink);
+  color: white;
+  font-size: 9px;
+  min-width: 16px; height: 16px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 4px;
+}
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--bg);
+  border-radius: 20px;
+  padding: 18px;
+  width: 100%;
+  max-width: 360px;
+  max-height: 90vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.modal .form-group { margin-bottom: 10px; }
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.modal-close {
+  background: none; border: none;
+  font-size: 24px; color: var(--text-secondary);
+  cursor: pointer; float: right;
+}
+
+/* Messages list */
+.messages-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.message-item {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.message-item:active { background: var(--bg-secondary); }
+.message-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 600; color: white;
+  flex-shrink: 0;
+  position: relative;
+}
+.online-dot {
+  position: absolute; bottom: 1px; right: 1px;
+  width: 12px; height: 12px;
+  background: var(--green-online);
+  border-radius: 50%;
+  border: 2px solid var(--bg);
+}
+.message-content { flex: 1; min-width: 0; }
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+.message-name { font-size: 14px; font-weight: 500; }
+.message-time { font-size: 11px; color: var(--text-secondary); }
+.message-preview {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.message-badge {
+  width: 20px; height: 20px;
+  background: var(--pink);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: white; font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* Conversation */
+.conv-header {
+  background: var(--primary);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+}
+.conv-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 600; color: white;
+}
+.conv-name { font-size: 15px; font-weight: 500; }
+.conv-status { font-size: 11px; opacity: 0.7; }
+.conv-messages {
+  flex: 1;
+  padding: 12px 16px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--primary-light);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.conv-date {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin: 8px 0;
+}
+.bubble {
+  max-width: 78%;
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1.4;
+  position: relative;
+}
+.bubble-in {
+  align-self: flex-start;
+  background: var(--bg);
+  border-radius: 16px 16px 16px 4px;
+  color: var(--text);
+}
+.bubble-out {
+  align-self: flex-end;
+  background: var(--primary);
+  border-radius: 16px 16px 4px 16px;
+  color: white;
+}
+.bubble-time {
+  font-size: 9px;
+  color: var(--text-secondary);
+  margin-top: 3px;
+}
+.bubble-out .bubble-time { color: rgba(255,255,255,0.6); text-align: right; }
+.bubble-audio {
+  background: var(--primary-light);
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.audio-play {
+  background: none; border: none;
+  font-size: 18px; color: var(--primary);
+  cursor: pointer;
+}
+.audio-bar {
+  flex: 1; height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+}
+.audio-bar-fill {
+  width: 0%; height: 100%;
+  background: var(--primary);
+  border-radius: 2px;
+  transition: width 0.1s;
+}
+.audio-duration { font-size: 10px; color: var(--text-secondary); }
+
+/* Chat input */
+.chat-input-bar {
+  background: var(--bg);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.chat-input-bar button {
+  background: none; border: none;
+  font-size: 24px; cursor: pointer;
+  color: var(--text-light);
+  padding: 4px;
+}
+.chat-input-bar button.active { color: var(--primary); }
+.chat-input {
+  flex: 1;
+  background: var(--bg-secondary);
+  border: none;
+  border-radius: 20px;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+}
+.chat-input::placeholder { color: var(--text-light); }
+
+/* Recording UI */
+.recording-bar {
+  display: none;
+  background: var(--red);
+  color: white;
+  padding: 12px 16px;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+}
+.recording-bar.active { display: flex; }
+.recording-dot {
+  width: 10px; height: 10px;
+  background: white;
+  border-radius: 50%;
+  animation: blink 1s infinite;
+}
+@keyframes blink { 50% { opacity: 0.3; } }
+.recording-time { flex: 1; font-size: 14px; }
+.recording-cancel, .recording-send {
+  background: none; border: none;
+  color: white; font-size: 24px;
+  cursor: pointer; padding: 4px;
+}
+
+/* Sticker panel */
+.sticker-panel {
+  display: none;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  padding: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.sticker-panel.active { display: block; }
+.sticker-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  text-align: center;
+}
+.sticker-item {
+  font-size: 28px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.sticker-item:hover { background: var(--bg-secondary); }
+
+/* Contacts */
+.contacts-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.contacts-search {
+  margin: 10px 16px;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.contacts-search input {
+  flex: 1; border: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+}
+.contacts-search input::placeholder { color: var(--text-light); }
+.contact-section-title {
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.contact-item {
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.contact-avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; font-weight: 600; color: white;
+}
+.contact-info { flex: 1; }
+.contact-name { font-size: 14px; font-weight: 500; }
+.contact-status-text { font-size: 11px; }
+.contact-action {
+  background: none; border: none;
+  font-size: 22px; color: var(--primary);
+  cursor: pointer;
+}
+
+/* Invite */
+.invite-content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.invite-icon-box {
+  width: 70px; height: 70px;
+  background: var(--primary-light);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 12px;
+  font-size: 32px; color: var(--primary);
+}
+.my-code-box {
+  background: var(--primary-light);
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.my-code-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+.my-code-value {
+  font-size: 22px; font-weight: 600;
+  color: var(--primary);
+  letter-spacing: 2px;
+}
+.copy-btn {
+  display: inline-flex;
+  align-items: center; gap: 4px;
+  background: var(--primary);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+.invite-row {
+  display: flex; gap: 8px;
+  margin-bottom: 10px;
+}
+.invite-option {
+  background: var(--bg-secondary);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  flex: 1;
+  border: none;
+  text-align: left;
+  color: var(--text);
+  transition: background 0.15s;
+}
+.invite-option:active { background: var(--border); }
+.invite-option-icon {
+  width: 40px; height: 40px;
+  background: var(--bg);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+}
+
+/* Profile */
+.profile-content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.profile-avatar-box { text-align: center; margin-bottom: 10px; }
+.profile-avatar {
+  width: 64px; height: 64px;
+  background: var(--primary-light);
+  border: 3px solid var(--primary);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 6px;
+  font-size: 30px;
+}
+.profile-code { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+.profile-info-box {
+  background: var(--primary-light);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.profile-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+.profile-info-row + .profile-info-row { border-top: 1px solid var(--border); padding-top: 10px; margin-top: 4px; }
+.profile-info-label {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 14px;
+}
+.profile-info-label span:first-child { font-size: 18px; color: var(--primary); }
+.profile-info-value { font-size: 14px; color: var(--primary); }
+
+.settings-box {
+  background: var(--bg-secondary);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.settings-item {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  color: var(--text);
+  font-size: 14px;
+}
+.settings-item + .settings-item { border-top: 1px solid var(--border); }
+.settings-item-left {
+  display: flex; align-items: center; gap: 10px;
+}
+.settings-icon { font-size: 20px; }
+.settings-item-danger { color: var(--red); }
+
+/* Toggle switch */
+.toggle {
+  width: 44px; height: 24px;
+  background: var(--text-light);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+  border: none;
+}
+.toggle.active { background: var(--primary); }
+.toggle-knob {
+  width: 20px; height: 20px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px; left: 2px;
+  transition: transform 0.2s;
+}
+.toggle.active .toggle-knob { transform: translateX(20px); }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+}
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-text { font-size: 14px; }
+
+/* Loading */
+.loading-overlay {
+  display: none;
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 200;
+  align-items: center; justify-content: center;
+}
+.loading-overlay.active { display: flex; }
+.loading-spinner {
+  width: 48px; height: 48px;
+  border: 4px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 80px; left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--text);
+  color: var(--bg);
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 13px;
+  z-index: 300;
+  opacity: 0;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Parent theme */
+.parent-header {
+  background: linear-gradient(135deg, #0F6E56 0%, #085041 100%);
+}
+.parent-header .header-title { color: #5DCAA5; }
+.parent-header .header-subtitle { color: rgba(93,202,165,0.7); }
+#parentDashboard .section-title { color: #5DCAA5; }
+#parentDashboard .quick-action {
+  background: rgba(93,202,165,0.15);
+}
+#parentDashboard .quick-action-icon { color: #5DCAA5; }
+#parentDashboard .quick-action-text { color: #5DCAA5; }
+#parentDashboard .child-card { background: rgba(93,202,165,0.1); }
+#parentDashboard .statusbar { background: #085041; }
+#parentDashboard .section-title-pink { color: var(--pink); }
+#parentDashboard .add-child-card { border-color: rgba(93,202,165,0.3); }
+
+/* Parent theme on all pages */
+body.parent-mode .header { background: linear-gradient(135deg, #0F6E56 0%, #085041 100%); }
+body.parent-mode .statusbar { background: #085041; }
+body.parent-mode .conv-header { background: linear-gradient(135deg, #0F6E56 0%, #085041 100%); }
+body.parent-mode .nav-item.active { color: #5DCAA5; }
+body.parent-mode .section-title { color: #5DCAA5; }
+body.parent-mode .profile-info-value { color: #5DCAA5; }
+body.parent-mode .my-code-value { color: #5DCAA5; }
+body.parent-mode .btn-primary { background: #0F6E56; }
+body.parent-mode .toggle.active { background: #5DCAA5; }
+
+/* Child theme - uses CSS variable set from JS */
+body.child-mode .header { background: var(--child-color, #7C5CFC); }
+body.child-mode .statusbar { background: var(--child-color-dark, #5A3FD6); }
+body.child-mode .conv-header { background: var(--child-color, #7C5CFC); }
+body.child-mode .nav-item.active { color: var(--child-color, #7C5CFC); }
+body.child-mode .bubble-out { background: var(--child-color, #7C5CFC); }
+body.child-mode .btn-primary { background: var(--child-color, #7C5CFC); }
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+</div>
+
+<!-- ===================== SPLASH ===================== -->
+<div class="page active" id="splash">
+  <div class="splash-logo-wrapper">
+    <div class="glow-ring"></div>
+    <div class="glow-ring"></div>
+    <div class="glow-ring"></div>
+    <div class="glow-sweep"></div>
+    <div class="splash-logo" onclick="dismissSplash()" style="cursor:pointer"><span>Z</span></div>
+  </div>
+  <div class="splash-title">Zamis Messenger</div>
+  <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:12px">Appuyer sur le Z pour continuer</div>
+  <div class="splash-version">v1.0.0</div>
+</div>
+
+<!-- ===================== LOGIN ===================== -->
+<div class="page" id="loginPage">
+  <div class="statusbar">
+    <span class="statusbar-brand">Zamis</span><span class="statusbar-date"></span>
+  </div>
+  <div class="auth-container">
+    <div class="auth-logo"><span>Z</span></div>
+    <div class="auth-app-name">Zamis Messenger</div>
+    <div class="auth-label">Connexion</div>
+    <div class="toggle-tabs">
+      <button class="toggle-tab active" onclick="switchAuthTab('parent')">👤 Adulte</button>
+      <button class="toggle-tab" onclick="switchAuthTab('child')">👦 Enfant</button>
+    </div>
+
+    <!-- Parent login -->
+    <div id="parentLoginForm" style="width:100%">
+      <div class="error-msg" id="loginError"></div>
+      <div class="form-group">
+        <label class="form-label">Pseudo ou code ami</label>
+        <input class="form-input" type="text" id="loginPseudo" placeholder="Mon pseudo" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mot de passe</label>
+        <div class="pwd-wrapper">
+          <input class="form-input" type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" maxlength="20">
+          <button class="pwd-toggle" onclick="togglePwd('loginPassword', this)" type="button">👁️</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="loginParent()">Se connecter</button>
+      <div class="text-center mt-12">
+        <span style="font-size:13px;color:var(--text-secondary)">Pas de compte ? </span>
+        <span class="link-pink" onclick="showPage('registerPage')" style="cursor:pointer">S'inscrire</span>
+      </div>
+    </div>
+
+    <!-- Child login -->
+    <div id="childLoginForm" style="width:100%;display:none">
+      <div class="error-msg" id="childLoginError"></div>
+      <div class="form-group">
+        <label class="form-label">Code Zamis</label>
+        <input class="form-input" type="text" id="childCode" placeholder="ex: lucas.a9pk1x" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mot de passe</label>
+        <div class="pwd-wrapper">
+          <input class="form-input" type="password" id="childPin" placeholder="••••••••" maxlength="20" autocomplete="off">
+          <button class="pwd-toggle" onclick="togglePwd('childPin', this)" type="button">👁️</button>
+        </div>
+      </div>
+      <button class="btn btn-pink" onclick="loginChild()">Se connecter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== REGISTER ===================== -->
+<div class="page" id="registerPage">
+  <div class="statusbar">
+    <span class="statusbar-brand">Zamis</span><span class="statusbar-date"></span>
+  </div>
+  <div class="header">
+    <div class="header-row">
+      <button class="header-back" onclick="showPage('loginPage')">←</button>
+      <span class="header-title">Inscription adulte</span>
+      <span></span>
+    </div>
+  </div>
+  <div class="auth-container">
+    <div class="error-msg" id="registerError"></div>
+    <div class="success-msg" id="registerSuccess"></div>
+    <div class="form-group">
+      <label class="form-label">Nom</label>
+      <input class="form-input" type="text" id="registerNom" placeholder="Dupont" autocomplete="family-name">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Prénom</label>
+      <input class="form-input" type="text" id="registerPrenom" placeholder="Alexandre" autocomplete="given-name">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Pseudo (3-15 car., sans espace)</label>
+      <input class="form-input" type="text" id="registerPseudo" placeholder="AlexDupont" autocomplete="username" maxlength="15">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date de naissance</label>
+      <input class="form-input" type="date" id="registerBirth" autocomplete="bday">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mot de passe (6-20 car., lettres/chiffres)</label>
+      <div class="pwd-wrapper">
+        <input class="form-input" type="password" id="registerPwd" placeholder="••••••••" autocomplete="new-password" maxlength="20">
+        <button class="pwd-toggle" onclick="togglePwd('registerPwd', this)" type="button">👁️</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Confirmer le mot de passe</label>
+      <div class="pwd-wrapper">
+        <input class="form-input" type="password" id="registerPwd2" placeholder="••••••••" autocomplete="new-password" maxlength="20">
+        <button class="pwd-toggle" onclick="togglePwd('registerPwd2', this)" type="button">👁️</button>
+      </div>
+    </div>
+    <button class="btn btn-pink" onclick="registerParent()">Créer mon compte</button>
+    <div class="text-center mt-12">
+      <span style="font-size:13px;color:var(--text-secondary)">Déjà un compte ? </span>
+      <span class="link" onclick="showPage('loginPage')" style="cursor:pointer">Se connecter</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PARENT DASHBOARD ===================== -->
+<div class="page" id="parentDashboard">
+  <div class="statusbar" style="background:#1A1A2E">
+    <span class="statusbar-brand">Zamis</span><span class="statusbar-date"></span>
+  </div>
+  <div class="header parent-header">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div class="header-title">🔒 Espace adulte</div>
+        <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
+      </div>
+      <span style="font-size:13px;color:rgba(255,255,255,0.5)">v1.0.0</span>
+    </div>
+  </div>
+  <div class="dashboard-content">
+    <div class="section-title">Mes enfants</div>
+    <div class="children-grid" id="childrenGrid">
+      <div class="add-child-card" onclick="showAddChildModal()">
+        <div class="add-child-icon">+</div>
+        <div class="add-child-text">Ajouter</div>
+      </div>
+    </div>
+
+    <div class="section-title mt-16" style="color:#0F6E56">🔑 Co-parents</div>
+    <div class="children-grid" id="coParentsGrid">
+      <div class="add-child-card" onclick="openCoParentsModal()">
+        <div class="add-child-icon">+</div>
+        <div class="add-child-text">Ajouter</div>
+      </div>
+    </div>
+
+    <div class="section-title mt-16" style="color:#4A90D9">💬 Invités</div>
+    <div class="children-grid" id="adultFriendsGrid">
+      <div class="add-child-card" onclick="openAddAdultFriendModal()">
+        <div class="add-child-icon">+</div>
+        <div class="add-child-text">Ajouter</div>
+      </div>
+    </div>
+
+    <div class="section-title section-title-pink">Demandes en attente</div>
+    <div id="pendingRequests">
+      <div class="empty-state" style="padding:20px">
+        <div style="font-size:13px">Aucune demande en attente</div>
+      </div>
+    </div>
+
+    <div class="section-title mt-16">Actions rapides</div>
+    <div class="quick-actions">
+      <button class="quick-action" onclick="goToMessagingPage()" style="position:relative">
+        <div class="quick-action-icon">💬</div>
+        <div class="quick-action-text">Messagerie</div>
+        <span class="parent-write-badge" style="display:none;position:absolute;top:4px;right:4px;background:#FF6B9D;color:white;font-size:9px;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px">0</span>
+      </button>
+      <button class="quick-action" onclick="openBlockedListModal()">
+        <div class="quick-action-icon">🚨</div>
+        <div class="quick-action-text">Bloqués</div>
+      </button>
+      <button class="quick-action" onclick="openParentSettingsModal()">
+        <div class="quick-action-icon">⚙️</div>
+        <div class="quick-action-text">Réglages</div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PARENT SETTINGS MODAL ===================== -->
+<div class="modal-overlay" id="parentSettingsModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('parentSettingsModal')">×</button>
+    <div class="modal-title">⚙️ Réglages</div>
+    <div class="settings-item" onclick="openModal('aboutModal')">
+      <div class="settings-item-left"><span class="settings-icon">ℹ️</span><span>À propos</span></div>
+      <span style="color:var(--text-light)">›</span>
+    </div>
+    <div class="settings-item" style="color:var(--red)" onclick="closeModal('parentSettingsModal');logout()">
+      <div class="settings-item-left"><span class="settings-icon">🚪</span><span>Déconnexion</span></div>
+    </div>
+    <div class="settings-item" style="color:var(--red)" onclick="closeModal('parentSettingsModal');deleteAccount()">
+      <div class="settings-item-left"><span class="settings-icon">🗑️</span><span>Supprimer mon compte</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PARENTAL CODE MODAL ===================== -->
+<!-- ===================== CREATE GROUP MODAL ===================== -->
+<div class="modal-overlay" id="createGroupModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('createGroupModal')">×</button>
+    <div class="modal-title">Créer un groupe</div>
+    <div class="form-group">
+      <label class="form-label">Nom du groupe</label>
+      <input class="form-input" type="text" id="groupName" placeholder="Famille, Copains foot..." maxlength="30">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ajouter des membres</label>
+      <div id="groupMembersList" style="max-height:200px;overflow-y:auto"></div>
+    </div>
+    <button class="btn btn-primary mt-16" onclick="createGroup()">Créer le groupe</button>
+  </div>
+</div>
+
+<!-- ===================== ABOUT MODAL ===================== -->
+<div class="modal-overlay" id="aboutModal">
+  <div class="modal" style="text-align:center">
+    <button class="modal-close" onclick="closeModal('aboutModal')">×</button>
+    <div style="text-align:left;font-size:12px;color:var(--text-secondary);margin-bottom:12px">À propos</div>
+    <div style="font-size:20px;font-weight:700;margin-bottom:4px">Zamis Messenger</div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">Version 1.0.0</div>
+    <div style="background:var(--bg-secondary);border-radius:12px;padding:14px;text-align:left;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--primary)">📋 Informations</div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:1.6">
+        Messagerie sécurisée pour les enfants avec contrôle parental intégré.
+      </div>
+    </div>
+    <div style="background:var(--bg-secondary);border-radius:12px;padding:14px;text-align:left;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--primary)">👤 Créateur</div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:1.6">
+        Alexandre Lavrard<br>
+        © 2026 Tous droits réservés
+      </div>
+    </div>
+    <div style="background:var(--bg-secondary);border-radius:12px;padding:14px;text-align:left;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--primary)">🤖 Développement</div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:1.6">
+        Développé avec l'aide de Claude (Anthropic)
+      </div>
+    </div>
+    <div style="background:var(--bg-secondary);border-radius:12px;padding:14px;text-align:left">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--primary)">📜 Mentions légales</div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:1.6">
+        Cette application est destinée aux enfants de moins de 18 ans sous la responsabilité de leurs parents. Aucune donnée n'est partagée avec des tiers. Les messages sont stockés de manière sécurisée sur Firebase (Google Cloud).
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== BLOCKED LIST MODAL ===================== -->
+<div class="modal-overlay" id="blockedListModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('blockedListModal')">×</button>
+    <div class="modal-title">🚨 Contacts bloqués</div>
+    <div id="blockedContactsList"></div>
+    <div id="noBlockedMsg" style="text-align:center;color:var(--text-secondary);padding:20px;font-size:13px">Aucun contact bloqué</div>
+  </div>
+</div>
+
+<!-- ===================== CO-PARENTS MODAL ===================== -->
+<div class="modal-overlay" id="coParentsModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('coParentsModal')">×</button>
+    <div class="modal-title">🔑 Co-parents</div>
+    <div id="coParentsList" style="margin-bottom:12px"></div>
+    <div class="form-group">
+      <label class="form-label">Code Zamis du co-parent</label>
+      <input class="form-input" type="text" id="coParentCodeInput" placeholder="pseudo.xxxxxx">
+    </div>
+    <button class="btn btn-primary" onclick="inviteCoParent()">Inviter un co-parent</button>
+    <div class="error-msg" id="coParentError" style="margin-top:8px"></div>
+  </div>
+</div>
+
+<!-- ===================== ADULT FRIEND MODAL ===================== -->
+<div class="modal-overlay" id="adultFriendModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('adultFriendModal')">×</button>
+    <div class="modal-title">💬 Ajouter un invité</div>
+    <div class="form-group">
+      <label class="form-label">Code Zamis</label>
+      <input class="form-input" type="text" id="adultFriendCodeInput" placeholder="pseudo.xxxxxx">
+    </div>
+    <button class="btn btn-primary" onclick="addAdultFriend()">Ajouter</button>
+    <div class="error-msg" id="adultFriendError" style="margin-top:8px"></div>
+  </div>
+</div>
+
+<!-- ===================== ADD CHILD MODAL ===================== -->
+<div class="modal-overlay" id="addChildModal">
+  <div class="modal" style="padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:85vh">
+    <div style="display:flex;border-bottom:1px solid var(--border);flex-shrink:0">
+      <button id="childTabCreate" style="flex:1;padding:14px;border:none;background:var(--primary);color:white;font-weight:600;font-size:13px;cursor:pointer" onclick="switchChildTab('create')">Créer un compte</button>
+      <button id="childTabLink" style="flex:1;padding:14px;border:none;background:var(--bg-secondary);color:var(--text-secondary);font-weight:600;font-size:13px;cursor:pointer" onclick="switchChildTab('link')">Ajouter existant</button>
+    </div>
+    <div style="flex:1;overflow:hidden">
+      <div id="childTabsContainer" style="display:flex;transition:transform 0.3s ease;width:200%;height:100%">
+        <!-- Tab 1: Créer -->
+        <div style="width:50%;padding:20px;flex-shrink:0;overflow-y:auto">
+          <div class="error-msg" id="addChildError"></div>
+          <div class="form-group">
+            <label class="form-label">Nom</label>
+            <input class="form-input" type="text" id="childNom" placeholder="Dupont">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Prénom</label>
+            <input class="form-input" type="text" id="childPrenom" placeholder="Lucas">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pseudo (3-15 car., sans espace)</label>
+            <input class="form-input" type="text" id="childPseudo" placeholder="Lucas77" maxlength="15">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date de naissance</label>
+            <input class="form-input" type="date" id="childBirth">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mot de passe (6-20 car., lettres/chiffres)</label>
+            <div class="pwd-wrapper">
+              <input class="form-input" type="password" id="childPinSetup" placeholder="••••••••" maxlength="20">
+              <button class="pwd-toggle" onclick="togglePwd('childPinSetup', this)" type="button">👁️</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Couleur</label>
+            <div style="display:flex;gap:10px;margin-top:6px;" id="colorPicker">
+              <div class="color-dot" data-color="#4A90D9" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#4A90D9,#2563EB);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(74,144,217,0.4)" onclick="selectColor(this)"></div>
+              <div class="color-dot" data-color="#10B981" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#10B981,#059669);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(16,185,129,0.4)" onclick="selectColor(this)"></div>
+              <div class="color-dot" data-color="#EF4444" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#EF4444,#DC2626);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(239,68,68,0.4)" onclick="selectColor(this)"></div>
+              <div class="color-dot" data-color="#F59E0B" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#F59E0B,#D97706);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(245,158,11,0.4)" onclick="selectColor(this)"></div>
+              <div class="color-dot" data-color="#EC4899" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#EC4899,#DB2777);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(236,72,153,0.4)" onclick="selectColor(this)"></div>
+              <div class="color-dot" data-color="#8B5CF6" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#8B5CF6,#7C3AED);cursor:pointer;border:3px solid transparent;transition:all 0.2s;box-shadow:0 2px 8px rgba(139,92,246,0.4)" onclick="selectColor(this)"></div>
+            </div>
+          </div>
+          <button class="btn btn-primary mt-16" onclick="addChild()">Créer le compte enfant</button>
+        </div>
+        <!-- Tab 2: Ajouter existant -->
+        <div style="width:50%;padding:20px;flex-shrink:0">
+          <div class="error-msg" id="linkChildError"></div>
+          <div style="text-align:center;margin-bottom:16px">
+            <div style="font-size:40px;margin-bottom:8px">🔗</div>
+            <div style="font-size:13px;color:var(--text-secondary)">Ajoutez un enfant qui a déjà un compte Zamis créé par un autre parent</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Code Zamis de l'enfant</label>
+            <input class="form-input" type="text" id="linkChildCode" placeholder="pseudo.xxxxxx">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mot de passe de l'enfant</label>
+            <div class="pwd-wrapper">
+              <input class="form-input" type="password" id="linkChildPin" placeholder="••••••••" maxlength="20">
+              <button class="pwd-toggle" onclick="togglePwd('linkChildPin', this)" type="button">👁️</button>
+            </div>
+          </div>
+          <button class="btn btn-primary mt-16" onclick="linkExistingChild()">Ajouter cet enfant</button>
+        </div>
+      </div>
+    </div>
+    <div style="flex-shrink:0;padding:12px 20px;border-top:1px solid var(--border)">
+      <button class="btn" style="width:100%;background:#EF4444;color:white;font-weight:600" onclick="closeModal('addChildModal')">Fermer</button>
+    </div>
+  </div>
+</div>
+<div class="page" id="messagesPage">
+  <div class="statusbar">
+    <span class="statusbar-brand">Zamis</span><span class="statusbar-date"></span>
+  </div>
+  <div class="header">
+    <div class="header-row">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span id="homeBtn" style="font-size:22px;cursor:pointer;display:none" onclick="goHome()">🏠</span>
+        <span class="header-title">Messages</span>
+      </div>
+      <div style="display:flex;gap:12px">
+        <span style="font-size:22px;cursor:pointer">🔍</span>
+        <span style="font-size:22px;cursor:pointer" onclick="switchTab('contactsPage')">✏️</span>
+      </div>
+    </div>
+  </div>
+  <div class="messages-list" id="messagesList">
+    <div class="empty-state">
+      <div class="empty-icon">💬</div>
+      <div class="empty-text">Pas encore de messages</div>
+    </div>
+  </div>
+  <div class="bottom-nav shared-nav"></div>
+</div>
+
+<!-- ===================== CONVERSATION ===================== -->
+<div class="page" id="conversationPage">
+  <div class="statusbar">
+    <span class="statusbar-brand">Zamis</span><span class="statusbar-date"></span>
+  </div>
+  <div class="conv-header">
+    <button class="header-back" onclick="backToMessages()">←</button>
+    <div class="conv-avatar" id="convAvatar" style="background:var(--orange)">T</div>
+    <div style="flex:1">
+      <div class="conv-name" id="convName">Contact</div>
+      <div class="conv-status" id="convStatus">En ligne</div>
+    </div>
+    <span style="font-size:20px;cursor:pointer;color:white;padding:4px 8px" onclick="showConvMenu()">⋮</span>
+  </div>
+  <!-- Conv menu -->
+  <div id="convMenu" style="display:none;position:absolute;right:8px;top:80px;background:var(--bg);border-radius:12px;box-shadow:0 4px 20px var(--shadow);z-index:50;min-width:180px;overflow:hidden">
+    <div style="padding:12px 16px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border)" id="convParticipantsBtn" onclick="showConvParticipants()">👥 Voir les participants</div>
+    <div style="padding:12px 16px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border)" id="convDeleteBtn" onclick="deleteConversation(currentConvId)">🗑️ Supprimer la conversation</div>
+    <div style="padding:12px 16px;cursor:pointer;font-size:13px;color:var(--red)" id="convBlockBtn" onclick="showGroupBlockMenu()">🚫 Bloquer</div>
+  </div>
+  <div class="conv-messages" id="convMessages"></div>
+  <div class="sticker-panel" id="stickerPanel">
+    <div class="sticker-grid">
+      <span class="sticker-item" onclick="sendSticker('😀')">😀</span>
+      <span class="sticker-item" onclick="sendSticker('😂')">😂</span>
+      <span class="sticker-item" onclick="sendSticker('😍')">😍</span>
+      <span class="sticker-item" onclick="sendSticker('🥰')">🥰</span>
+      <span class="sticker-item" onclick="sendSticker('😎')">😎</span>
+      <span class="sticker-item" onclick="sendSticker('🤩')">🤩</span>
+      <span class="sticker-item" onclick="sendSticker('😜')">😜</span>
+      <span class="sticker-item" onclick="sendSticker('🤗')">🤗</span>
+      <span class="sticker-item" onclick="sendSticker('👍')">👍</span>
+      <span class="sticker-item" onclick="sendSticker('👋')">👋</span>
+      <span class="sticker-item" onclick="sendSticker('❤️')">❤️</span>
+      <span class="sticker-item" onclick="sendSticker('💪')">💪</span>
+      <span class="sticker-item" onclick="sendSticker('🎉')">🎉</span>
+      <span class="sticker-item" onclick="sendSticker('⚽')">⚽</span>
+      <span class="sticker-item" onclick="sendSticker('🌟')">🌟</span>
+      <span class="sticker-item" onclick="sendSticker('🍕')">🍕</span>
+      <span class="sticker-item" onclick="sendSticker('🎮')">🎮</span>
+      <span class="sticker-item" onclick="sendSticker('📚')">📚</span>
+    </div>
+  </div>
+  <div class="recording-bar" id="recordingBar">
+    <div class="recording-dot"></div>
+    <div class="recording-time" id="recordingTime">0:00</div>
+    <button class="recording-cancel" onclick="cancelRecording()">✕</button>
+    <button class="recording-send" onclick="stopAndSendRecording()">➤</button>
+  </div>
+  <div id="readOnlyBar" style="display:none;background:var(--bg-secondary);padding:12px 16px;text-align:center;font-size:13px;color:var(--text-secondary);border-top:1px solid var(--border);flex-shrink:0">
+    🔒 Lecture seule — espace parent
+  </div>
+  <div class="chat-input-bar" id="chatInputBar">
+    <button onclick="toggleStickers()" id="stickerBtn">😊</button>
+    <input class="chat-input" type="text" id="chatInput" placeholder="Écrire un message..." onkeydown="if(event.key==='Enter')sendMessage()">
+    <button onclick="startRecording()" id="micBtn" class="active">🎤</button>
+    <button onclick="sendMessage()" class="active">➤</button>
+  </div>
+</div>
+
+<!-- ===================== CONTACTS ===================== -->
+<div class="page" id="contactsPage">
+  <div class="statusbar"><span class="statusbar-brand">Zamis</span><span class="statusbar-date"></span></div>
+  <div class="header">
+    <div class="header-row">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="home-btn" style="font-size:22px;cursor:pointer;display:none" onclick="goHome()">🏠</span>
+        <span class="header-title">Contacts</span>
+      </div>
+      <span style="font-size:22px;cursor:pointer" onclick="switchTab('invitePage')">➕</span>
+    </div>
+  </div>
+  <div class="contacts-search">
+    <span>🔍</span>
+    <input type="text" placeholder="Rechercher un contact..." id="contactSearch" oninput="filterContacts()">
+  </div>
+  <div class="contacts-list" id="contactsList">
+    <div class="empty-state">
+      <div class="empty-icon">📇</div>
+      <div class="empty-text">Aucun contact pour l'instant</div>
+    </div>
+  </div>
+  <div class="bottom-nav shared-nav"></div>
+</div>
+
+<!-- ===================== INVITE ===================== -->
+<div class="page" id="invitePage">
+  <div class="statusbar"><span class="statusbar-brand">Zamis</span><span class="statusbar-date"></span></div>
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="home-btn" style="font-size:22px;cursor:pointer;display:none" onclick="goHome()">🏠</span>
+      <span class="header-title">Inviter un ami</span>
+    </div>
+  </div>
+  <div class="invite-content">
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:16px;font-weight:500">Invite tes amis !</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">Partage ton code, scanne ou entre celui de ton ami</div>
+    </div>
+    <div class="my-code-box">
+      <div class="my-code-label">Mon code ami</div>
+      <div class="my-code-value" id="myFriendCode">---</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Code Zamis</label>
+      <div class="invite-row">
+        <input class="form-input" type="text" id="friendCodeInput" placeholder="ex: lucas.a9pk1x" style="flex:1">
+        <button class="btn btn-pink" style="width:auto;padding:12px 20px" onclick="sendFriendRequest()">Inviter</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="invite-option" onclick="copyCode()" style="flex:1">
+        <div class="invite-option-icon">📋</div>
+        <div>
+          <div style="font-size:12px;font-weight:500">Copier</div>
+        </div>
+      </button>
+      <button class="invite-option" onclick="shareCode()" style="flex:1">
+        <div class="invite-option-icon">📤</div>
+        <div>
+          <div style="font-size:12px;font-weight:500">Partager</div>
+        </div>
+      </button>
+    </div>
+
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+      <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text-secondary)">Mes invitations</div>
+      <div id="myInvitationsList">
+        <div style="text-align:center;color:var(--text-light);font-size:13px;padding:12px">Aucune invitation</div>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-nav shared-nav"></div>
+</div>
+
+<!-- ===================== GROUPS ===================== -->
+<div class="page" id="groupsPage">
+  <div class="statusbar"><span class="statusbar-brand">Zamis</span><span class="statusbar-date"></span></div>
+  <div class="header">
+    <div class="header-row">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="home-btn" style="font-size:22px;cursor:pointer;display:none" onclick="goHome()">🏠</span>
+        <span class="header-title">Groupes</span>
+      </div>
+      <button class="header-back" onclick="openCreateGroupModal()" style="font-size:22px;padding:0;background:none;border:none;color:var(--primary);cursor:pointer">➕</button>
+    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:8px">
+    <div id="groupsList"></div>
+  </div>
+  <div class="bottom-nav shared-nav"></div>
+</div>
+
+<!-- ===================== AVATAR ===================== -->
+<div class="page" id="avatarPage">
+  <div class="statusbar"><span class="statusbar-brand">Zamis</span><span class="statusbar-date"></span></div>
+  <div class="header">
+    <div class="header-row">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="home-btn" style="font-size:22px;cursor:pointer;display:none" onclick="goHome()">🏠</span>
+        <span class="header-title">Mon avatar</span>
+      </div>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column">
+    <div style="flex:0 0 auto;background:linear-gradient(180deg,var(--primary-light) 0%,var(--pink-light) 100%);display:flex;align-items:center;justify-content:center;padding:16px">
+      <div style="width:100px;height:100px;background:var(--bg);border-radius:50%;border:3px solid var(--primary);display:flex;align-items:center;justify-content:center">
+        <div style="text-align:center">
+          <div style="font-size:40px" id="avatarPreview">😊</div>
+          <div style="font-size:11px;color:var(--primary);font-weight:500" id="avatarName">---</div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:12px 16px">
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">Choisir un visage</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+        <span class="sticker-item avatar-choice active" onclick="setAvatar(this,'😊')" style="border:2px solid var(--primary);border-radius:12px;padding:6px">😊</span>
+        <span class="sticker-item avatar-choice" onclick="setAvatar(this,'😎')" style="border:2px solid transparent;border-radius:12px;padding:6px">😎</span>
+        <span class="sticker-item avatar-choice" onclick="setAvatar(this,'🤓')" style="border:2px solid transparent;border-radius:12px;padding:6px">🤓</span>
+        <span class="sticker-item avatar-choice" onclick="setAvatar(this,'😄')" style="border:2px solid transparent;border-radius:12px;padding:6px">😄</span>
+        <span class="sticker-item avatar-choice" onclick="setAvatar(this,'🥰')" style="border:2px solid transparent;border-radius:12px;padding:6px">🥰</span>
+        <span class="sticker-item avatar-choice" onclick="setAvatar(this,'🤠')" style="border:2px solid transparent;border-radius:12px;padding:6px">🤠</span>
+        <span class="sticker-item avatar-choice" onclick="setAvatar(this,'🦊')" style="border:2px solid transparent;border-radius:12px;padding:6px">🦊</span>
+        <span class="sticker-item avatar-choice" onclick="setAvatar(this,'🐱')" style="border:2px solid transparent;border-radius:12px;padding:6px">🐱</span>
+        <span class="sticker-item avatar-choice" onclick="setAvatar(this,'🐶')" style="border:2px solid transparent;border-radius:12px;padding:6px">🐶</span>
+        <span class="sticker-item avatar-choice" onclick="setAvatar(this,'🦁')" style="border:2px solid transparent;border-radius:12px;padding:6px">🦁</span>
+      </div>
+    </div>
+    <div style="padding:12px 16px" id="themeColorSection">
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">Couleur du thème</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+        <span class="color-theme-dot" onclick="changeThemeColor(this,'#4A90D9')" data-color="#4A90D9" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#4A90D9,#2563EB);display:inline-block;cursor:pointer;border:3px solid transparent;box-shadow:0 2px 8px rgba(74,144,217,0.4)"></span>
+        <span class="color-theme-dot" onclick="changeThemeColor(this,'#10B981')" data-color="#10B981" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#10B981,#059669);display:inline-block;cursor:pointer;border:3px solid transparent;box-shadow:0 2px 8px rgba(16,185,129,0.4)"></span>
+        <span class="color-theme-dot" onclick="changeThemeColor(this,'#EF4444')" data-color="#EF4444" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#EF4444,#DC2626);display:inline-block;cursor:pointer;border:3px solid transparent;box-shadow:0 2px 8px rgba(239,68,68,0.4)"></span>
+        <span class="color-theme-dot" onclick="changeThemeColor(this,'#F59E0B')" data-color="#F59E0B" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#F59E0B,#D97706);display:inline-block;cursor:pointer;border:3px solid transparent;box-shadow:0 2px 8px rgba(245,158,11,0.4)"></span>
+        <span class="color-theme-dot" onclick="changeThemeColor(this,'#EC4899')" data-color="#EC4899" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#EC4899,#DB2777);display:inline-block;cursor:pointer;border:3px solid transparent;box-shadow:0 2px 8px rgba(236,72,153,0.4)"></span>
+        <span class="color-theme-dot" onclick="changeThemeColor(this,'#8B5CF6')" data-color="#8B5CF6" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#8B5CF6,#7C3AED);display:inline-block;cursor:pointer;border:3px solid transparent;box-shadow:0 2px 8px rgba(139,92,246,0.4)"></span>
+      </div>
+    </div>
+
+    <div style="padding:12px 16px;border-top:1px solid var(--border)" id="avatarPersonalizationSection">
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">Personnalisation</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:8px"><span>👤</span><span style="font-size:14px">Pseudo</span></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span id="avatarPseudoDisplay" style="font-size:14px;color:var(--primary);font-weight:500"></span>
+          <span style="cursor:pointer;font-size:16px" onclick="editPseudo()">✏️</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0">
+        <div style="display:flex;align-items:center;gap:8px"><span>🌙</span><span style="font-size:14px">Mode sombre</span></div>
+        <button class="toggle" id="avatarDarkToggle" onclick="toggleDarkMode()"><div class="toggle-knob"></div></button>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-nav shared-nav"></div>
+</div>
+
+<!-- ===================== PROFILE ===================== -->
+<div class="page" id="profilePage">
+  <div class="statusbar"><span class="statusbar-brand">Zamis</span><span class="statusbar-date"></span></div>
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="home-btn" style="font-size:22px;cursor:pointer;display:none" onclick="goHome()">🏠</span>
+      <span class="header-title">Mon profil</span>
+    </div>
+  </div>
+  <div class="profile-content">
+    <div class="profile-avatar-box">
+      <div class="profile-avatar" id="profileAvatarDisplay">😊</div>
+      <div class="profile-code" id="profileCodeDisplay">---</div>
+    </div>
+    <div class="profile-info-box">
+      <div class="profile-info-row" onclick="editPseudo()" style="cursor:pointer">
+        <div class="profile-info-label"><span>👤</span><span>Pseudo</span></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="profile-info-value" id="profilePseudoVal">---</div>
+          <span style="font-size:14px;color:var(--text-light)">✏️</span>
+        </div>
+      </div>
+      <div class="profile-info-row" onclick="switchTab('avatarPage')" style="cursor:pointer">
+        <div class="profile-info-label"><span>😊</span><span>Avatar</span></div>
+        <div style="font-size:18px;color:var(--text-light)">›</div>
+      </div>
+    </div>
+    <div class="section-title">Paramètres</div>
+    <div class="settings-box">
+      <div class="settings-item" onclick="toggleDarkMode()">
+        <div class="settings-item-left">
+          <span class="settings-icon">🌙</span>
+          <span>Mode sombre</span>
+        </div>
+        <button class="toggle" id="darkModeToggle">
+          <div class="toggle-knob"></div>
+        </button>
+      </div>
+      <div class="settings-item">
+        <div class="settings-item-left">
+          <span class="settings-icon">🔔</span>
+          <span>Notifications</span>
+        </div>
+        <button class="toggle active" id="notifToggle" onclick="toggleNotif()">
+          <div class="toggle-knob"></div>
+        </button>
+      </div>
+      <div class="settings-item parent-only-setting" onclick="openModal('aboutModal')">
+        <div class="settings-item-left">
+          <span class="settings-icon">ℹ️</span>
+          <span>À propos</span>
+        </div>
+        <span style="color:var(--text-light)">›</span>
+      </div>
+      <div class="settings-item" onclick="logout()">
+        <div class="settings-item-left settings-item-danger">
+          <span class="settings-icon">🚪</span>
+          <span>Déconnexion</span>
+        </div>
+      </div>
+      <div class="settings-item" id="deleteAccountBtn" onclick="deleteAccount()">
+        <div class="settings-item-left settings-item-danger">
+          <span class="settings-icon">🗑️</span>
+          <span>Supprimer mon compte</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-nav shared-nav"></div>
+</div>
+
+<!-- ===================== FIREBASE SDK ===================== -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+const ZAMIS_VERSION = '1.0.0';
+const firebaseConfig = {
+  apiKey: "AIzaSyCgR7u4UDjSSNIicavPAuDuwQHWg4YTmPA",
+  authDomain: "zamis-messenger.firebaseapp.com",
+  projectId: "zamis-messenger",
+  storageBucket: "zamis-messenger.firebasestorage.app",
+  messagingSenderId: "785313908510",
+  appId: "1:785313908510:web:8e847665d09888d4706b0f"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let currentUser = null;
+let currentUserData = null;
+let selectedChildColor = '#FF6B9D';
+let currentAvatar = '😊';
+let mediaRecorder = null;
+let audioChunks = [];
+let recordingInterval = null;
+let recordingSeconds = 0;
+let currentConvId = null;
+let unsubMessages = null;
+
+/* ============== UTILS ============== */
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const page = document.getElementById(pageId);
+  if (page) page.classList.add('active');
+  if (pageId === 'loginPage') {
+    try { switchAuthTab('parent'); } catch(e) {}
+  }
+}
+
+function switchTab(pageId) {
+  showPage(pageId);
+  if (pageId === 'invitePage') loadMyInvitations();
+  renderNav(pageId);
+
+  // Avatar page: hide theme colors for parents
+  if (pageId === 'avatarPage') {
+    const isParent = currentUserData && currentUserData.role === 'parent';
+    const themeSection = document.getElementById('themeColorSection');
+    if (themeSection) themeSection.style.display = (isParent || isParentBrowsingChild) ? 'none' : '';
+  }
+
+  // Show home button if parent (to return to dashboard)
+  if (currentUserData && currentUserData.role === 'parent') {
+    document.querySelectorAll('.home-btn').forEach(b => b.style.display = 'inline');
+    const homeBtn = document.getElementById('homeBtn');
+    if (homeBtn) homeBtn.style.display = 'inline';
+  } else if (isParentBrowsingChild) {
+    document.querySelectorAll('.home-btn').forEach(b => b.style.display = 'inline');
+    const homeBtn = document.getElementById('homeBtn');
+    if (homeBtn) homeBtn.style.display = 'inline';
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if (t) { t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
+}
+
+function showLoading() {
+  const el = document.getElementById('loadingOverlay');
+  if (el) el.classList.add('active');
+}
+function hideLoading() {
+  const el = document.getElementById('loadingOverlay');
+  if (el) el.classList.remove('active');
+}
+
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+}
+function hideError(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+}
+function showSuccess(id, msg) {
+  const el = document.getElementById(id);
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+}
+
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.remove('active');
+}
+function openModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+
+function generateFriendCode(pseudo) {
+  const clean = pseudo.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return clean.substring(0, 8) + '.' + code;
+}
+
+function updateClocks() {
+  const now = new Date();
+  const days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+  const dateStr = days[now.getDay()] + ' ' + now.getDate() + '/' + String(now.getMonth() + 1).padStart(2, '0');
+  document.querySelectorAll('.statusbar-date').forEach(el => { el.textContent = dateStr; });
+}
+setInterval(updateClocks, 60000);
+updateClocks();
+
+/* ============== PASSWORD TOGGLE ============== */
+function togglePwd(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (input) {
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.textContent = '🙈';
+    } else {
+      input.type = 'password';
+      btn.textContent = '👁️';
+    }
+  }
+}
+
+/* ============== VALIDATION HELPERS ============== */
+function validatePseudo(pseudo) {
+  if (!pseudo || pseudo.length < 3) return 'Le pseudo doit faire 3 caractères minimum';
+  if (pseudo.length > 15) return 'Le pseudo doit faire 15 caractères maximum';
+  if (/\s/.test(pseudo)) return 'Le pseudo ne doit pas contenir d\'espace';
+  return null;
+}
+
+function validatePassword(pwd) {
+  if (!pwd || pwd.length < 6) return 'Le mot de passe doit faire 6 caractères minimum';
+  if (pwd.length > 20) return 'Le mot de passe doit faire 20 caractères maximum';
+  if (!/^[a-zA-Z0-9]+$/.test(pwd)) return 'Le mot de passe ne doit contenir que des lettres et chiffres';
+  return null;
+}
+
+/* ============== DARK MODE ============== */
+function toggleDarkMode() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
+  localStorage.setItem('zamis-dark', isDark ? '' : 'dark');
+  // Sync both toggles
+  ['darkModeToggle', 'avatarDarkToggle'].forEach(id => {
+    const t = document.getElementById(id);
+    if (t) t.classList.toggle('active', !isDark);
+  });
+}
+function toggleNotif() {
+  const toggle = document.getElementById('notifToggle');
+  if (toggle) toggle.classList.toggle('active');
+}
+
+(function initTheme() {
+  const saved = localStorage.getItem('zamis-dark');
+  if (saved === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    setTimeout(() => {
+      ['darkModeToggle', 'avatarDarkToggle'].forEach(id => {
+        const t = document.getElementById(id);
+        if (t) t.classList.add('active');
+      });
+    }, 100);
+  }
+})();
+
+/* ============== AUTH TABS ============== */
+function switchAuthTab(tab) {
+  const tabs = document.querySelectorAll('.toggle-tab');
+  const connectBtn = document.querySelector('.auth-container .btn-primary');
+  tabs.forEach(t => t.classList.remove('active'));
+  if (tab === 'parent') {
+    tabs[0].classList.add('active');
+    document.getElementById('parentLoginForm').style.display = '';
+    document.getElementById('childLoginForm').style.display = 'none';
+    // Couleurs adulte = vert/teal
+    tabs[0].style.background = '#0F6E56';
+    tabs[0].style.color = 'white';
+    tabs[1].style.background = '';
+    tabs[1].style.color = '';
+    if (connectBtn) connectBtn.style.background = 'linear-gradient(135deg, #0F6E56, #15967A)';
+  } else {
+    tabs[1].classList.add('active');
+    document.getElementById('parentLoginForm').style.display = 'none';
+    document.getElementById('childLoginForm').style.display = '';
+    // Couleurs enfant = violet
+    tabs[1].style.background = '#7C5CFC';
+    tabs[1].style.color = 'white';
+    tabs[0].style.background = '';
+    tabs[0].style.color = '';
+    if (connectBtn) connectBtn.style.background = 'linear-gradient(135deg, #7C5CFC, #5A3FD6)';
+  }
+}
+
+/* ============== REGISTER PARENT ============== */
+async function registerParent() {
+  hideError('registerError');
+  const nom = document.getElementById('registerNom').value.trim();
+  const prenom = document.getElementById('registerPrenom').value.trim();
+  const pseudo = document.getElementById('registerPseudo').value.trim();
+  const birth = document.getElementById('registerBirth').value;
+  const pwd = document.getElementById('registerPwd').value;
+  const pwd2 = document.getElementById('registerPwd2').value;
+
+  if (!nom) return showError('registerError', 'Entre ton nom');
+  if (!prenom) return showError('registerError', 'Entre ton prénom');
+  const pseudoErr = validatePseudo(pseudo);
+  if (pseudoErr) return showError('registerError', pseudoErr);
+  if (!birth) return showError('registerError', 'Entre ta date de naissance');
+  const pwdErr = validatePassword(pwd);
+  if (pwdErr) return showError('registerError', pwdErr);
+  if (pwd !== pwd2) return showError('registerError', 'Les mots de passe ne correspondent pas');
+
+  // Vérification âge ≥ 18 ans
+  const birthDate = new Date(birth);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+  if (age < 18) return showError('registerError', 'Vous devez avoir 18 ans pour créer un compte adulte. Demandez à vos parents de vous créer un compte enfant.');
+
+  // Popup confirmation responsabilité
+  if (!confirm('Vous confirmez avoir plus de 18 ans.\n\nVous êtes responsable de l\'utilisation de ce compte et des comptes enfants que vous gérez.\n\nConfirmer ?')) return;
+
+  const pseudoCheck = await db.collection('users').where('pseudo', '==', pseudo).get();
+  if (!pseudoCheck.empty) return showError('registerError', 'Ce pseudo est déjà pris');
+
+  showLoading();
+  try {
+    const cleanPseudo = pseudo.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+    const autoEmail = cleanPseudo + '.' + randomSuffix + '@zamis.app';
+
+    const cred = await auth.createUserWithEmailAndPassword(autoEmail, pwd);
+    const friendCode = generateFriendCode(pseudo);
+    await db.collection('users').doc(cred.user.uid).set({
+      uid: cred.user.uid,
+      nom: nom,
+      prenom: prenom,
+      pseudo: pseudo,
+      dateNaissance: birth,
+      internalEmail: autoEmail,
+      role: 'parent',
+      friendCode: friendCode,
+      avatar: '😊',
+      childrenIds: [],
+      coParents: [],
+      adultFriends: [],
+      blockedUsers: [],
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    hideLoading();
+    showSuccess('registerSuccess', 'Compte créé ! Redirection...');
+    setTimeout(() => {
+      loadParentDashboard(cred.user);
+    }, 1500);
+  } catch (err) {
+    hideLoading();
+    let msg = 'Erreur lors de l\'inscription';
+    if (err.code === 'auth/email-already-in-use') msg = 'Réessaie avec un autre pseudo';
+    showError('registerError', msg);
+  }
+}
+
+/* ============== LOGIN PARENT ============== */
+async function loginParent() {
+  hideError('loginError');
+  const pseudoOrCode = document.getElementById('loginPseudo').value.trim();
+  const pwd = document.getElementById('loginPassword').value;
+
+  if (!pseudoOrCode || !pwd) return showError('loginError', 'Remplis tous les champs');
+
+  showLoading();
+  try {
+    // Find user by pseudo or friendCode
+    let userSnap = await db.collection('users').where('pseudo', '==', pseudoOrCode).get();
+    if (userSnap.empty) {
+      userSnap = await db.collection('users').where('friendCode', '==', pseudoOrCode.toLowerCase()).get();
+    }
+
+    if (userSnap.empty) {
+      hideLoading();
+      return showError('loginError', 'Pseudo introuvable');
+    }
+
+    const userData = userSnap.docs[0].data();
+    const internalEmail = userData.internalEmail;
+
+    if (!internalEmail) {
+      hideLoading();
+      return showError('loginError', 'Compte incompatible, recrée-le');
+    }
+
+    const cred = await auth.signInWithEmailAndPassword(internalEmail, pwd);
+    hideLoading();
+    if (userData.role === 'parent') {
+      loadParentDashboard(cred.user);
+    } else {
+      loadChildApp(userData);
+    }
+  } catch (err) {
+    hideLoading();
+    let msg = 'Pseudo ou mot de passe incorrect';
+    if (err.code === 'auth/too-many-requests') msg = 'Trop de tentatives, réessaie plus tard';
+    showError('loginError', msg);
+  }
+}
+
+/* ============== LOGIN CHILD ============== */
+async function loginChild() {
+  hideError('childLoginError');
+  const code = document.getElementById('childCode').value.trim().toLowerCase();
+  const pin = document.getElementById('childPin').value.trim();
+
+  if (!code || !pin) return showError('childLoginError', 'Remplis tous les champs');
+
+  showLoading();
+  try {
+    const snap = await db.collection('users')
+      .where('friendCode', '==', code)
+      .where('role', '==', 'child')
+      .get();
+
+    if (snap.empty) {
+      hideLoading();
+      return showError('childLoginError', 'Code Zamis introuvable');
+    }
+
+    const childData = snap.docs[0].data();
+    if (childData.pin !== pin) {
+      hideLoading();
+      return showError('childLoginError', 'Code secret incorrect');
+    }
+
+    hideLoading();
+    currentUser = { uid: childData.uid };
+    currentUserData = childData;
+    localStorage.setItem('zamis-child-code', code);
+    localStorage.setItem('zamis-child-pin', pin);
+    loadChildApp(childData);
+  } catch (err) {
+    hideLoading();
+    showError('childLoginError', 'Erreur de connexion');
+  }
+}
+
+/* ============== LOAD PARENT DASHBOARD ============== */
+async function loadParentDashboard(user) {
+  currentUser = user;
+  const doc = await db.collection('users').doc(user.uid).get();
+  if (!doc.exists) return;
+  currentUserData = doc.data();
+  isParentBrowsingChild = false;
+  document.body.classList.add('parent-mode');
+  document.body.classList.remove('child-mode');
+  if (unsubConversations) { unsubConversations(); unsubConversations = null; }
+
+  const welcome = document.getElementById('parentWelcome');
+  if (welcome) welcome.textContent = 'Bienvenue, ' + currentUserData.pseudo;
+
+  // Populate profile for parent
+  updateProfileDisplay();
+
+  // Hide home buttons on dashboard
+  document.querySelectorAll('.home-btn').forEach(b => b.style.display = 'none');
+  const homeBtn = document.getElementById('homeBtn');
+  if (homeBtn) homeBtn.style.display = 'none';
+
+  showPage('parentDashboard');
+
+  loadChildren();
+  loadPendingRequests();
+  updateParentWriteBadge();
+  loadCoParentsGrid();
+  loadAdultFriendsGrid();
+}
+
+function updateProfileDisplay() {
+  const profileCode = document.getElementById('profileCodeDisplay');
+  if (profileCode) profileCode.textContent = currentUserData.friendCode || '';
+  const profilePseudo = document.getElementById('profilePseudoVal');
+  if (profilePseudo) profilePseudo.textContent = currentUserData.pseudo || '---';
+  const profileAvatar = document.getElementById('profileAvatarDisplay');
+  if (profileAvatar) profileAvatar.textContent = currentUserData.avatar || '😊';
+  const friendCodeEl = document.getElementById('myFriendCode');
+  if (friendCodeEl) friendCodeEl.textContent = currentUserData.friendCode || '---';
+  const avatarName = document.getElementById('avatarName');
+  if (avatarName) avatarName.textContent = currentUserData.pseudo || '---';
+  const avatarPreview = document.getElementById('avatarPreview');
+  if (avatarPreview) avatarPreview.textContent = currentUserData.avatar || '😊';
+  const avatarPseudoDisplay = document.getElementById('avatarPseudoDisplay');
+  if (avatarPseudoDisplay) avatarPseudoDisplay.textContent = currentUserData.pseudo || '---';
+  currentAvatar = currentUserData.avatar || '😊';
+
+  // Hide delete account for children
+  const deleteBtn = document.getElementById('deleteAccountBtn');
+  if (deleteBtn) deleteBtn.style.display = currentUserData.role === 'child' ? 'none' : 'flex';
+}
+
+/* ============== ADD CHILD ============== */
+function showAddChildModal() {
+  openModal('addChildModal');
+  const fields = ['childNom', 'childPrenom', 'childPseudo', 'childBirth', 'childPinSetup'];
+  fields.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  hideError('addChildError');
+  selectedChildColor = '#FF4081';
+  document.querySelectorAll('.color-dot').forEach(d => {
+    d.style.borderColor = 'transparent';
+    d.style.boxShadow = 'none';
+    d.style.transform = 'scale(1)';
+  });
+  const first = document.querySelector('.color-dot');
+  if (first) {
+    first.style.borderColor = 'white';
+    first.style.boxShadow = '0 0 12px #FF4081';
+    first.style.transform = 'scale(1.2)';
+  }
+}
+
+function selectColor(el) {
+  document.querySelectorAll('.color-dot').forEach(d => {
+    d.style.borderColor = 'transparent';
+    d.style.boxShadow = 'none';
+    d.style.transform = 'scale(1)';
+  });
+  selectedChildColor = el.getAttribute('data-color');
+  el.style.borderColor = 'white';
+  el.style.boxShadow = '0 0 12px ' + selectedChildColor;
+  el.style.transform = 'scale(1.2)';
+}
+
+async function addChild() {
+  hideError('addChildError');
+  const nom = document.getElementById('childNom').value.trim();
+  const prenom = document.getElementById('childPrenom').value.trim();
+  const pseudo = document.getElementById('childPseudo').value.trim();
+  const birth = document.getElementById('childBirth').value;
+  const pin = document.getElementById('childPinSetup').value;
+
+  if (!nom) return showError('addChildError', 'Entre le nom de l\'enfant');
+  if (!prenom) return showError('addChildError', 'Entre le prénom de l\'enfant');
+  const pseudoErr = validatePseudo(pseudo);
+  if (pseudoErr) return showError('addChildError', pseudoErr);
+  if (!birth) return showError('addChildError', 'Entre la date de naissance');
+  const pwdErr = validatePassword(pin);
+  if (pwdErr) return showError('addChildError', pwdErr);
+
+  // Check pseudo uniqueness
+  const pseudoCheck = await db.collection('users').where('pseudo', '==', pseudo).get();
+  if (!pseudoCheck.empty) return showError('addChildError', 'Ce pseudo est déjà pris');
+
+  showLoading();
+  try {
+    const friendCode = generateFriendCode(pseudo);
+    const childRef = db.collection('users').doc();
+    const childUid = childRef.id;
+
+    await childRef.set({
+      uid: childUid,
+      nom: nom,
+      prenom: prenom,
+      pseudo: pseudo,
+      dateNaissance: birth,
+      role: 'child',
+      parentId: currentUser.uid,
+      friendCode: friendCode,
+      pin: pin,
+      avatar: '😊',
+      avatarColor: selectedChildColor,
+      approvedContacts: [],
+      blockedUsers: [],
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await db.collection('users').doc(currentUser.uid).update({
+      childrenIds: firebase.firestore.FieldValue.arrayUnion(childUid)
+    });
+
+    // Create parent-child conversation
+    const convRef = db.collection('conversations').doc();
+    await convRef.set({
+      type: 'direct',
+      members: [currentUser.uid, childUid],
+      memberNames: { [currentUser.uid]: currentUserData.pseudo, [childUid]: pseudo },
+      memberColors: { [currentUser.uid]: '#7C5CFC', [childUid]: selectedChildColor },
+      lastMessage: 'Bienvenue sur Zamis ! 🎉',
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy: currentUser.uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await convRef.collection('messages').add({
+      senderId: 'system',
+      senderPseudo: 'Zamis',
+      type: 'text',
+      content: 'Bienvenue sur Zamis Messenger ! 🎉 Vous pouvez maintenant discuter ensemble.',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    currentUserData.childrenIds = currentUserData.childrenIds || [];
+    currentUserData.childrenIds.push(childUid);
+
+    hideLoading();
+    closeModal('addChildModal');
+    showToast(pseudo + ' a été ajouté !');
+    loadChildren();
+  } catch (err) {
+    hideLoading();
+    showError('addChildError', 'Erreur : ' + err.message);
+  }
+}
+
+/* ============== LOAD CHILDREN ============== */
+async function loadChildren() {
+  const grid = document.getElementById('childrenGrid');
+  if (!grid) return;
+
+  const directIds = currentUserData.childrenIds || [];
+  const allChildIds = new Set(directIds);
+
+  // Also load children shared via co-parenting
+  try {
+    const coSnap = await db.collection('users').where('coParentIds', 'array-contains', currentUser.uid).where('role', '==', 'child').get();
+    coSnap.forEach(doc => allChildIds.add(doc.id));
+  } catch (e) {}
+
+  let html = '';
+
+  for (const id of allChildIds) {
+    try {
+      const doc = await db.collection('users').doc(id).get();
+      if (doc.exists) {
+        const child = doc.data();
+        const isDirect = directIds.includes(id);
+        html += `
+          <div class="child-card" style="position:relative">
+            ${isDirect ? `<div style="position:absolute;top:6px;right:6px;width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:white;z-index:2" onclick="event.stopPropagation();confirmDeleteChild('${id}','${child.pseudo}')">✕</div>` : ''}
+            <div onclick="loginAsChild('${id}')" style="cursor:pointer">
+              <div class="child-avatar" style="background:${child.avatarColor || '#FFB347'}">
+                ${child.avatar || child.pseudo.charAt(0).toUpperCase()}
+              </div>
+              <div class="child-name">${child.pseudo}</div>
+              <div class="child-status">Code: ${child.friendCode}</div>
+            </div>
+          </div>`;
+      }
+    } catch (e) {}
+  }
+
+  html += `
+    <div class="add-child-card" onclick="showAddChildModal()">
+      <div class="add-child-icon">+</div>
+      <div class="add-child-text">Ajouter</div>
+    </div>`;
+
+  grid.innerHTML = html;
+}
+
+/* ============== PARENT -> CHILD VIEW ============== */
+async function loginAsChild(childId) {
+  showLoading();
+  try {
+    const doc = await db.collection('users').doc(childId).get();
+    if (doc.exists) {
+      parentAuthUser = currentUser;
+      parentUserData = currentUserData;
+      isParentBrowsingChild = true;
+      currentUserData = doc.data();
+      currentUser = { uid: childId };
+      hideLoading();
+      document.querySelectorAll('.home-btn').forEach(b => b.style.display = 'inline');
+      const homeBtn = document.getElementById('homeBtn');
+      if (homeBtn) homeBtn.style.display = 'inline';
+      loadChildApp(currentUserData);
+    }
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur');
+  }
+}
+
+/* ============== LOAD CHILD APP ============== */
+function loadChildApp(childData) {
+  currentUserData = childData;
+  currentUser = { uid: childData.uid };
+  document.body.classList.remove('parent-mode');
+  document.body.classList.add('child-mode');
+  if (unsubConversations) { unsubConversations(); unsubConversations = null; }
+
+  // Apply child's avatar color to headers
+  const childColor = childData.avatarColor || '#7C5CFC';
+  document.documentElement.style.setProperty('--child-color', childColor);
+  document.documentElement.style.setProperty('--child-color-dark', childColor + 'CC');
+
+  updateProfileDisplay();
+
+  // Hide 🏠 for real child login (no parent auth)
+  if (!isParentBrowsingChild && !auth.currentUser) {
+    document.querySelectorAll('.home-btn').forEach(b => b.style.display = 'none');
+    const homeBtn = document.getElementById('homeBtn');
+    if (homeBtn) homeBtn.style.display = 'none';
+  }
+
+  // Hide theme color section for parents
+  const themeColorSection = document.getElementById('themeColorSection');
+  if (themeColorSection) {
+    themeColorSection.style.display = (currentUserData.role === 'parent' || isParentBrowsingChild) ? 'none' : '';
+  }
+
+  showPage('messagesPage');
+  renderNav('messagesPage');
+  loadConversations();
+  loadContacts();
+}
+
+/* ============== LOAD CONVERSATIONS ============== */
+let unsubConversations = null;
+
+function loadConversations() {
+  if (!currentUser) return;
+  const list = document.getElementById('messagesList');
+  if (!list) return;
+
+  // Unsubscribe previous listener
+  if (unsubConversations) unsubConversations();
+
+  unsubConversations = db.collection('conversations')
+    .where('members', 'array-contains', currentUser.uid)
+    .onSnapshot(snap => {
+      if (snap.empty) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-text">Pas encore de messages</div></div>';
+        updateMessageBadge(0);
+        return;
+      }
+
+      let html = '';
+      let totalUnread = 0;
+      const docs = snap.docs.sort((a, b) => {
+        const ta = a.data().lastMessageAt ? a.data().lastMessageAt.toMillis() : 0;
+        const tb = b.data().lastMessageAt ? b.data().lastMessageAt.toMillis() : 0;
+        return tb - ta;
+      });
+      docs.forEach(doc => {
+        const conv = doc.data();
+        const isGroup = conv.type === 'group';
+        let displayName, displayColor, initial;
+
+        if (isGroup) {
+          displayName = conv.groupName || 'Groupe';
+          displayColor = '#7C5CFC';
+          initial = '👥';
+        } else {
+          const otherId = conv.members.find(m => m !== currentUser.uid);
+          displayName = conv.memberNames ? (conv.memberNames[otherId] || 'Inconnu') : 'Inconnu';
+          displayColor = conv.memberColors ? (conv.memberColors[otherId] || '#7C5CFC') : '#7C5CFC';
+          initial = displayName.charAt(0).toUpperCase();
+        }
+
+        const time = conv.lastMessageAt ? new Date(conv.lastMessageAt.toDate()).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : '';
+        const preview = conv.lastMessage || '';
+
+        // Unread count
+        const lastReadBy = conv.lastReadBy || {};
+        const myLastRead = lastReadBy[currentUser.uid] ? lastReadBy[currentUser.uid].toMillis() : 0;
+        const lastMsgTime = conv.lastMessageAt ? conv.lastMessageAt.toMillis() : 0;
+        const lastSenderId = conv.lastSenderId || '';
+        const isUnread = (lastMsgTime > myLastRead && lastSenderId !== currentUser.uid);
+        const unreadNum = isUnread ? (conv.unreadCount && conv.unreadCount[currentUser.uid] ? conv.unreadCount[currentUser.uid] : 1) : 0;
+        if (unreadNum > 0) totalUnread += unreadNum;
+
+        const badgeHtml = unreadNum > 0 ? `<div class="message-badge">${unreadNum}</div>` : '';
+        const unreadStyle = unreadNum > 0 ? 'background:var(--primary-light);' : '';
+
+        const safeName = displayName.replace(/'/g, "\\'");
+        html += `
+          <div class="message-item" style="${unreadStyle}" onclick="openConversation('${doc.id}', '${safeName}', '${displayColor}')">
+            <div class="message-avatar" style="background:${displayColor}">
+              ${initial}
+            </div>
+            <div class="message-content">
+              <div class="message-header">
+                <span class="message-name" ${isUnread ? 'style="font-weight:700"' : ''}>${displayName}</span>
+                <span class="message-time">${time}</span>
+              </div>
+              <div class="message-preview" ${isUnread ? 'style="color:var(--text);font-weight:500"' : ''}>${preview}</div>
+            </div>
+            ${badgeHtml}
+          </div>`;
+      });
+
+      list.innerHTML = html;
+      updateMessageBadge(totalUnread);
+    }, err => {
+      list.innerHTML = '<div class="empty-state"><div class="empty-text">Erreur de chargement</div></div>';
+    });
+}
+
+/* ============== BACK TO MESSAGES ============== */
+function backToMessages() {
+  if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+  currentConvId = null;
+  hideConvMenu();
+  switchTab('messagesPage');
+  if (!unsubConversations) loadConversations();
+}
+
+async function showConvMenu() {
+  const menu = document.getElementById('convMenu');
+  if (!menu) return;
+
+  // If menu is visible, just hide it
+  if (menu.style.display === 'block') {
+    menu.style.display = 'none';
+    return;
+  }
+
+  // Pre-check family status BEFORE showing menu
+  const blockBtn = document.getElementById('convBlockBtn');
+  const deleteBtn = document.getElementById('convDeleteBtn');
+  let isFamily = false;
+
+  if (currentConvId && blockBtn && deleteBtn) {
+    try {
+      const convDoc = await db.collection('conversations').doc(currentConvId).get();
+      if (convDoc.exists) {
+        const conv = convDoc.data();
+        const otherIds = conv.members.filter(m => m !== currentUser.uid);
+        for (const otherId of otherIds) {
+          const otherDoc = await db.collection('users').doc(otherId).get();
+          if (otherDoc.exists) {
+            const other = otherDoc.data();
+            if (other.parentId === currentUser.uid || currentUserData.parentId === otherId) isFamily = true;
+            if ((currentUserData.coParents || []).includes(otherId)) isFamily = true;
+          }
+        }
+      }
+    } catch (e) {}
+    blockBtn.style.display = isFamily ? 'none' : '';
+    deleteBtn.style.display = isFamily ? 'none' : '';
+  }
+
+  // NOW show the menu after async work is done
+  menu.style.display = 'block';
+}
+
+function hideConvMenu() {
+  const menu = document.getElementById('convMenu');
+  if (menu) menu.style.display = 'none';
+}
+
+async function blockFromConv() {
+  hideConvMenu();
+  if (!currentConvId) return;
+  try {
+    const convDoc = await db.collection('conversations').doc(currentConvId).get();
+    if (!convDoc.exists) return;
+    const conv = convDoc.data();
+    if (conv.type === 'group') return showToast('Utilise les paramètres du groupe');
+    const otherId = conv.members.find(m => m !== currentUser.uid);
+    const otherName = conv.memberNames ? (conv.memberNames[otherId] || 'Inconnu') : 'Inconnu';
+    blockUser(otherId, otherName);
+  } catch (e) {
+    showToast('Erreur');
+  }
+}
+
+/* ============== PARENT WRITE MESSAGE ============== */
+function parentWriteMessage() {
+  switchTab('messagesPage');
+  loadConversations();
+}
+
+/* ============== OPEN CONV WITH CONTACT ============== */
+async function openConvWith(contactId, contactName, contactColor) {
+  showLoading();
+  try {
+    const snap = await db.collection('conversations')
+      .where('members', 'array-contains', currentUser.uid)
+      .get();
+
+    let foundConvId = null;
+    snap.forEach(doc => {
+      const conv = doc.data();
+      if (conv.members.includes(contactId)) {
+        foundConvId = doc.id;
+      }
+    });
+
+    hideLoading();
+    if (foundConvId) {
+      openConversation(foundConvId, contactName, contactColor);
+    } else {
+      showToast('Aucune conversation trouvée');
+    }
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur');
+  }
+}
+
+/* ============== OPEN CONVERSATION ============== */
+async function openConversation(convId, name, color) {
+  currentConvId = convId;
+  const nameEl = document.getElementById('convName');
+  if (nameEl) nameEl.textContent = name;
+  const avatarEl = document.getElementById('convAvatar');
+  if (avatarEl) {
+    avatarEl.style.background = color;
+    const isGroup = name === 'Groupe' || color === '#7C5CFC';
+    avatarEl.textContent = name.charAt(0).toUpperCase();
+  }
+
+  // Check if parent is in read-only mode (browsing child's group)
+  const chatInputBar = document.getElementById('chatInputBar');
+  const readOnlyBar = document.getElementById('readOnlyBar');
+
+  if (isParentBrowsingChild) {
+    // Parent viewing child = always read only
+    if (chatInputBar) chatInputBar.style.display = 'none';
+    if (readOnlyBar) readOnlyBar.style.display = 'flex';
+  } else {
+    if (chatInputBar) chatInputBar.style.display = 'flex';
+    if (readOnlyBar) readOnlyBar.style.display = 'none';
+  }
+
+  // Mark as read + reset unread count
+  if (currentUser) {
+    const updateData = {};
+    updateData['lastReadBy.' + currentUser.uid] = firebase.firestore.FieldValue.serverTimestamp();
+    updateData['unreadCount.' + currentUser.uid] = 0;
+    db.collection('conversations').doc(convId).update(updateData).catch(() => {});
+  }
+
+  showPage('conversationPage');
+  loadMessages(convId);
+}
+
+/* ============== LOAD MESSAGES ============== */
+function loadMessages(convId) {
+  const container = document.getElementById('convMessages');
+  if (!container) return;
+
+  if (unsubMessages) unsubMessages();
+
+  let convData = null;
+  let currentSnap = null;
+  let lastReadByJson = '';
+
+  // 1. Listen to conversation doc for read status changes
+  const unsubConv = db.collection('conversations').doc(convId).onSnapshot(doc => {
+    if (doc.exists) {
+      convData = doc.data();
+      const newJson = JSON.stringify(convData.lastReadBy || {});
+      if (lastReadByJson && newJson !== lastReadByJson && currentSnap) {
+        renderMsgs(currentSnap); // re-render on read status change
+      }
+      lastReadByJson = newJson;
+    }
+  });
+
+  // 2. Listen to messages collection
+  const unsubMsgs = db.collection('conversations').doc(convId)
+    .collection('messages')
+    .orderBy('createdAt', 'asc')
+    .onSnapshot(snap => {
+      currentSnap = snap;
+      renderMsgs(snap);
+    });
+
+  // 3. Render function
+  async function renderMsgs(snap) {
+    let html = '';
+    let lastDate = '';
+    let hasNewFromOther = false;
+
+    let myBlockedList = [];
+    try {
+      const myUserDoc = await db.collection('users').doc(currentUser.uid).get();
+      myBlockedList = myUserDoc.data().blockedUsers || [];
+    } catch(e){}
+
+    for (const doc of snap.docs) {
+      const msg = doc.data();
+      const isMe = msg.senderId === currentUser.uid;
+      const isSystem = msg.senderId === 'system';
+      if (!isMe && !isSystem) hasNewFromOther = true;
+      const time = msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
+      const date = msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleDateString('fr-FR') : '';
+
+      if (date !== lastDate) {
+        html += `<div class="conv-date">${date}</div>`;
+        lastDate = date;
+      }
+
+      const senderBlocked = (!isMe && !isSystem && msg.senderId) ? myBlockedList.includes(msg.senderId) : false;
+      const pseudoStyle = senderBlocked ? 'font-size:11px;font-weight:600;color:var(--text-light);margin-bottom:2px;padding-left:4px;text-decoration:line-through' : 'font-size:11px;font-weight:600;color:var(--primary);margin-bottom:2px;padding-left:4px';
+      const pseudoHtml = (!isMe && !isSystem && msg.senderPseudo) ? `<div class="bubble-pseudo" style="${pseudoStyle}">${msg.senderPseudo}</div>` : '';
+
+      let bubbleClass = isMe ? 'bubble-out' : 'bubble-in';
+      let bubbleStyle = '';
+      if (isMe && msg.createdAt && convData) {
+        const msgTime = msg.createdAt.toMillis();
+        const otherMembers = (convData.members || []).filter(m => m !== currentUser.uid);
+        let isRead = false;
+        for (const m of otherMembers) {
+          const readTime = convData.lastReadBy && convData.lastReadBy[m] ? convData.lastReadBy[m].toMillis() : 0;
+          if (readTime >= msgTime) isRead = true;
+        }
+        bubbleStyle = isRead ? 'background:#4CAF50;' : 'background:#9E9E9E;';
+      }
+
+      if (isSystem) {
+        html += `<div class="conv-date" style="background:var(--primary-light);padding:8px 12px;border-radius:10px;font-size:12px">${msg.content}</div>`;
+      } else if (msg.type === 'sticker') {
+        html += `${pseudoHtml}<div class="bubble ${bubbleClass}" style="background:transparent;font-size:40px;padding:4px;${isMe ? bubbleStyle : ''}">${msg.content}<div class="bubble-time">${time}</div></div>`;
+      } else if (msg.type === 'audio') {
+        html += `${pseudoHtml}
+          <div class="bubble ${bubbleClass}" ${isMe ? `style="${bubbleStyle}"` : ''}>
+            <div class="bubble-audio">
+              <button class="audio-play" onclick="playAudio(this, '${msg.content}')">▶</button>
+              <div class="audio-bar"><div class="audio-bar-fill"></div></div>
+              <span class="audio-duration">0:${String(msg.duration || 0).padStart(2, '0')}</span>
+            </div>
+            <div class="bubble-time">${time}</div>
+          </div>`;
+      } else {
+        html += `${pseudoHtml}
+          <div class="bubble ${bubbleClass}" ${isMe ? `style="${bubbleStyle}"` : ''}>
+            ${msg.content}
+            <div class="bubble-time">${time}</div>
+          </div>`;
+      }
+    }
+
+    container.innerHTML = html;
+    container.scrollTop = container.scrollHeight;
+
+    if (hasNewFromOther && currentUser && currentConvId === convId && !isParentBrowsingChild) {
+      const updateData = {};
+      updateData['lastReadBy.' + currentUser.uid] = firebase.firestore.FieldValue.serverTimestamp();
+      updateData['unreadCount.' + currentUser.uid] = 0;
+      db.collection('conversations').doc(convId).update(updateData).catch(() => {});
+    }
+  }
+
+  unsubMessages = () => { unsubMsgs(); unsubConv(); };
+}
+
+/* ============== SEND MESSAGE ============== */
+async function sendMessage() {
+  if (!currentConvId || !currentUser) return;
+  const input = document.getElementById('chatInput');
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) return;
+
+  // Check blocage bidirectionnel
+  const blocked = await isBlockedInConversation(currentConvId);
+  if (blocked) { showToast('Envoi bloqué — contact bloqué'); return; }
+
+  input.value = '';
+
+  try {
+    await db.collection('conversations').doc(currentConvId)
+      .collection('messages').add({
+        senderId: currentUser.uid,
+        senderPseudo: currentUserData.pseudo,
+        type: 'text',
+        content: text,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+    // Increment unread for other members
+    const convDoc = await db.collection('conversations').doc(currentConvId).get();
+    const convData = convDoc.data();
+    const unreadUpdate = {};
+    convData.members.forEach(m => {
+      if (m !== currentUser.uid) {
+        unreadUpdate['unreadCount.' + m] = firebase.firestore.FieldValue.increment(1);
+      }
+    });
+    unreadUpdate.lastMessage = text;
+    unreadUpdate.lastMessageAt = firebase.firestore.FieldValue.serverTimestamp();
+    unreadUpdate.lastSenderId = currentUser.uid;
+    await db.collection('conversations').doc(currentConvId).update(unreadUpdate);
+  } catch (err) {
+    showToast('Erreur d\'envoi');
+  }
+}
+
+/* ============== SEND STICKER ============== */
+async function sendSticker(emoji) {
+  if (!currentConvId || !currentUser) return;
+  const panel = document.getElementById('stickerPanel');
+  if (panel) panel.classList.remove('active');
+
+  // Check blocage bidirectionnel
+  const blocked = await isBlockedInConversation(currentConvId);
+  if (blocked) { showToast('Envoi bloqué — contact bloqué'); return; }
+
+  try {
+    await db.collection('conversations').doc(currentConvId)
+      .collection('messages').add({
+        senderId: currentUser.uid,
+        senderPseudo: currentUserData.pseudo,
+        type: 'sticker',
+        content: emoji,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+    const convDoc = await db.collection('conversations').doc(currentConvId).get();
+    const convData = convDoc.data();
+    const unreadUpdate = {};
+    convData.members.forEach(m => {
+      if (m !== currentUser.uid) {
+        unreadUpdate['unreadCount.' + m] = firebase.firestore.FieldValue.increment(1);
+      }
+    });
+    unreadUpdate.lastMessage = emoji;
+    unreadUpdate.lastMessageAt = firebase.firestore.FieldValue.serverTimestamp();
+    unreadUpdate.lastSenderId = currentUser.uid;
+    await db.collection('conversations').doc(currentConvId).update(unreadUpdate);
+  } catch (err) {
+    showToast('Erreur d\'envoi');
+  }
+}
+
+function toggleStickers() {
+  const panel = document.getElementById('stickerPanel');
+  if (panel) panel.classList.toggle('active');
+}
+
+/* ============== AUDIO RECORDING ============== */
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    recordingSeconds = 0;
+
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.start();
+
+    const bar = document.getElementById('recordingBar');
+    const inputBar = document.getElementById('chatInputBar');
+    if (bar) bar.classList.add('active');
+    if (inputBar) inputBar.style.display = 'none';
+
+    recordingInterval = setInterval(() => {
+      recordingSeconds++;
+      const timeEl = document.getElementById('recordingTime');
+      if (timeEl) timeEl.textContent = Math.floor(recordingSeconds / 60) + ':' + String(recordingSeconds % 60).padStart(2, '0');
+    }, 1000);
+  } catch (err) {
+    showToast('Micro non disponible');
+  }
+}
+
+function cancelRecording() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+    mediaRecorder.stream.getTracks().forEach(t => t.stop());
+  }
+  clearInterval(recordingInterval);
+  const bar = document.getElementById('recordingBar');
+  const inputBar = document.getElementById('chatInputBar');
+  if (bar) bar.classList.remove('active');
+  if (inputBar) inputBar.style.display = 'flex';
+}
+
+async function stopAndSendRecording() {
+  if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
+  const duration = recordingSeconds;
+
+  mediaRecorder.onstop = async () => {
+    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64 = reader.result;
+      try {
+        await db.collection('conversations').doc(currentConvId)
+          .collection('messages').add({
+            senderId: currentUser.uid,
+            senderPseudo: currentUserData.pseudo,
+            type: 'audio',
+            content: base64,
+            duration: duration,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        const convDoc = await db.collection('conversations').doc(currentConvId).get();
+        const convData = convDoc.data();
+        const unreadUpdate = {};
+        convData.members.forEach(m => {
+          if (m !== currentUser.uid) {
+            unreadUpdate['unreadCount.' + m] = firebase.firestore.FieldValue.increment(1);
+          }
+        });
+        unreadUpdate.lastMessage = '🎤 Message audio';
+        unreadUpdate.lastMessageAt = firebase.firestore.FieldValue.serverTimestamp();
+        unreadUpdate.lastSenderId = currentUser.uid;
+        await db.collection('conversations').doc(currentConvId).update(unreadUpdate);
+      } catch (err) {
+        showToast('Erreur d\'envoi audio');
+      }
+    };
+    reader.readAsDataURL(blob);
+    mediaRecorder.stream.getTracks().forEach(t => t.stop());
+  };
+
+  mediaRecorder.stop();
+  clearInterval(recordingInterval);
+  const bar = document.getElementById('recordingBar');
+  const inputBar = document.getElementById('chatInputBar');
+  if (bar) bar.classList.remove('active');
+  if (inputBar) inputBar.style.display = 'flex';
+}
+
+function playAudio(btn, src) {
+  const audio = new Audio(src);
+  const fill = btn.parentElement.querySelector('.audio-bar-fill');
+  btn.textContent = '⏸';
+  audio.onended = () => {
+    btn.textContent = '▶';
+    if (fill) fill.style.width = '0%';
+  };
+  audio.ontimeupdate = () => {
+    if (fill && audio.duration) {
+      fill.style.width = Math.round((audio.currentTime / audio.duration) * 100) + '%';
+    }
+  };
+  audio.play();
+}
+
+/* ============== CONTACTS ============== */
+let allContactsCache = [];
+
+async function loadContacts() {
+  if (!currentUser || !currentUserData) return;
+  const list = document.getElementById('contactsList');
+  if (!list) return;
+
+  allContactsCache = [];
+
+  if (currentUserData.role === 'parent') {
+    const childIds = currentUserData.childrenIds || [];
+    const addedIds = new Set();
+
+    // 1. Children
+    for (const id of childIds) {
+      if (addedIds.has(id)) continue;
+      try {
+        const doc = await db.collection('users').doc(id).get();
+        if (doc.exists) {
+          const child = doc.data();
+          allContactsCache.push({ uid: id, pseudo: child.pseudo, avatar: child.avatar, color: child.avatarColor || '#FFB347' });
+          addedIds.add(id);
+        }
+      } catch (e) {}
+    }
+
+    // 2. Co-parents
+    const coParentIds = currentUserData.coParents || [];
+    for (const id of coParentIds) {
+      if (addedIds.has(id)) continue;
+      try {
+        const doc = await db.collection('users').doc(id).get();
+        if (doc.exists) {
+          const u = doc.data();
+          allContactsCache.push({ uid: id, pseudo: u.pseudo, avatar: null, color: '#0F6E56' });
+          addedIds.add(id);
+        }
+      } catch (e) {}
+    }
+
+    // 3. Adult friends (Invités)
+    const friendIds = currentUserData.adultFriends || [];
+    for (const id of friendIds) {
+      if (addedIds.has(id)) continue;
+      try {
+        const doc = await db.collection('users').doc(id).get();
+        if (doc.exists) {
+          const u = doc.data();
+          allContactsCache.push({ uid: id, pseudo: u.pseudo, avatar: null, color: u.avatarColor || '#4A90D9' });
+          addedIds.add(id);
+        }
+      } catch (e) {}
+    }
+
+    // 4. Other contacts from conversations (catch-all)
+    try {
+      const convSnap = await db.collection('conversations').where('members', 'array-contains', currentUser.uid).get();
+      convSnap.forEach(doc => {
+        const conv = doc.data();
+        conv.members.forEach(m => {
+          if (m !== currentUser.uid && !addedIds.has(m)) addedIds.add(m);
+        });
+      });
+      // Fetch any remaining that weren't in the lists above
+      for (const id of addedIds) {
+        if (allContactsCache.find(c => c.uid === id)) continue;
+        try {
+          const doc = await db.collection('users').doc(id).get();
+          if (doc.exists) {
+            const user = doc.data();
+            allContactsCache.push({ uid: id, pseudo: user.pseudo, avatar: null, color: user.avatarColor || '#7C5CFC' });
+          }
+        } catch (e) {}
+      }
+    } catch (e) {}
+  } else if (currentUserData.role === 'child') {
+    if (currentUserData.parentId) {
+      try {
+        const parentDoc = await db.collection('users').doc(currentUserData.parentId).get();
+        if (parentDoc.exists) {
+          const parent = parentDoc.data();
+          allContactsCache.push({ uid: currentUserData.parentId, pseudo: parent.pseudo, avatar: null, color: '#7C5CFC' });
+        }
+      } catch (e) {}
+    }
+    const approved = currentUserData.approvedContacts || [];
+    for (const id of approved) {
+      try {
+        const doc = await db.collection('users').doc(id).get();
+        if (doc.exists) {
+          const friend = doc.data();
+          allContactsCache.push({ uid: id, pseudo: friend.pseudo, avatar: null, color: friend.avatarColor || '#FFB347' });
+        }
+      } catch (e) {}
+    }
+  }
+
+  renderContacts('');
+}
+
+function renderContacts(filter) {
+  const list = document.getElementById('contactsList');
+  if (!list) return;
+
+  let contacts = allContactsCache.slice();
+  if (filter) {
+    const f = filter.toLowerCase();
+    contacts = contacts.filter(c => c.pseudo.toLowerCase().includes(f));
+  }
+
+  contacts.sort((a, b) => a.pseudo.toLowerCase().localeCompare(b.pseudo.toLowerCase()));
+
+  if (contacts.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">📇</div><div class="empty-text">Aucun contact trouvé</div></div>';
+    return;
+  }
+
+  let html = '';
+  let lastLetter = '';
+  contacts.forEach(c => {
+    const letter = c.pseudo.charAt(0).toUpperCase();
+    if (letter !== lastLetter) {
+      html += `<div class="contact-section-title" style="color:var(--primary);font-size:14px;font-weight:700;padding:8px 16px;margin-top:4px">${letter}</div>`;
+      lastLetter = letter;
+    }
+    const safePseudo = c.pseudo.replace(/'/g, "\\'");
+    html += `
+      <div class="contact-item" onclick="openConvWith('${c.uid}','${safePseudo}','${c.color}')" style="cursor:pointer">
+        <div class="contact-avatar" style="background:${c.color}">${c.pseudo.charAt(0).toUpperCase()}</div>
+        <div class="contact-info">
+          <div class="contact-name">${c.pseudo}</div>
+        </div>
+        <button class="contact-action">💬</button>
+      </div>`;
+  });
+
+  list.innerHTML = html;
+}
+
+function filterContacts() {
+  const input = document.querySelector('.contacts-search input');
+  if (input) renderContacts(input.value);
+}
+
+/* ============== INVITE ============== */
+async function sendFriendRequest() {
+  const code = document.getElementById('friendCodeInput').value.trim().toLowerCase();
+  if (!code) return showToast('Entre un code ami');
+
+  showLoading();
+  try {
+    const snap = await db.collection('users').where('friendCode', '==', code).get();
+    if (snap.empty) {
+      hideLoading();
+      return showToast('Code Zamis introuvable');
+    }
+
+    const targetUser = snap.docs[0].data();
+    if (targetUser.uid === currentUser.uid) {
+      hideLoading();
+      return showToast('C\'est ton propre code !');
+    }
+
+    // Sécurité anti-prédateur : un enfant ne peut pas inviter un adulte
+    if (currentUserData.role === 'child' && targetUser.role === 'parent') {
+      hideLoading();
+      return showToast('Code adulte reconnu. Demandez à vos parents de l\'ajouter.');
+    }
+
+    // Anti-doublon: check if already in contacts
+    const myApproved = currentUserData.approvedContacts || [];
+    if (myApproved.includes(targetUser.uid)) {
+      hideLoading();
+      return showToast('Zamis déjà dans ta liste !');
+    }
+
+    // Anti-doublon: check if invitation already exists
+    const invCheck1 = await db.collection('invitations')
+      .where('fromChildId', '==', currentUser.uid)
+      .where('toChildId', '==', targetUser.uid)
+      .where('status', '==', 'pending')
+      .get();
+    const invCheck2 = await db.collection('invitations')
+      .where('fromChildId', '==', targetUser.uid)
+      .where('toChildId', '==', currentUser.uid)
+      .where('status', '==', 'pending')
+      .get();
+    if (!invCheck1.empty || !invCheck2.empty) {
+      hideLoading();
+      return showToast('Invitation déjà envoyée !');
+    }
+
+    const parentId = targetUser.role === 'child' ? targetUser.parentId : targetUser.uid;
+
+    await db.collection('invitations').add({
+      fromChildId: currentUser.uid,
+      fromChildPseudo: currentUserData.pseudo,
+      toChildId: targetUser.uid,
+      toChildPseudo: targetUser.pseudo,
+      parentApprovalId: parentId,
+      status: 'pending',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    hideLoading();
+    document.getElementById('friendCodeInput').value = '';
+    showToast('Invitation envoyée ! En attente de validation.');
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur : ' + err.message);
+  }
+}
+
+function copyCode() {
+  const code = document.getElementById('myFriendCode').textContent;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(code).then(() => showToast('Code copié !'));
+  } else {
+    showToast(code);
+  }
+}
+
+function shareCode() {
+  const code = document.getElementById('myFriendCode').textContent;
+  if (navigator.share) {
+    navigator.share({ title: 'Zamis Messenger', text: 'Ajoute-moi sur Zamis Messenger ! Mon code : ' + code });
+  } else {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(code).then(() => showToast('Code copié !'));
+    } else {
+      showToast(code);
+    }
+  }
+}
+
+/* ============== BLOCK / DELETE ============== */
+async function deleteMessage(convId, msgId) {
+  if (!confirm('Supprimer ce message ?')) return;
+  try {
+    await db.collection('conversations').doc(convId).collection('messages').doc(msgId).delete();
+    showToast('Message supprimé');
+  } catch (err) {
+    showToast('Erreur');
+  }
+}
+
+async function deleteConversation(convId) {
+  if (!confirm('Supprimer cette conversation et tous les messages ?')) return;
+  showLoading();
+  try {
+    const msgsSnap = await db.collection('conversations').doc(convId).collection('messages').get();
+    for (const doc of msgsSnap.docs) await doc.ref.delete();
+    await db.collection('conversations').doc(convId).delete();
+    hideLoading();
+    showToast('Conversation supprimée');
+    backToMessages();
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur');
+  }
+}
+
+async function blockUser(userId, userName) {
+  if (!confirm('Bloquer ' + userName + ' ? Il ne pourra plus t\'envoyer de messages.')) return;
+  showLoading();
+  try {
+    // Add to blocked list
+    await db.collection('users').doc(currentUser.uid).update({
+      blockedUsers: firebase.firestore.FieldValue.arrayUnion(userId)
+    });
+    // Remove from approved contacts
+    await db.collection('users').doc(currentUser.uid).update({
+      approvedContacts: firebase.firestore.FieldValue.arrayRemove(userId)
+    });
+    // Remove from other's contacts too
+    await db.collection('users').doc(userId).update({
+      approvedContacts: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+    });
+    // If parent, also log the block
+    if (currentUserData.parentId) {
+      await db.collection('parentNotifications').add({
+        parentId: currentUserData.parentId,
+        childId: currentUser.uid,
+        childPseudo: currentUserData.pseudo,
+        blockedUserId: userId,
+        blockedUserPseudo: userName,
+        type: 'child_blocked_user',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+    hideLoading();
+    showToast(userName + ' bloqué');
+    loadContacts();
+    loadConversations();
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur');
+  }
+}
+
+async function unblockUser(userId, userName) {
+  if (!confirm('Débloquer ' + userName + ' ?')) return;
+  try {
+    await db.collection('users').doc(currentUser.uid).update({
+      blockedUsers: firebase.firestore.FieldValue.arrayRemove(userId)
+    });
+    showToast(userName + ' débloqué');
+    loadContacts();
+  } catch (err) {
+    showToast('Erreur');
+  }
+}
+
+/* ============== GROUPS ============== */
+function showCreateGroupModal() {
+  if (!currentUser || !currentUserData) return;
+  openModal('createGroupModal');
+  document.getElementById('groupName').value = '';
+  loadGroupMembersList();
+}
+
+async function loadGroupMembersList() {
+  const container = document.getElementById('groupMembersList');
+  if (!container) return;
+
+  let contacts = [];
+  if (currentUserData.role === 'parent') {
+    const childIds = currentUserData.childrenIds || [];
+    for (const id of childIds) {
+      try {
+        const doc = await db.collection('users').doc(id).get();
+        if (doc.exists) contacts.push({ uid: id, pseudo: doc.data().pseudo, color: doc.data().avatarColor || '#7C5CFC' });
+      } catch (e) {}
+    }
+    // Also get adults from conversations
+    const convSnap = await db.collection('conversations').where('members', 'array-contains', currentUser.uid).get();
+    convSnap.forEach(doc => {
+      const conv = doc.data();
+      conv.members.forEach(m => {
+        if (m !== currentUser.uid && !childIds.includes(m) && !contacts.find(c => c.uid === m)) {
+          const name = conv.memberNames ? (conv.memberNames[m] || 'Inconnu') : 'Inconnu';
+          const color = conv.memberColors ? (conv.memberColors[m] || '#7C5CFC') : '#7C5CFC';
+          contacts.push({ uid: m, pseudo: name, color: color });
+        }
+      });
+    });
+  } else if (currentUserData.role === 'child') {
+    if (currentUserData.parentId) {
+      try {
+        const doc = await db.collection('users').doc(currentUserData.parentId).get();
+        if (doc.exists) contacts.push({ uid: currentUserData.parentId, pseudo: doc.data().pseudo, color: '#7C5CFC' });
+      } catch (e) {}
+    }
+    const approved = currentUserData.approvedContacts || [];
+    for (const id of approved) {
+      try {
+        const doc = await db.collection('users').doc(id).get();
+        if (doc.exists) contacts.push({ uid: id, pseudo: doc.data().pseudo, color: doc.data().avatarColor || '#7C5CFC' });
+      } catch (e) {}
+    }
+  }
+
+  let html = '';
+  contacts.forEach(c => {
+    html += `
+      <label style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer">
+        <input type="checkbox" class="group-member-cb" value="${c.uid}" data-pseudo="${c.pseudo}" data-color="${c.color}" style="width:20px;height:20px;accent-color:var(--primary)">
+        <div style="width:32px;height:32px;border-radius:50%;background:${c.color};display:flex;align-items:center;justify-content:center;color:white;font-weight:600;font-size:13px">${c.pseudo.charAt(0).toUpperCase()}</div>
+        <span style="font-size:14px">${c.pseudo}</span>
+      </label>`;
+  });
+
+  if (!html) html = '<div style="text-align:center;color:var(--text-secondary);padding:20px;font-size:13px">Aucun contact disponible</div>';
+  container.innerHTML = html;
+}
+
+async function createGroup() {
+  const name = document.getElementById('groupName').value.trim();
+  if (!name) return showToast('Entre un nom de groupe');
+
+  const checkboxes = document.querySelectorAll('.group-member-cb:checked');
+  if (checkboxes.length === 0) return showToast('Sélectionne au moins un membre');
+
+  showLoading();
+  try {
+    const members = [currentUser.uid];
+    const memberNames = { [currentUser.uid]: currentUserData.pseudo };
+    const memberColors = { [currentUser.uid]: currentUserData.avatarColor || '#7C5CFC' };
+
+    checkboxes.forEach(cb => {
+      members.push(cb.value);
+      memberNames[cb.value] = cb.getAttribute('data-pseudo');
+      memberColors[cb.value] = cb.getAttribute('data-color');
+    });
+
+    const convRef = db.collection('conversations').doc();
+    await convRef.set({
+      type: 'group',
+      groupName: name,
+      members: members,
+      memberNames: memberNames,
+      memberColors: memberColors,
+      createdBy: currentUser.uid,
+      createdByRole: currentUserData.role,
+      admins: [currentUser.uid],
+      lastMessage: 'Groupe créé ! 🎉',
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+      lastSenderId: 'system',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await convRef.collection('messages').add({
+      senderId: 'system',
+      senderPseudo: 'Zamis',
+      type: 'text',
+      content: currentUserData.pseudo + ' a créé le groupe "' + name + '" 🎉',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    hideLoading();
+    closeModal('createGroupModal');
+    showToast('Groupe créé !');
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur : ' + err.message);
+  }
+}
+
+/* ============== PENDING REQUESTS (PARENT) ============== */
+async function loadPendingRequests() {
+  if (!currentUser) return;
+  const container = document.getElementById('pendingRequests');
+  if (!container) return;
+
+  try {
+    const snap = await db.collection('invitations')
+      .where('parentApprovalId', '==', currentUser.uid)
+      .where('status', '==', 'pending')
+      .get();
+
+    if (snap.empty) {
+      container.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--text-secondary);text-align:center">Aucune demande en attente</div>';
+      return;
+    }
+
+    let html = '';
+    snap.forEach(doc => {
+      const inv = doc.data();
+      html += `
+        <div class="pending-card">
+          <div class="pending-avatar" style="background:var(--orange)">${inv.fromChildPseudo.charAt(0).toUpperCase()}</div>
+          <div class="pending-info">
+            <div class="pending-name">${inv.fromChildPseudo} veut ajouter ${inv.toChildPseudo}</div>
+            <div class="pending-time">En attente</div>
+          </div>
+          <div class="pending-actions">
+            <button class="pending-btn pending-btn-yes" onclick="approveRequest('${doc.id}')">✓</button>
+            <button class="pending-btn pending-btn-no" onclick="rejectRequest('${doc.id}')">✕</button>
+          </div>
+        </div>`;
+    });
+
+    container.innerHTML = html;
+  } catch (err) {
+    container.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--red)">Erreur de chargement</div>';
+  }
+}
+
+async function approveRequest(invId) {
+  showLoading();
+  try {
+    const invDoc = await db.collection('invitations').doc(invId).get();
+    const inv = invDoc.data();
+
+    // Update both children's approved contacts
+    await db.collection('users').doc(inv.fromChildId).update({
+      approvedContacts: firebase.firestore.FieldValue.arrayUnion(inv.toChildId)
+    });
+    await db.collection('users').doc(inv.toChildId).update({
+      approvedContacts: firebase.firestore.FieldValue.arrayUnion(inv.fromChildId)
+    });
+
+    // Create conversation between children
+    const fromDoc = await db.collection('users').doc(inv.fromChildId).get();
+    const toDoc = await db.collection('users').doc(inv.toChildId).get();
+    const fromData = fromDoc.data();
+    const toData = toDoc.data();
+
+    const convRef = db.collection('conversations').doc();
+    await convRef.set({
+      type: 'direct',
+      members: [inv.fromChildId, inv.toChildId],
+      memberNames: { [inv.fromChildId]: fromData.pseudo, [inv.toChildId]: toData.pseudo },
+      memberColors: { [inv.fromChildId]: fromData.avatarColor || '#FFB347', [inv.toChildId]: toData.avatarColor || '#5DCAA5' },
+      lastMessage: 'Vous êtes maintenant amis ! 🎉',
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy: currentUser.uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await convRef.collection('messages').add({
+      senderId: 'system',
+      senderPseudo: 'Zamis',
+      type: 'text',
+      content: fromData.pseudo + ' et ' + toData.pseudo + ' sont maintenant amis ! 🎉',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await db.collection('invitations').doc(invId).update({ status: 'approved' });
+
+    hideLoading();
+    showToast('Demande approuvée !');
+    loadPendingRequests();
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur');
+  }
+}
+
+async function rejectRequest(invId) {
+  try {
+    await db.collection('invitations').doc(invId).update({ status: 'rejected' });
+    showToast('Demande refusée');
+    loadPendingRequests();
+  } catch (err) {
+    showToast('Erreur');
+  }
+}
+
+/* ============== GO HOME (PARENT) ============== */
+let isParentBrowsingChild = false;
+let parentUserData = null;
+let parentAuthUser = null;
+
+function goHome() {
+  // Parent sur ses propres pages → retour direct
+  if (!isParentBrowsingChild) {
+    const authUser = auth.currentUser;
+    if (authUser) {
+      loadParentDashboard(authUser);
+    }
+    return;
+  }
+
+  // Parent en mode enfant → mot de passe requis
+  const pwd = prompt('🔒 Mot de passe parent :');
+  if (!pwd) return;
+
+  showLoading();
+  const authUser = auth.currentUser;
+
+  if (authUser) {
+    const credential = firebase.auth.EmailAuthProvider.credential(authUser.email, pwd);
+    authUser.reauthenticateWithCredential(credential).then(() => {
+      hideLoading();
+      isParentBrowsingChild = false;
+      currentUser = parentAuthUser;
+      currentUserData = parentUserData;
+      loadParentDashboard(authUser);
+    }).catch(() => {
+      hideLoading();
+      showToast('Mot de passe incorrect');
+    });
+  } else {
+    hideLoading();
+    showToast('Connexion parent requise');
+  }
+}
+
+/* ============== EDIT PSEUDO ============== */
+async function editPseudo() {
+  const newPseudo = prompt('Nouveau pseudo :', currentUserData.pseudo);
+  if (!newPseudo || newPseudo.trim() === '' || newPseudo.trim() === currentUserData.pseudo) return;
+
+  showLoading();
+  try {
+    await db.collection('users').doc(currentUser.uid).update({ pseudo: newPseudo.trim() });
+    currentUserData.pseudo = newPseudo.trim();
+
+    // Update pseudo in all conversations
+    const convSnap = await db.collection('conversations')
+      .where('members', 'array-contains', currentUser.uid)
+      .get();
+    for (const convDoc of convSnap.docs) {
+      const updateData = {};
+      updateData['memberNames.' + currentUser.uid] = newPseudo.trim();
+      await convDoc.ref.update(updateData);
+    }
+
+    updateProfileDisplay();
+    hideLoading();
+    showToast('Pseudo modifié !');
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur');
+  }
+}
+
+/* ============== AVATAR ============== */
+async function setAvatar(el, emoji) {
+  currentAvatar = emoji;
+  document.querySelectorAll('.avatar-choice').forEach(c => c.style.borderColor = 'transparent');
+  if (el) el.style.borderColor = 'var(--primary)';
+  const preview = document.getElementById('avatarPreview');
+  if (preview) preview.textContent = emoji;
+  const profileAvatar = document.getElementById('profileAvatarDisplay');
+  if (profileAvatar) profileAvatar.textContent = emoji;
+  if (currentUser) {
+    try {
+      await db.collection('users').doc(currentUser.uid).update({ avatar: emoji });
+      showToast('Avatar sauvegardé !');
+    } catch (err) {}
+  }
+}
+
+/* ============== DELETE CHILD ============== */
+function confirmDeleteChild(childId, pseudo) {
+  if (confirm('Supprimer ' + pseudo + ' et toutes ses conversations ?\n\nCette action est irréversible.')) {
+    deleteChild(childId);
+  }
+}
+
+async function deleteChild(childId) {
+  showLoading();
+  try {
+    // Supprimer les conversations de l'enfant
+    const convSnap = await db.collection('conversations')
+      .where('members', 'array-contains', childId)
+      .get();
+    for (const convDoc of convSnap.docs) {
+      const msgsSnap = await convDoc.ref.collection('messages').get();
+      for (const msgDoc of msgsSnap.docs) {
+        await msgDoc.ref.delete();
+      }
+      await convDoc.ref.delete();
+    }
+
+    // Supprimer les invitations liées
+    const invSnap1 = await db.collection('invitations').where('fromChildId', '==', childId).get();
+    for (const d of invSnap1.docs) await d.ref.delete();
+    const invSnap2 = await db.collection('invitations').where('toChildId', '==', childId).get();
+    for (const d of invSnap2.docs) await d.ref.delete();
+
+    // Retirer l'enfant des contacts approuvés des autres
+    const childDoc = await db.collection('users').doc(childId).get();
+    if (childDoc.exists) {
+      const approved = childDoc.data().approvedContacts || [];
+      for (const friendId of approved) {
+        try {
+          await db.collection('users').doc(friendId).update({
+            approvedContacts: firebase.firestore.FieldValue.arrayRemove(childId)
+          });
+        } catch (e) {}
+      }
+    }
+
+    // Supprimer l'enfant de la liste du parent
+    await db.collection('users').doc(currentUser.uid).update({
+      childrenIds: firebase.firestore.FieldValue.arrayRemove(childId)
+    });
+
+    // Supprimer le document enfant
+    await cleanupDeletedUser(childId);
+    await db.collection('users').doc(childId).delete();
+
+    // Mettre à jour localement
+    currentUserData.childrenIds = (currentUserData.childrenIds || []).filter(id => id !== childId);
+
+    hideLoading();
+    showToast('Enfant supprimé');
+    loadChildren();
+    loadPendingRequests();
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur : ' + err.message);
+  }
+}
+
+/* ============== DELETE ACCOUNT ============== */
+async function deleteAccount() {
+  if (!confirm('Supprimer ton compte et TOUTES les données ?\n\n(Enfants, messages, contacts)\n\nCette action est irréversible.')) return;
+
+  // Demander le mot de passe pour re-authentification
+  const pwd = prompt('Entre ton mot de passe pour confirmer la suppression :');
+  if (!pwd) return;
+
+  showLoading();
+  try {
+    // Re-authentifier avant suppression
+    const user = auth.currentUser;
+    const credential = firebase.auth.EmailAuthProvider.credential(user.email, pwd);
+    await user.reauthenticateWithCredential(credential);
+
+    const uid = currentUser.uid;
+    const userData = currentUserData;
+
+    // Si parent : supprimer tous les enfants d'abord
+    if (userData.role === 'parent') {
+      const children = userData.childrenIds || [];
+      for (const childId of children) {
+        await deleteChildData(childId);
+      }
+    }
+
+    // Supprimer les conversations du user
+    const convSnap = await db.collection('conversations')
+      .where('members', 'array-contains', uid)
+      .get();
+    for (const convDoc of convSnap.docs) {
+      const msgsSnap = await convDoc.ref.collection('messages').get();
+      for (const msgDoc of msgsSnap.docs) {
+        await msgDoc.ref.delete();
+      }
+      await convDoc.ref.delete();
+    }
+
+    // Supprimer invitations
+    const invSnap1 = await db.collection('invitations').where('fromChildId', '==', uid).get();
+    for (const d of invSnap1.docs) await d.ref.delete();
+    const invSnap2 = await db.collection('invitations').where('toChildId', '==', uid).get();
+    for (const d of invSnap2.docs) await d.ref.delete();
+    const invSnap3 = await db.collection('invitations').where('parentApprovalId', '==', uid).get();
+    for (const d of invSnap3.docs) await d.ref.delete();
+
+    // Nettoyer toutes les références chez les autres utilisateurs
+    await cleanupDeletedUser(uid);
+
+    // Supprimer le document user
+    await db.collection('users').doc(uid).delete();
+
+    // Supprimer le compte Firebase Auth (après re-auth, ça marche)
+    await user.delete();
+
+    // Nettoyer tout le local
+    clearAllData();
+    hideLoading();
+    showToast('Compte supprimé');
+    showPage('loginPage');
+  } catch (err) {
+    hideLoading();
+    let msg = 'Erreur : ' + err.message;
+    if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') msg = 'Mot de passe incorrect';
+    showToast(msg);
+  }
+}
+
+async function deleteChildData(childId) {
+  try {
+    const convSnap = await db.collection('conversations')
+      .where('members', 'array-contains', childId)
+      .get();
+    for (const convDoc of convSnap.docs) {
+      const msgsSnap = await convDoc.ref.collection('messages').get();
+      for (const msgDoc of msgsSnap.docs) await msgDoc.ref.delete();
+      await convDoc.ref.delete();
+    }
+    const childDoc = await db.collection('users').doc(childId).get();
+    if (childDoc.exists) {
+      const approved = childDoc.data().approvedContacts || [];
+      for (const friendId of approved) {
+        try {
+          await db.collection('users').doc(friendId).update({
+            approvedContacts: firebase.firestore.FieldValue.arrayRemove(childId)
+          });
+        } catch (e) {}
+      }
+    }
+    await db.collection('users').doc(childId).delete();
+  } catch (e) {}
+}
+
+function clearAllData() {
+  localStorage.clear();
+  sessionStorage.clear();
+  document.body.classList.remove('parent-mode', 'child-mode');
+  if (unsubConversations) { unsubConversations(); unsubConversations = null; }
+  if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+  if ('caches' in window) {
+    caches.keys().then(keys => {
+      keys.forEach(key => caches.delete(key));
+    });
+  }
+  currentUser = null;
+  currentUserData = null;
+  parentAuthUser = null;
+  parentUserData = null;
+  if (unsubMessages) unsubMessages();
+}
+
+/* ============== LOGOUT ============== */
+async function logout() {
+  try {
+    await auth.signOut();
+  } catch (e) {}
+  clearAllData();
+  showPage('loginPage');
+}
+
+/* ============== CHILD TABS (CREATE / LINK) ============== */
+function switchChildTab(tab) {
+  const container = document.getElementById('childTabsContainer');
+  const createBtn = document.getElementById('childTabCreate');
+  const linkBtn = document.getElementById('childTabLink');
+  if (!container || !createBtn || !linkBtn) return;
+
+  if (tab === 'create') {
+    container.style.transform = 'translateX(0)';
+    createBtn.style.background = 'var(--primary)';
+    createBtn.style.color = 'white';
+    linkBtn.style.background = 'var(--bg-secondary)';
+    linkBtn.style.color = 'var(--text-secondary)';
+  } else {
+    container.style.transform = 'translateX(-50%)';
+    linkBtn.style.background = 'var(--primary)';
+    linkBtn.style.color = 'white';
+    createBtn.style.background = 'var(--bg-secondary)';
+    createBtn.style.color = 'var(--text-secondary)';
+  }
+}
+
+// Touch swipe support for child tabs
+(function() {
+  let startX = 0;
+  document.addEventListener('touchstart', function(e) {
+    const container = document.getElementById('childTabsContainer');
+    if (!container || !container.closest('.modal.active, .modal-overlay.active')) return;
+    startX = e.touches[0].clientX;
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    const container = document.getElementById('childTabsContainer');
+    if (!container || !container.closest('.modal.active, .modal-overlay.active')) return;
+    const diff = startX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) {
+      switchChildTab(diff > 0 ? 'link' : 'create');
+    }
+  }, { passive: true });
+})();
+
+async function linkExistingChild() {
+  hideError('linkChildError');
+  const code = document.getElementById('linkChildCode').value.trim();
+  const pin = document.getElementById('linkChildPin').value;
+
+  if (!code) return showError('linkChildError', 'Entre le code Zamis');
+  if (!pin) return showError('linkChildError', 'Entre le mot de passe');
+
+  showLoading();
+  try {
+    const snap = await db.collection('users').where('friendCode', '==', code).where('role', '==', 'child').get();
+    if (snap.empty) { hideLoading(); return showError('linkChildError', 'Code Zamis introuvable'); }
+
+    const childDoc = snap.docs[0];
+    const childData = childDoc.data();
+    const childId = childDoc.id;
+
+    if (childData.pin !== pin) { hideLoading(); return showError('linkChildError', 'Mot de passe incorrect'); }
+
+    // Check if already linked
+    if ((currentUserData.childrenIds || []).includes(childId)) {
+      hideLoading();
+      return showError('linkChildError', 'Cet enfant est déjà dans votre liste');
+    }
+
+    // Add to childrenIds
+    await db.collection('users').doc(currentUser.uid).update({
+      childrenIds: firebase.firestore.FieldValue.arrayUnion(childId)
+    });
+
+    // Add co-parent reference on child
+    await db.collection('users').doc(childId).update({
+      coParentIds: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+    });
+
+    // Create parent-child conversation if none exists
+    const convSnap = await db.collection('conversations').where('members', 'array-contains', currentUser.uid).get();
+    let hasConv = false;
+    convSnap.forEach(doc => { if (doc.data().members.includes(childId)) hasConv = true; });
+
+    if (!hasConv) {
+      await db.collection('conversations').add({
+        type: 'direct',
+        members: [currentUser.uid, childId],
+        memberNames: { [currentUser.uid]: currentUserData.pseudo, [childId]: childData.pseudo },
+        memberColors: { [currentUser.uid]: '#0F6E56', [childId]: childData.avatarColor || '#7C5CFC' },
+        lastMessage: 'Bienvenue sur Zamis Messenger ! 🎉 Vous pouvez maintenant discuter ensemble.',
+        lastSenderId: 'system',
+        lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy: currentUser.uid,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    // Update local data
+    currentUserData.childrenIds = (currentUserData.childrenIds || []);
+    currentUserData.childrenIds.push(childId);
+
+    hideLoading();
+    closeModal('addChildModal');
+    showToast('Enfant ajouté !');
+    loadChildren();
+  } catch (err) {
+    hideLoading();
+    showError('linkChildError', 'Erreur : ' + err.message);
+  }
+}
+
+/* ============== MY INVITATIONS LIST ============== */
+async function loadMyInvitations() {
+  if (!currentUser) return;
+  const container = document.getElementById('myInvitationsList');
+  if (!container) return;
+
+  try {
+    const snap = await db.collection('invitations').where('fromId', '==', currentUser.uid).orderBy('createdAt', 'desc').get();
+    if (snap.empty) {
+      container.innerHTML = '<div style="text-align:center;color:var(--text-light);font-size:13px;padding:12px">Aucune invitation</div>';
+      return;
+    }
+
+    let html = '';
+    snap.forEach(doc => {
+      const inv = doc.data();
+      let statusIcon = '🕐';
+      let statusText = 'En attente';
+      let statusColor = 'var(--text-secondary)';
+      if (inv.status === 'accepted') { statusIcon = '✅'; statusText = 'Acceptée'; statusColor = 'var(--green)'; }
+      else if (inv.status === 'rejected') { statusIcon = '❌'; statusText = 'Refusée'; statusColor = 'var(--red)'; }
+
+      html += `
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:14px">${statusIcon}</div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500">${inv.toPseudo || 'Inconnu'}</div>
+            <div style="font-size:11px;color:${statusColor}">${statusText}</div>
+          </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+  } catch (e) {
+    // Index may not exist yet — silently fail
+    container.innerHTML = '<div style="text-align:center;color:var(--text-light);font-size:13px;padding:12px">Aucune invitation</div>';
+  }
+}
+
+/* ============== ACCOUNT DELETION CLEANUP ============== */
+async function cleanupDeletedUser(userId) {
+  try {
+    // Remove from all users' approvedContacts, adultFriends, coParents, blockedUsers
+    const allUsers = await db.collection('users').get();
+    const batch = db.batch();
+    allUsers.forEach(doc => {
+      const data = doc.data();
+      let needsUpdate = false;
+      const updates = {};
+
+      if ((data.approvedContacts || []).includes(userId)) {
+        updates.approvedContacts = firebase.firestore.FieldValue.arrayRemove(userId);
+        needsUpdate = true;
+      }
+      if ((data.adultFriends || []).includes(userId)) {
+        updates.adultFriends = firebase.firestore.FieldValue.arrayRemove(userId);
+        needsUpdate = true;
+      }
+      if ((data.coParents || []).includes(userId)) {
+        updates.coParents = firebase.firestore.FieldValue.arrayRemove(userId);
+        needsUpdate = true;
+      }
+      if ((data.blockedUsers || []).includes(userId)) {
+        updates.blockedUsers = firebase.firestore.FieldValue.arrayRemove(userId);
+        needsUpdate = true;
+      }
+      if ((data.childrenIds || []).includes(userId)) {
+        updates.childrenIds = firebase.firestore.FieldValue.arrayRemove(userId);
+        needsUpdate = true;
+      }
+
+      if (needsUpdate) batch.update(doc.ref, updates);
+    });
+    await batch.commit();
+  } catch (e) {
+    console.error('Cleanup error:', e);
+  }
+}
+
+/* ============== SHARED BOTTOM NAV ============== */
+function renderNav(activePage) {
+  const isParent = currentUserData && currentUserData.role === 'parent' && !isParentBrowsingChild;
+  const isBrowsingChild = isParentBrowsingChild;
+
+  const tabs = [
+    { id: 'messagesPage', icon: '💬', label: 'Messages', show: true, hasBadge: true },
+    { id: 'contactsPage', icon: '📇', label: 'Contacts', show: true },
+    { id: 'invitePage', icon: '👋', label: 'Inviter', show: !isBrowsingChild },
+    { id: 'avatarPage', icon: '😊', label: 'Avatar', show: !isBrowsingChild },
+    { id: 'groupsPage', icon: '👥', label: 'Groupe', show: true },
+    { id: 'profilePage', icon: '👤', label: 'Profil', show: !isParent && !isBrowsingChild },
+  ];
+
+  let html = '';
+  tabs.forEach(tab => {
+    if (!tab.show) return;
+    const isActive = tab.id === activePage ? ' active' : '';
+    const onclick = tab.isAction ? 'showCreateGroupModal()' : `switchTab('${tab.id}')`;
+    let iconHtml = `<span class="nav-icon">${tab.icon}</span>`;
+    if (tab.hasBadge) {
+      iconHtml = `<span class="nav-icon" style="position:relative">${tab.icon}<span class="nav-msg-badge" style="display:none;position:absolute;top:-8px;right:-10px;background:#FF6B9D;color:white;font-size:9px;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 4px;font-weight:600"></span></span>`;
+    }
+    html += `<button class="nav-item${isActive}" onclick="${onclick}">${iconHtml}<span class="nav-label">${tab.label}</span></button>`;
+  });
+
+  document.querySelectorAll('.shared-nav').forEach(nav => { nav.innerHTML = html; });
+  
+  // Re-apply badge count after render
+  if (typeof lastBadgeCount !== 'undefined') updateMessageBadge(lastBadgeCount);
+}
+
+let lastBadgeCount = 0;
+
+function updateMessageBadge(count) {
+  lastBadgeCount = count;
+  // Update nav badges
+  document.querySelectorAll('.nav-msg-badge').forEach(b => {
+    if (count > 0) {
+      b.textContent = count > 99 ? '99+' : count;
+      b.style.display = 'flex';
+    } else {
+      b.style.display = 'none';
+    }
+  });
+  // Update parent write badge
+  document.querySelectorAll('.parent-write-badge').forEach(b => {
+    if (count > 0) {
+      b.textContent = count > 99 ? '99+' : count;
+      b.style.display = 'flex';
+    } else {
+      b.style.display = 'none';
+    }
+  });
+}
+function goToMessagingPage() {
+  showPage('messagesPage');
+  renderNav('messagesPage');
+  loadConversations();
+  loadContacts();
+  // Show home button to return to dashboard
+  document.querySelectorAll('.home-btn').forEach(b => b.style.display = 'inline');
+  const homeBtn = document.getElementById('homeBtn');
+  if (homeBtn) homeBtn.style.display = 'inline';
+}
+
+function openParentSettingsModal() {
+  openModal('parentSettingsModal');
+}
+
+/* ============== BLOCKED LIST (PARENT) ============== */
+async function openBlockedListModal() {
+  openModal('blockedListModal');
+  const container = document.getElementById('blockedContactsList');
+  const noMsg = document.getElementById('noBlockedMsg');
+  if (!container) return;
+
+  try {
+    const userDoc = await db.collection('users').doc(currentUser.uid).get();
+    const blockedIds = userDoc.data().blockedUsers || [];
+    if (blockedIds.length === 0) {
+      container.innerHTML = '';
+      if (noMsg) noMsg.style.display = 'block';
+      return;
+    }
+    if (noMsg) noMsg.style.display = 'none';
+
+    let html = '';
+    for (const id of blockedIds) {
+      try {
+        const doc = await db.collection('users').doc(id).get();
+        if (doc.exists) {
+          const u = doc.data();
+          html += `
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+              <div style="width:36px;height:36px;border-radius:50%;background:${u.avatarColor || '#7C5CFC'};display:flex;align-items:center;justify-content:center;color:white;font-weight:600">${(u.pseudo || '?').charAt(0).toUpperCase()}</div>
+              <div style="flex:1;font-size:14px;font-weight:500">${u.pseudo || 'Inconnu'}</div>
+              <button class="btn btn-outline" style="width:auto;padding:6px 12px;font-size:12px" onclick="unblockUser('${id}','${u.pseudo || 'Inconnu'}');closeModal('blockedListModal')">Débloquer</button>
+            </div>`;
+        }
+      } catch (e) {}
+    }
+    container.innerHTML = html;
+  } catch (e) {}
+}
+
+/* ============== CO-PARENTS ============== */
+async function openCoParentsModal() {
+  openModal('coParentsModal');
+  hideError('coParentError');
+  const container = document.getElementById('coParentsList');
+  if (!container) return;
+
+  try {
+    const userDoc = await db.collection('users').doc(currentUser.uid).get();
+    const coParents = userDoc.data().coParents || [];
+    if (coParents.length === 0) {
+      container.innerHTML = '<div style="text-align:center;color:var(--text-secondary);padding:12px;font-size:13px">Aucun co-parent</div>';
+      return;
+    }
+
+    let html = '';
+    for (const id of coParents) {
+      try {
+        const doc = await db.collection('users').doc(id).get();
+        if (doc.exists) {
+          const u = doc.data();
+          html += `
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+              <div style="width:36px;height:36px;border-radius:50%;background:#0F6E56;display:flex;align-items:center;justify-content:center;color:white;font-weight:600">${(u.pseudo || '?').charAt(0).toUpperCase()}</div>
+              <div style="flex:1">
+                <div style="font-size:14px;font-weight:500">${u.prenom || ''} ${u.nom || ''}</div>
+                <div style="font-size:12px;color:var(--text-secondary)">${u.pseudo}</div>
+              </div>
+              <button class="btn btn-outline" style="width:auto;padding:6px 12px;font-size:12px;color:var(--red);border-color:var(--red)" onclick="removeCoParent('${id}')">Retirer</button>
+            </div>`;
+        }
+      } catch (e) {}
+    }
+    container.innerHTML = html;
+  } catch (e) {}
+}
+
+async function inviteCoParent() {
+  hideError('coParentError');
+  const code = document.getElementById('coParentCodeInput').value.trim().toLowerCase();
+  if (!code) return showError('coParentError', 'Entre un code ami');
+
+  showLoading();
+  try {
+    const snap = await db.collection('users').where('friendCode', '==', code).where('role', '==', 'parent').get();
+    if (snap.empty) { hideLoading(); return showError('coParentError', 'Code Zamis parent introuvable'); }
+
+    const coParentId = snap.docs[0].id;
+    if (coParentId === currentUser.uid) { hideLoading(); return showError('coParentError', 'C\'est ton propre code !'); }
+
+    const myDoc = await db.collection('users').doc(currentUser.uid).get();
+    const myCoParents = myDoc.data().coParents || [];
+    if (myCoParents.includes(coParentId)) { hideLoading(); return showError('coParentError', 'Déjà co-parent'); }
+
+    // Add both ways
+    await db.collection('users').doc(currentUser.uid).update({
+      coParents: firebase.firestore.FieldValue.arrayUnion(coParentId)
+    });
+    await db.collection('users').doc(coParentId).update({
+      coParents: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+    });
+
+    // Share children access: add co-parent to each child's coParentIds
+    const childrenIds = currentUserData.childrenIds || [];
+    for (const childId of childrenIds) {
+      await db.collection('users').doc(childId).update({
+        coParentIds: firebase.firestore.FieldValue.arrayUnion(coParentId)
+      });
+    }
+
+    hideLoading();
+    document.getElementById('coParentCodeInput').value = '';
+    showToast('Co-parent ajouté !');
+    openCoParentsModal();
+  } catch (err) {
+    hideLoading();
+    showError('coParentError', 'Erreur : ' + err.message);
+  }
+}
+
+async function removeCoParent(coParentId) {
+  if (!confirm('Retirer ce co-parent ?')) return;
+  try {
+    await db.collection('users').doc(currentUser.uid).update({
+      coParents: firebase.firestore.FieldValue.arrayRemove(coParentId)
+    });
+    await db.collection('users').doc(coParentId).update({
+      coParents: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+    });
+    showToast('Co-parent retiré');
+    openCoParentsModal();
+  } catch (e) {
+    showToast('Erreur');
+  }
+}
+
+/* ============== PARENT WRITE BADGE ============== */
+function updateParentWriteBadge() {
+  if (!currentUser || !currentUserData || currentUserData.role !== 'parent') return;
+  db.collection('conversations')
+    .where('members', 'array-contains', currentUser.uid)
+    .get()
+    .then(snap => {
+      let total = 0;
+      snap.forEach(doc => {
+        const conv = doc.data();
+        const lastReadBy = conv.lastReadBy || {};
+        const myLastRead = lastReadBy[currentUser.uid] ? lastReadBy[currentUser.uid].toMillis() : 0;
+        const lastMsgTime = conv.lastMessageAt ? conv.lastMessageAt.toMillis() : 0;
+        const lastSenderId = conv.lastSenderId || '';
+        if (lastMsgTime > myLastRead && lastSenderId !== currentUser.uid) total++;
+      });
+      document.querySelectorAll('.parent-write-badge').forEach(b => {
+        if (total > 0) {
+          b.textContent = total > 99 ? '99+' : total;
+          b.style.display = 'flex';
+        } else {
+          b.style.display = 'none';
+        }
+      });
+    });
+}
+
+/* ============== ADULT FRIENDS ============== */
+function openAddAdultFriendModal() {
+  hideError('adultFriendError');
+  document.getElementById('adultFriendCodeInput').value = '';
+  openModal('adultFriendModal');
+}
+
+async function addAdultFriend() {
+  hideError('adultFriendError');
+  const code = document.getElementById('adultFriendCodeInput').value.trim().toLowerCase();
+  if (!code) return showError('adultFriendError', 'Entre un code ami');
+
+  showLoading();
+  try {
+    const snap = await db.collection('users').where('friendCode', '==', code).where('role', '==', 'parent').get();
+    if (snap.empty) { hideLoading(); return showError('adultFriendError', 'Code Zamis adulte introuvable'); }
+
+    const friendId = snap.docs[0].id;
+    if (friendId === currentUser.uid) { hideLoading(); return showError('adultFriendError', 'C\'est ton propre code !'); }
+
+    const myDoc = await db.collection('users').doc(currentUser.uid).get();
+    const myFriends = myDoc.data().adultFriends || [];
+    if (myFriends.includes(friendId)) { hideLoading(); return showError('adultFriendError', 'Déjà dans tes amis'); }
+
+    // Check not already co-parent
+    const myCoParents = myDoc.data().coParents || [];
+    if (myCoParents.includes(friendId)) { hideLoading(); return showError('adultFriendError', 'Déjà co-parent'); }
+
+    await db.collection('users').doc(currentUser.uid).update({
+      adultFriends: firebase.firestore.FieldValue.arrayUnion(friendId)
+    });
+    await db.collection('users').doc(friendId).update({
+      adultFriends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+    });
+
+    // Create conversation if none exists
+    const convSnap = await db.collection('conversations').where('members', 'array-contains', currentUser.uid).get();
+    let hasConv = false;
+    convSnap.forEach(doc => { if (doc.data().members.includes(friendId)) hasConv = true; });
+
+    if (!hasConv) {
+      const friendData = snap.docs[0].data();
+      await db.collection('conversations').add({
+        type: 'direct',
+        members: [currentUser.uid, friendId],
+        memberNames: { [currentUser.uid]: currentUserData.pseudo, [friendId]: friendData.pseudo },
+        memberColors: { [currentUser.uid]: '#7C5CFC', [friendId]: '#4A90D9' },
+        lastMessage: 'Vous êtes maintenant amis ! 🎉',
+        lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy: currentUser.uid,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    hideLoading();
+    closeModal('adultFriendModal');
+    showToast('Ami ajouté !');
+    loadAdultFriendsGrid();
+  } catch (err) {
+    hideLoading();
+    showError('adultFriendError', 'Erreur : ' + err.message);
+  }
+}
+
+async function removeAdultFriend(friendId) {
+  if (!confirm('Retirer cet ami ?')) return;
+  try {
+    await db.collection('users').doc(currentUser.uid).update({
+      adultFriends: firebase.firestore.FieldValue.arrayRemove(friendId)
+    });
+    await db.collection('users').doc(friendId).update({
+      adultFriends: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+    });
+    showToast('Ami retiré');
+    loadAdultFriendsGrid();
+  } catch (e) {
+    showToast('Erreur');
+  }
+}
+
+async function loadAdultFriendsGrid() {
+  const grid = document.getElementById('adultFriendsGrid');
+  if (!grid) return;
+
+  let html = '';
+  try {
+    const userDoc = await db.collection('users').doc(currentUser.uid).get();
+    const friends = userDoc.data().adultFriends || [];
+
+    for (const id of friends) {
+      try {
+        const doc = await db.collection('users').doc(id).get();
+        if (doc.exists) {
+          const u = doc.data();
+          html += `
+            <div class="child-card" style="position:relative">
+              <div style="position:absolute;top:6px;right:6px;width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:white;z-index:2" onclick="event.stopPropagation();removeAdultFriend('${id}')">✕</div>
+              <div onclick="openConvWith('${id}','${u.pseudo}','#4A90D9')" style="cursor:pointer">
+                <div class="child-avatar" style="background:#4A90D9">${(u.pseudo || '?').charAt(0).toUpperCase()}</div>
+                <div class="child-name">${u.pseudo || 'Inconnu'}</div>
+              </div>
+            </div>`;
+        }
+      } catch (e) {}
+    }
+  } catch (e) {}
+
+  html += `
+    <div class="add-child-card" onclick="openAddAdultFriendModal()">
+      <div class="add-child-icon">+</div>
+      <div class="add-child-text">Ajouter</div>
+    </div>`;
+
+  grid.innerHTML = html;
+}
+
+/* ============== GROUP MENU: BLOCK MEMBER LIST ============== */
+async function showGroupBlockMenu() {
+  hideConvMenu();
+  if (!currentConvId) return;
+
+  try {
+    const convDoc = await db.collection('conversations').doc(currentConvId).get();
+    if (!convDoc.exists) return;
+    const conv = convDoc.data();
+    if (conv.type !== 'group') {
+      blockFromConv();
+      return;
+    }
+
+    const otherMembers = conv.members.filter(m => m !== currentUser.uid);
+    const myDoc = await db.collection('users').doc(currentUser.uid).get();
+    const myBlocked = myDoc.data().blockedUsers || [];
+
+    let html = '<div class="modal-title">Bloquer un membre</div>';
+    for (const memberId of otherMembers) {
+      const memberName = conv.memberNames ? (conv.memberNames[memberId] || 'Inconnu') : 'Inconnu';
+      const isBlocked = myBlocked.includes(memberId);
+      html += `
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="flex:1;font-size:14px;${isBlocked ? 'text-decoration:line-through;color:var(--text-light)' : ''}">${memberName}</div>
+          <button class="btn ${isBlocked ? 'btn-outline' : 'btn-pink'}" style="width:auto;padding:6px 12px;font-size:12px"
+            onclick="${isBlocked ? `unblockUser('${memberId}','${memberName}')` : `blockUser('${memberId}','${memberName}')`};closeModal('groupBlockModal')">
+            ${isBlocked ? 'Débloquer' : 'Bloquer'}
+          </button>
+        </div>`;
+    }
+
+    // Create modal dynamically
+    let modal = document.getElementById('groupBlockModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.id = 'groupBlockModal';
+      modal.innerHTML = '<div class="modal" id="groupBlockModalContent"></div>';
+      document.body.appendChild(modal);
+    }
+    document.getElementById('groupBlockModalContent').innerHTML = html + '<button class="btn btn-outline mt-16" onclick="closeModal(\'groupBlockModal\')" style="width:100%">Fermer</button>';
+    openModal('groupBlockModal');
+  } catch (e) {
+    showToast('Erreur');
+  }
+}
+
+/* ============== BLOCAGE BIDIRECTIONNEL CHECK ============== */
+async function isBlockedInConversation(convId) {
+  try {
+    const convDoc = await db.collection('conversations').doc(convId).get();
+    if (!convDoc.exists) return false;
+    const conv = convDoc.data();
+    const otherMembers = conv.members.filter(m => m !== currentUser.uid);
+
+    // Check if I blocked any of them or they blocked me
+    const myDoc = await db.collection('users').doc(currentUser.uid).get();
+    const myBlocked = myDoc.data().blockedUsers || [];
+
+    for (const otherId of otherMembers) {
+      if (myBlocked.includes(otherId)) return true;
+      const otherDoc = await db.collection('users').doc(otherId).get();
+      if (otherDoc.exists) {
+        const otherBlocked = otherDoc.data().blockedUsers || [];
+        if (otherBlocked.includes(currentUser.uid)) return true;
+      }
+    }
+  } catch (e) {}
+  return false;
+}
+
+/* ============== CHANGE THEME COLOR (CHILD) ============== */
+async function changeThemeColor(el, color) {
+  document.querySelectorAll('.color-theme-dot').forEach(d => {
+    d.style.borderColor = 'transparent';
+    d.style.boxShadow = 'none';
+    d.style.transform = 'scale(1)';
+  });
+  el.style.borderColor = 'white';
+  el.style.boxShadow = '0 0 12px ' + color;
+  el.style.transform = 'scale(1.15)';
+
+  document.documentElement.style.setProperty('--child-color', color);
+  document.documentElement.style.setProperty('--child-color-dark', color + 'CC');
+
+  if (currentUser) {
+    try {
+      await db.collection('users').doc(currentUser.uid).update({ avatarColor: color });
+      currentUserData.avatarColor = color;
+      showToast('Couleur changée !');
+    } catch (e) {}
+  }
+}
+
+/* ============== LOAD CO-PARENTS GRID (DASHBOARD) ============== */
+async function loadCoParentsGrid() {
+  const grid = document.getElementById('coParentsGrid');
+  if (!grid) return;
+
+  let html = '';
+  try {
+    const userDoc = await db.collection('users').doc(currentUser.uid).get();
+    const coParents = userDoc.data().coParents || [];
+
+    for (const id of coParents) {
+      try {
+        const doc = await db.collection('users').doc(id).get();
+        if (doc.exists) {
+          const u = doc.data();
+          html += `
+            <div class="child-card" style="position:relative">
+              <div style="position:absolute;top:6px;right:6px;width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:white;z-index:2" onclick="event.stopPropagation();removeCoParent('${id}')">✕</div>
+              <div class="child-avatar" style="background:#0F6E56">${(u.pseudo || '?').charAt(0).toUpperCase()}</div>
+              <div class="child-name">${u.pseudo || 'Inconnu'}</div>
+              <div class="child-status">${u.prenom || ''}</div>
+            </div>`;
+        }
+      } catch (e) {}
+    }
+  } catch (e) {}
+
+  html += `
+    <div class="add-child-card" onclick="openCoParentsModal()">
+      <div class="add-child-icon">+</div>
+      <div class="add-child-text">Ajouter</div>
+    </div>`;
+
+  grid.innerHTML = html;
+}
+
+/* ============== SPLASH ============== */
+let splashReady = false;
+let splashTarget = 'loginPage'; // default
+
+// Auth detects where to go
+auth.onAuthStateChanged(async user => {
+  if (user) {
+    try {
+      const doc = await db.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        const data = doc.data();
+        if (data.role === 'parent') {
+          splashTarget = 'parentDashboard';
+          splashReady = true;
+          // If splash already dismissed, load now
+          if (!document.getElementById('splash').classList.contains('active')) {
+            loadParentDashboard(user);
+          }
+          return;
+        }
+      }
+    } catch (e) {}
+  }
+
+  // Try child auto-login
+  const savedCode = localStorage.getItem('zamis_childCode');
+  const savedPin = localStorage.getItem('zamis_childPin');
+  if (savedCode && savedPin) {
+    try {
+      const snap = await db.collection('users').where('friendCode', '==', savedCode).where('role', '==', 'child').get();
+      if (!snap.empty && snap.docs[0].data().pin === savedPin) {
+        splashTarget = 'childApp';
+        splashReady = true;
+        if (!document.getElementById('splash').classList.contains('active')) {
+          currentUser = { uid: snap.docs[0].id };
+          loadChildApp(snap.docs[0].data());
+        }
+        return;
+      }
+    } catch (e) {}
+  }
+
+  splashTarget = 'loginPage';
+  splashReady = true;
+});
+
+/* ============== GROUPS ============== */
+async function loadGroupsList() {
+  const list = document.getElementById('groupsList');
+  if (!list) return;
+  
+  let html = '';
+  try {
+    const groupIds = currentUserData.groups || [];
+    for (const gId of groupIds) {
+      const gDoc = await db.collection('groups').doc(gId).get();
+      if (gDoc.exists) {
+        const g = gDoc.data();
+        html += `
+          <div class="conv-item" onclick="openGroup('${gId}')">
+            <div class="conv-avatar" style="background:var(--primary)">👥</div>
+            <div class="conv-info">
+              <div class="conv-name">${g.name}</div>
+              <div class="conv-preview">${g.members.length} membres</div>
+            </div>
+          </div>`;
+      }
+    }
+  } catch (e) {}
+  
+  list.innerHTML = html || '<div style="padding:20px;text-align:center;color:var(--text-secondary);font-size:13px">Aucun groupe</div>';
+}
+
+function openCreateGroupModal() {
+  openModal('createGroupModal');
+  loadGroupMembersList();
+}
+
+async function loadGroupMembersList() {
+  const container = document.getElementById('groupMembersList');
+  if (!container) return;
+  
+  let html = '';
+  try {
+    const children = currentUserData.childrenIds || [];
+    for (const cId of children) {
+      const cDoc = await db.collection('users').doc(cId).get();
+      if (cDoc.exists) {
+        const c = cDoc.data();
+        html += `
+          <label style="display:flex;align-items:center;gap:8px;padding:8px;cursor:pointer">
+            <input type="checkbox" class="group-member-checkbox" value="${cId}" style="cursor:pointer">
+            <span style="font-size:13px">${c.prenom}</span>
+          </label>`;
+      }
+    }
+    
+    const friends = currentUserData.adultFriends || [];
+    for (const fId of friends) {
+      const fDoc = await db.collection('users').doc(fId).get();
+      if (fDoc.exists) {
+        const f = fDoc.data();
+        html += `
+          <label style="display:flex;align-items:center;gap:8px;padding:8px;cursor:pointer">
+            <input type="checkbox" class="group-member-checkbox" value="${fId}" style="cursor:pointer">
+            <span style="font-size:13px">${f.pseudo}</span>
+          </label>`;
+      }
+    }
+  } catch (e) {}
+  
+  container.innerHTML = html || '<div style="padding:12px;font-size:12px;color:var(--text-secondary)">Aucun contact</div>';
+}
+
+async function createGroup() {
+  const name = document.getElementById('groupName').value.trim();
+  const members = Array.from(document.querySelectorAll('.group-member-checkbox:checked')).map(c => c.value);
+  
+  if (!name) { showError('groupNameError', 'Entrez un nom'); return; }
+  if (members.length === 0) { showError('groupMembersError', 'Sélectionnez au moins 1 membre'); return; }
+  
+  try {
+    const groupRef = db.collection('groups').doc();
+    await groupRef.set({
+      name: name,
+      members: [currentUser.uid, ...members],
+      createdBy: currentUser.uid,
+      createdAt: new Date()
+    });
+    
+    // Add group to all members
+    for (const memberId of members) {
+      await db.collection('users').doc(memberId).update({
+        groups: firebase.firestore.FieldValue.arrayUnion(groupRef.id)
+      });
+    }
+    
+    // Add to current user
+    await db.collection('users').doc(currentUser.uid).update({
+      groups: firebase.firestore.FieldValue.arrayUnion(groupRef.id)
+    });
+    
+    currentUserData.groups = (currentUserData.groups || []).concat(groupRef.id);
+    showToast('Groupe créé !');
+    closeModal('createGroupModal');
+    document.getElementById('groupName').value = '';
+    document.querySelectorAll('.group-member-checkbox').forEach(c => c.checked = false);
+    loadGroupsList();
+  } catch (e) {
+    showError('groupError', 'Erreur: ' + e.message);
+  }
+}
+
+function openGroup(groupId) {
+  showToast('Groupe ouvert');
+}
+
+function showConvParticipants() {
+  closeConvMenu();
+  if (!currentConvId) return;
+  
+  try {
+    const convDoc = db.collection('conversations').doc(currentConvId).get().then(async snap => {
+      if (!snap.exists) return;
+      const conv = snap.data();
+      const members = conv.members || [];
+      
+      let html = '<div style="padding:16px"><div style="font-size:14px;font-weight:600;margin-bottom:12px">Participants</div>';
+      
+      for (const memberId of members) {
+        const memberDoc = await db.collection('users').doc(memberId).get();
+        if (memberDoc.exists) {
+          const m = memberDoc.data();
+          const name = m.pseudo || m.prenom || 'Inconnu';
+          const isSelf = memberId === currentUser.uid;
+          html += `<div style="padding:8px 0;font-size:13px;border-bottom:1px solid var(--border)">${name}${isSelf ? ' (toi)' : ''}</div>`;
+        }
+      }
+      
+      html += '</div>';
+      showModal(html, 'Participants');
+    });
+  } catch (e) {}
+}
+
+function closeConvMenu() {
+  const menu = document.getElementById('convMenu');
+  if (menu) menu.style.display = 'none';
+}
+
+function showConvMenu() {
+  const menu = document.getElementById('convMenu');
+  if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+function dismissSplash() {
+  const splash = document.getElementById('splash');
+  if (!splash || splash.dataset.exiting) return;
+  splash.dataset.exiting = 'true';
+  splash.classList.add('splash-exit');
+  setTimeout(() => {
+    splash.classList.remove('active');
+    splash.style.opacity = '';
+    if (splashTarget === 'parentDashboard') {
+      const user = auth.currentUser;
+      if (user) loadParentDashboard(user);
+      else showPage('loginPage');
+    } else if (splashTarget === 'childApp') {
+      const sc = localStorage.getItem('zamis_childCode');
+      const sp = localStorage.getItem('zamis_childPin');
+      if (sc && sp) {
+        db.collection('users').where('friendCode','==',sc).where('role','==','child').get().then(s => {
+          if (!s.empty && s.docs[0].data().pin === sp) { currentUser = {uid:s.docs[0].id}; loadChildApp(s.docs[0].data()); }
+          else showPage('loginPage');
+        }).catch(() => showPage('loginPage'));
+      } else showPage('loginPage');
+    } else {
+      showPage('loginPage');
+    }
+  }, 1200);
+}
+</script>
+</body>
+</html>
