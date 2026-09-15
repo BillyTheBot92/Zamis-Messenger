@@ -2128,6 +2128,24 @@ async function addChild() {
       childrenIds: firebase.firestore.FieldValue.arrayUnion(childUid)
     });
 
+    // Partager l'enfant avec les co-parents
+    const myCoParents = currentUserData.coParents || [];
+    if (myCoParents.length > 0) {
+      // Ajouter l'enfant à chaque co-parent
+      const batch = db.batch();
+      for (const coParentId of myCoParents) {
+        batch.update(db.collection('users').doc(coParentId), {
+          childrenIds: firebase.firestore.FieldValue.arrayUnion(childUid)
+        });
+      }
+      await batch.commit();
+
+      // Ajouter les co-parents à la liste coParentIds de l'enfant
+      await db.collection('users').doc(childUid).update({
+        coParentIds: myCoParents
+      });
+    }
+
     // Create parent-child conversation
     const convRef = db.collection('conversations').doc();
     await convRef.set({
@@ -3239,7 +3257,23 @@ async function approveRequest(invId) {
     const invDoc = await db.collection('invitations').doc(invId).get();
     const inv = invDoc.data();
 
-    // Update both children's approved contacts
+    // Vérifier si le contact est déjà approuvé (éviter doublons)
+    const fromChildDoc = await db.collection('users').doc(inv.fromChildId).get();
+    const toChildDoc = await db.collection('users').doc(inv.toChildId).get();
+    
+    const fromApproved = fromChildDoc.data().approvedContacts || [];
+    const toApproved = toChildDoc.data().approvedContacts || [];
+
+    // Si déjà approuvé, juste marquer l'invitation comme approved et sortir
+    if (fromApproved.includes(inv.toChildId) && toApproved.includes(inv.fromChildId)) {
+      await db.collection('invitations').doc(invId).update({ status: 'approved' });
+      hideLoading();
+      showToast('Déjà approuvé !');
+      loadPendingRequests();
+      return;
+    }
+
+    // Ajouter les contacts
     await db.collection('users').doc(inv.fromChildId).update({
       approvedContacts: firebase.firestore.FieldValue.arrayUnion(inv.toChildId)
     });
@@ -3247,37 +3281,70 @@ async function approveRequest(invId) {
       approvedContacts: firebase.firestore.FieldValue.arrayUnion(inv.fromChildId)
     });
 
-    // Create conversation between children
-    const fromDoc = await db.collection('users').doc(inv.fromChildId).get();
-    const toDoc = await db.collection('users').doc(inv.toChildId).get();
-    const fromData = fromDoc.data();
-    const toData = toDoc.data();
+    // Vérifier si une conversation existe déjà pour cette paire
+    const existingConv = await db.collection('conversations')
+      .where('type', '==', 'direct')
+      .where('members', 'array-contains', inv.fromChildId)
+      .get();
+    
+    let convExists = false;
+    let convId = null;
+    for (const doc of existingConv.docs) {
+      const members = doc.data().members || [];
+      if (members.includes(inv.toChildId)) {
+        convExists = true;
+        convId = doc.id;
+        break;
+      }
+    }
 
-    const convRef = db.collection('conversations').doc();
-    await convRef.set({
-      type: 'direct',
-      members: [inv.fromChildId, inv.toChildId],
-      memberNames: { [inv.fromChildId]: fromData.pseudo, [inv.toChildId]: toData.pseudo },
-      memberColors: { [inv.fromChildId]: fromData.avatarColor || '#FFB347', [inv.toChildId]: toData.avatarColor || '#5DCAA5' },
-      lastMessage: 'Vous êtes maintenant amis ! 🎉',
-      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
-      createdBy: currentUser.uid,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    // Créer la conversation seulement si elle n'existe pas
+    if (!convExists) {
+      const fromData = fromChildDoc.data();
+      const toData = toChildDoc.data();
+
+      const convRef = db.collection('conversations').doc();
+      await convRef.set({
+        type: 'direct',
+        members: [inv.fromChildId, inv.toChildId],
+        memberNames: { [inv.fromChildId]: fromData.pseudo, [inv.toChildId]: toData.pseudo },
+        memberColors: { [inv.fromChildId]: fromData.avatarColor || '#FFB347', [inv.toChildId]: toData.avatarColor || '#5DCAA5' },
+        lastMessage: 'Vous êtes maintenant amis ! 🎉',
+        lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy: currentUser.uid,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      convId = convRef.id;
+
+      await convRef.collection('messages').add({
+        senderId: 'system',
+        senderPseudo: 'Zamis',
+        type: 'text',
+        content: fromData.pseudo + ' et ' + toData.pseudo + ' sont maintenant amis ! 🎉',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    // Marquer TOUTES les invitations de cette paire comme 'approved'
+    const allInvitations = await db.collection('invitations')
+      .where('fromChildId', '==', inv.fromChildId)
+      .where('toChildId', '==', inv.toChildId)
+      .get();
+    
+    const batch = db.batch();
+    allInvitations.forEach(invDoc => {
+      batch.update(invDoc.ref, { status: 'approved' });
     });
-
-    await convRef.collection('messages').add({
-      senderId: 'system',
-      senderPseudo: 'Zamis',
-      type: 'text',
-      content: fromData.pseudo + ' et ' + toData.pseudo + ' sont maintenant amis ! 🎉',
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    await db.collection('invitations').doc(invId).update({ status: 'approved' });
+    await batch.commit();
 
     hideLoading();
     showToast('Demande approuvée !');
     loadPendingRequests();
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur : ' + err.message);
+  }
+}
   } catch (err) {
     hideLoading();
     showToast('Erreur');
@@ -3286,7 +3353,22 @@ async function approveRequest(invId) {
 
 async function rejectRequest(invId) {
   try {
-    await db.collection('invitations').doc(invId).update({ status: 'rejected' });
+    // Récupérer l'invitation pour connaître la paire
+    const invDoc = await db.collection('invitations').doc(invId).get();
+    const inv = invDoc.data();
+
+    // Rejeter TOUTES les invitations de cette même paire
+    const allInvitations = await db.collection('invitations')
+      .where('fromChildId', '==', inv.fromChildId)
+      .where('toChildId', '==', inv.toChildId)
+      .get();
+    
+    const batch = db.batch();
+    allInvitations.forEach(invDoc => {
+      batch.update(invDoc.ref, { status: 'rejected' });
+    });
+    await batch.commit();
+
     showToast('Demande refusée');
     loadPendingRequests();
   } catch (err) {
@@ -3382,14 +3464,29 @@ async function setAvatar(el, emoji) {
 
 /* ============== DELETE CHILD ============== */
 function confirmDeleteChild(childId, pseudo) {
-  if (confirm('Supprimer ' + pseudo + ' et toutes ses conversations ?\n\nCette action est irréversible.')) {
-    deleteChild(childId);
-  }
+  const pwd = prompt('Entrez le mot de passe de l\'enfant pour confirmer la suppression:\n\n(Supprimer ' + pseudo + ' et TOUTES ses conversations)\n\nCette action est irréversible.');
+  if (!pwd) return;
+  deleteChild(childId, pwd);
 }
 
-async function deleteChild(childId) {
+async function deleteChild(childId, passwordPin) {
   showLoading();
   try {
+    // Vérifier le mot de passe (PIN de l'enfant)
+    const childDoc = await db.collection('users').doc(childId).get();
+    if (!childDoc.exists) {
+      hideLoading();
+      showToast('Enfant introuvable');
+      return;
+    }
+
+    const childData = childDoc.data();
+    if (childData.pin !== passwordPin) {
+      hideLoading();
+      showToast('Mot de passe incorrect');
+      return;
+    }
+
     // Supprimer les conversations de l'enfant
     const convSnap = await db.collection('conversations')
       .where('members', 'array-contains', childId)
@@ -3409,22 +3506,29 @@ async function deleteChild(childId) {
     for (const d of invSnap2.docs) await d.ref.delete();
 
     // Retirer l'enfant des contacts approuvés des autres
-    const childDoc = await db.collection('users').doc(childId).get();
-    if (childDoc.exists) {
-      const approved = childDoc.data().approvedContacts || [];
-      for (const friendId of approved) {
-        try {
-          await db.collection('users').doc(friendId).update({
-            approvedContacts: firebase.firestore.FieldValue.arrayRemove(childId)
-          });
-        } catch (e) {}
-      }
+    const approved = childData.approvedContacts || [];
+    for (const friendId of approved) {
+      try {
+        await db.collection('users').doc(friendId).update({
+          approvedContacts: firebase.firestore.FieldValue.arrayRemove(childId)
+        });
+      } catch (e) {}
     }
 
     // Supprimer l'enfant de la liste du parent
     await db.collection('users').doc(currentUser.uid).update({
       childrenIds: firebase.firestore.FieldValue.arrayRemove(childId)
     });
+
+    // Supprimer aussi de la liste de tous les co-parents
+    const myCoParents = currentUserData.coParents || [];
+    const batch = db.batch();
+    for (const coParentId of myCoParents) {
+      batch.update(db.collection('users').doc(coParentId), {
+        childrenIds: firebase.firestore.FieldValue.arrayRemove(childId)
+      });
+    }
+    await batch.commit();
 
     // Supprimer le document enfant
     await cleanupDeletedUser(childId);
@@ -3829,11 +3933,13 @@ async function openBlockedListModal() {
   try {
     const userDoc = await db.collection('users').doc(currentUser.uid).get();
     const blockedIds = userDoc.data().blockedUsers || [];
+    
     if (blockedIds.length === 0) {
       container.innerHTML = '';
       if (noMsg) noMsg.style.display = 'block';
       return;
     }
+    
     if (noMsg) noMsg.style.display = 'none';
 
     let html = '';
@@ -3844,15 +3950,24 @@ async function openBlockedListModal() {
           const u = doc.data();
           html += `
             <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
-              <div style="width:36px;height:36px;border-radius:50%;background:${u.avatarColor || '#7C5CFC'};display:flex;align-items:center;justify-content:center;color:white;font-weight:600">${(u.pseudo || '?').charAt(0).toUpperCase()}</div>
-              <div style="flex:1;font-size:14px;font-weight:500">${u.pseudo || 'Inconnu'}</div>
-              <button class="btn btn-outline" style="width:auto;padding:6px 12px;font-size:12px" onclick="unblockUser('${id}','${u.pseudo || 'Inconnu'}');closeModal('blockedListModal')">Débloquer</button>
+              <div style="width:36px;height:36px;border-radius:50%;background:${u.avatarColor || '#7C5CFC'};display:flex;align-items:center;justify-content:center;color:white;font-weight:600;font-size:16px">${(u.pseudo || '?').charAt(0).toUpperCase()}</div>
+              <div style="flex:1">
+                <div style="font-size:14px;font-weight:500">${u.pseudo || 'Inconnu'}</div>
+                <div style="font-size:12px;color:var(--text-secondary)">${u.role === 'child' ? 'Enfant' : 'Adulte'}</div>
+              </div>
+              <button class="btn btn-outline" style="width:auto;padding:6px 12px;font-size:12px" onclick="unblockUser('${id}','${(u.pseudo || 'Inconnu').replace(/'/g, "\\'")}')">Débloquer</button>
             </div>`;
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error('Error loading blocked user:', e);
+      }
     }
-    container.innerHTML = html;
-  } catch (e) {}
+    
+    container.innerHTML = html || '<div style="text-align:center;color:var(--text-secondary);padding:20px;font-size:13px">Erreur de chargement</div>';
+  } catch (e) {
+    console.error('Error loading blocked list:', e);
+    container.innerHTML = '<div style="text-align:center;color:var(--red);padding:20px;font-size:13px">Erreur</div>';
+  }
 }
 
 /* ============== CO-PARENTS ============== */
@@ -3947,16 +4062,49 @@ async function inviteCoParent() {
 async function removeCoParent(coParentId) {
   if (!confirm('Retirer ce co-parent ?')) return;
   try {
+    // Récupérer les enfants du co-parent à retirer
+    const coParentDoc = await db.collection('users').doc(coParentId).get();
+    const coParentChildren = coParentDoc.data().childrenIds || [];
+
+    // Récupérer mes enfants
+    const myChildren = currentUserData.childrenIds || [];
+
+    // Retirer bidirectionnellement les co-parents
     await db.collection('users').doc(currentUser.uid).update({
       coParents: firebase.firestore.FieldValue.arrayRemove(coParentId)
     });
     await db.collection('users').doc(coParentId).update({
       coParents: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
     });
+
+    // Retirer l'accès aux enfants mutuels
+    const batch = db.batch();
+    
+    // Mes enfants: retirer le co-parent de leur coParentIds
+    for (const childId of myChildren) {
+      batch.update(db.collection('users').doc(childId), {
+        coParentIds: firebase.firestore.FieldValue.arrayRemove(coParentId)
+      });
+    }
+
+    // Enfants du co-parent: retirer moi de leur coParentIds
+    for (const childId of coParentChildren) {
+      batch.update(db.collection('users').doc(childId), {
+        coParentIds: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+      });
+    }
+
+    await batch.commit();
+
     showToast('Co-parent retiré');
-    openCoParentsModal();
+    
+    // Rafraîchir immédiatement le dashboard
+    const authUser = auth.currentUser;
+    if (authUser) {
+      loadParentDashboard(authUser);
+    }
   } catch (e) {
-    showToast('Erreur');
+    showToast('Erreur : ' + e.message);
   }
 }
 
