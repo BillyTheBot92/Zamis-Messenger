@@ -1669,7 +1669,7 @@ const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Flag pour switcher entre Firebase et Supabase (fonction par fonction)
 // false = Firebase (défaut, tout marche), true = Supabase (progressif)
-const USE_SUPABASE = false;
+const USE_SUPABASE = true;
 
 console.log('Zamis v' + ZAMIS_VERSION + ' | Backend:', USE_SUPABASE ? 'Supabase' : 'Firebase');
 
@@ -1887,6 +1887,68 @@ async function registerParent() {
   // Popup confirmation responsabilité
   if (!confirm('Vous confirmez avoir plus de 18 ans.\n\nVous êtes responsable de l\'utilisation de ce compte et des comptes enfants que vous gérez.\n\nConfirmer ?')) return;
 
+  // ================= SUPABASE MODE =================
+  if (USE_SUPABASE) {
+    showLoading();
+    try {
+      // Check pseudo unique
+      const { data: existingPseudo } = await supa.from('users').select('uid').eq('pseudo', pseudo).limit(1);
+      if (existingPseudo && existingPseudo.length > 0) {
+        hideLoading();
+        return showError('registerError', 'Ce pseudo est déjà pris');
+      }
+
+      const cleanPseudo = pseudo.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const randomSuffix = Math.random().toString(36).substring(2, 8);
+      const autoEmail = cleanPseudo + '.' + randomSuffix + '@zamis.app';
+      const friendCode = generateFriendCode(pseudo);
+
+      // Créer compte Supabase Auth
+      const { data: authData, error: authErr } = await supa.auth.signUp({
+        email: autoEmail,
+        password: pwd
+      });
+
+      if (authErr) {
+        hideLoading();
+        return showError('registerError', 'Erreur : ' + authErr.message);
+      }
+
+      const uid = authData.user.id;
+
+      // Créer row dans table users
+      const { error: insertErr } = await supa.from('users').insert({
+        uid: uid,
+        pseudo: pseudo,
+        prenom: prenom,
+        friend_code: friendCode,
+        role: 'parent',
+        avatar: '😊',
+        avatar_color: '#7C5CFC',
+        children_ids: [],
+        co_parents: [],
+        adult_friends: [],
+        blocked_users: []
+      });
+
+      if (insertErr) {
+        hideLoading();
+        return showError('registerError', 'Erreur DB : ' + insertErr.message);
+      }
+
+      hideLoading();
+      showSuccess('registerSuccess', 'Compte créé ! Redirection...');
+      setTimeout(() => {
+        loadParentDashboard(authData.user);
+      }, 1500);
+    } catch (err) {
+      hideLoading();
+      showError('registerError', 'Erreur : ' + err.message);
+    }
+    return;
+  }
+
+  // ================= FIREBASE MODE (défaut) =================
   const pseudoCheck = await db.collection('users').where('pseudo', '==', pseudo).get();
   if (!pseudoCheck.empty) return showError('registerError', 'Ce pseudo est déjà pris');
 
