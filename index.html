@@ -1665,7 +1665,7 @@ const db = firebase.firestore();
 // ===================== SUPABASE CONFIG =====================
 const SUPABASE_URL = 'https://qsrfghnfqbrvoyefdbtd.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_c4lO9VvCGqn6WvrPjP37lg_-eLlw60s';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Flag pour switcher entre Firebase et Supabase (fonction par fonction)
 // false = Firebase (défaut, tout marche), true = Supabase (progressif)
