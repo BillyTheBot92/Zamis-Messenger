@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zamis-v1.2.4';
+const CACHE_NAME = 'zamis-v1.3.0';
 const ASSETS = [
   './index.html',
   './manifest.json'
@@ -14,7 +14,6 @@ self.addEventListener('activate', e => {
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
     ).then(() => self.clients.claim()).then(() => {
-      // Notifier tous les clients qu'une nouvelle version est active
       return self.clients.matchAll({ type: 'window' }).then(clients => {
         clients.forEach(client => {
           client.postMessage({ type: 'SW_UPDATED', version: CACHE_NAME });
@@ -31,12 +30,10 @@ self.addEventListener('message', e => {
 });
 
 self.addEventListener('fetch', e => {
-  if (e.request.url.includes('firebase') || e.request.url.includes('gstatic')) return;
-  // Network-first pour toujours avoir la dernière version
+  if (e.request.url.includes('firebase') || e.request.url.includes('gstatic') || e.request.url.includes('supabase') || e.request.url.includes('jsdelivr')) return;
   e.respondWith(
     fetch(e.request)
       .then(response => {
-        // Mettre en cache la réponse fraîche
         if (response && response.status === 200 && e.request.method === 'GET') {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
