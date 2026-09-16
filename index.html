@@ -1920,7 +1920,10 @@ async function registerParent() {
       const { error: insertErr } = await supa.from('users').insert({
         uid: uid,
         pseudo: pseudo,
+        nom: nom,
         prenom: prenom,
+        date_naissance: birth,
+        internal_email: autoEmail,
         friend_code: friendCode,
         role: 'parent',
         avatar: '😊',
@@ -1997,6 +2000,62 @@ async function loginParent() {
 
   if (!pseudoOrCode || !pwd) return showError('loginError', 'Remplis tous les champs');
 
+  // ================= SUPABASE MODE =================
+  if (USE_SUPABASE) {
+    showLoading();
+    try {
+      // Chercher user par pseudo
+      let { data: users, error: qErr } = await supa.from('users')
+        .select('*')
+        .eq('pseudo', pseudoOrCode)
+        .limit(1);
+
+      // Si pas trouvé, essayer par friend_code
+      if ((!users || users.length === 0) && !qErr) {
+        const res = await supa.from('users')
+          .select('*')
+          .eq('friend_code', pseudoOrCode.toLowerCase())
+          .limit(1);
+        users = res.data;
+      }
+
+      if (!users || users.length === 0) {
+        hideLoading();
+        return showError('loginError', 'Pseudo introuvable');
+      }
+
+      const userData = users[0];
+
+      if (!userData.internal_email) {
+        hideLoading();
+        return showError('loginError', 'Compte incompatible, recrée-le');
+      }
+
+      // Auth Supabase
+      const { data: authData, error: authErr } = await supa.auth.signInWithPassword({
+        email: userData.internal_email,
+        password: pwd
+      });
+
+      if (authErr) {
+        hideLoading();
+        return showError('loginError', 'Pseudo ou mot de passe incorrect');
+      }
+
+      hideLoading();
+      if (userData.role === 'parent') {
+        loadParentDashboard(authData.user);
+      } else {
+        loadChildApp(userData);
+      }
+    } catch (err) {
+      hideLoading();
+      showError('loginError', 'Erreur : ' + err.message);
+    }
+    return;
+  }
+
+  // ================= FIREBASE MODE =================
   showLoading();
   try {
     // Find user by pseudo or friendCode
@@ -2072,11 +2131,53 @@ async function loginChild() {
 }
 
 /* ============== LOAD PARENT DASHBOARD ============== */
+// Utility: normaliser les données Supabase (snake_case) vers format app (camelCase)
+function normalizeSupaUser(supaUser) {
+  if (!supaUser) return null;
+  return {
+    uid: supaUser.uid,
+    pseudo: supaUser.pseudo,
+    nom: supaUser.nom,
+    prenom: supaUser.prenom,
+    pin: supaUser.pin,
+    friendCode: supaUser.friend_code,
+    role: supaUser.role,
+    avatar: supaUser.avatar,
+    avatarColor: supaUser.avatar_color,
+    parentId: supaUser.parent_id,
+    childrenIds: supaUser.children_ids || [],
+    coParents: supaUser.co_parents || [],
+    coParentIds: supaUser.co_parent_ids || [],
+    adultFriends: supaUser.adult_friends || [],
+    approvedContacts: supaUser.approved_contacts || [],
+    blockedUsers: supaUser.blocked_users || [],
+    internalEmail: supaUser.internal_email,
+    dateNaissance: supaUser.date_naissance
+  };
+}
+
 async function loadParentDashboard(user) {
+  // Normaliser: Supabase user a .id, Firebase a .uid
+  if (USE_SUPABASE && user.id && !user.uid) {
+    user = { ...user, uid: user.id };
+  }
   currentUser = user;
-  const doc = await db.collection('users').doc(user.uid).get();
-  if (!doc.exists) return;
-  currentUserData = doc.data();
+
+  // ================= SUPABASE MODE =================
+  if (USE_SUPABASE) {
+    const { data: userData, error } = await supa.from('users').select('*').eq('uid', user.uid).single();
+    if (error || !userData) {
+      console.error('Load parent error:', error);
+      return;
+    }
+    currentUserData = normalizeSupaUser(userData);
+  } else {
+    // ================= FIREBASE MODE =================
+    const doc = await db.collection('users').doc(user.uid).get();
+    if (!doc.exists) return;
+    currentUserData = doc.data();
+  }
+
   isParentBrowsingChild = false;
   document.body.classList.add('parent-mode');
   document.body.classList.remove('child-mode');
@@ -2322,7 +2423,49 @@ async function loadChildren() {
   const directIds = currentUserData.childrenIds || [];
   const allChildIds = new Set(directIds);
 
-  // Also load children shared via co-parenting
+  // ================= SUPABASE MODE =================
+  if (USE_SUPABASE) {
+    try {
+      // Enfants partagés via co-parenting
+      const { data: coChildren } = await supa.from('users')
+        .select('uid')
+        .contains('co_parent_ids', [currentUser.uid])
+        .eq('role', 'child');
+      if (coChildren) coChildren.forEach(c => allChildIds.add(c.uid));
+    } catch (e) {}
+
+    let html = '';
+    for (const id of allChildIds) {
+      try {
+        const { data: child } = await supa.from('users').select('*').eq('uid', id).single();
+        if (child) {
+          const isDirect = directIds.includes(id);
+          html += `
+            <div class="child-card" style="position:relative">
+              ${isDirect ? `<div style="position:absolute;top:6px;right:6px;width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:white;z-index:2" onclick="event.stopPropagation();confirmDeleteChild('${id}','${child.pseudo}')">✕</div>` : ''}
+              <div onclick="loginAsChild('${id}')" style="cursor:pointer">
+                <div class="child-avatar" style="background:${child.avatar_color || '#FFB347'}">
+                  ${child.avatar || child.pseudo.charAt(0).toUpperCase()}
+                </div>
+                <div class="child-name">${child.pseudo}</div>
+                <div class="child-status">Code: ${child.friend_code}</div>
+              </div>
+            </div>`;
+        }
+      } catch (e) {}
+    }
+
+    html += `
+      <div class="add-child-card" onclick="showAddChildModal()">
+        <div class="add-child-icon">+</div>
+        <div class="add-child-text">Ajouter</div>
+      </div>`;
+
+    grid.innerHTML = html;
+    return;
+  }
+
+  // ================= FIREBASE MODE =================
   try {
     const coSnap = await db.collection('users').where('coParentIds', 'array-contains', currentUser.uid).where('role', '==', 'child').get();
     coSnap.forEach(doc => allChildIds.add(doc.id));
@@ -3318,6 +3461,43 @@ async function loadPendingRequests() {
   const container = document.getElementById('pendingRequests');
   if (!container) return;
 
+  // ================= SUPABASE MODE =================
+  if (USE_SUPABASE) {
+    try {
+      const { data: invitations } = await supa.from('invitations')
+        .select('*')
+        .eq('parent_approval_id', currentUser.uid)
+        .eq('status', 'pending');
+
+      if (!invitations || invitations.length === 0) {
+        container.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--text-secondary);text-align:center">Aucune demande en attente</div>';
+        return;
+      }
+
+      let html = '';
+      invitations.forEach(inv => {
+        html += `
+          <div class="pending-card">
+            <div class="pending-avatar" style="background:var(--orange)">${(inv.from_child_pseudo || '?').charAt(0).toUpperCase()}</div>
+            <div class="pending-info">
+              <div class="pending-title">${inv.from_child_pseudo || 'Inconnu'}</div>
+              <div class="pending-subtitle">veut ajouter ${inv.to_child_pseudo || 'Inconnu'}</div>
+            </div>
+            <div class="pending-actions">
+              <button class="btn-approve" onclick="approveRequest('${inv.id}')">✓</button>
+              <button class="btn-reject" onclick="rejectRequest('${inv.id}')">✕</button>
+            </div>
+          </div>`;
+      });
+      container.innerHTML = html;
+    } catch (e) {
+      console.error('loadPendingRequests Supabase error:', e);
+      container.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--text-secondary);text-align:center">Aucune demande en attente</div>';
+    }
+    return;
+  }
+
+  // ================= FIREBASE MODE =================
   try {
     const snap = await db.collection('invitations')
       .where('parentApprovalId', '==', currentUser.uid)
@@ -4200,6 +4380,15 @@ async function removeCoParent(coParentId) {
 /* ============== PARENT WRITE BADGE ============== */
 function updateParentWriteBadge() {
   if (!currentUser || !currentUserData || currentUserData.role !== 'parent') return;
+  
+  // Supabase mode: skip pour l'instant (badge à 0)
+  if (USE_SUPABASE) {
+    document.querySelectorAll('.parent-write-badge').forEach(b => {
+      b.style.display = 'none';
+    });
+    return;
+  }
+  
   db.collection('conversations')
     .where('members', 'array-contains', currentUser.uid)
     .get()
@@ -4309,6 +4498,40 @@ async function loadAdultFriendsGrid() {
   if (!grid) return;
 
   let html = '';
+
+  // ================= SUPABASE MODE =================
+  if (USE_SUPABASE) {
+    try {
+      const { data: userData } = await supa.from('users').select('adult_friends').eq('uid', currentUser.uid).single();
+      const friends = (userData && userData.adult_friends) || [];
+
+      for (const id of friends) {
+        try {
+          const { data: u } = await supa.from('users').select('*').eq('uid', id).single();
+          if (u) {
+            html += `
+              <div class="child-card" style="position:relative">
+                <div style="position:absolute;top:6px;right:6px;width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:white;z-index:2" onclick="event.stopPropagation();removeAdultFriend('${id}')">✕</div>
+                <div onclick="openConvWith('${id}','${u.pseudo}','#4A90D9')" style="cursor:pointer">
+                  <div class="child-avatar" style="background:#4A90D9">${(u.pseudo || '?').charAt(0).toUpperCase()}</div>
+                  <div class="child-name">${u.pseudo || 'Inconnu'}</div>
+                </div>
+              </div>`;
+          }
+        } catch (e) {}
+      }
+    } catch (e) {}
+
+    html += `
+      <div class="add-child-card" onclick="openAddAdultFriendModal()">
+        <div class="add-child-icon">+</div>
+        <div class="add-child-text">Ajouter</div>
+      </div>`;
+    grid.innerHTML = html;
+    return;
+  }
+
+  // ================= FIREBASE MODE =================
   try {
     const userDoc = await db.collection('users').doc(currentUser.uid).get();
     const friends = userDoc.data().adultFriends || [];
@@ -4441,6 +4664,39 @@ async function loadCoParentsGrid() {
   if (!grid) return;
 
   let html = '';
+
+  // ================= SUPABASE MODE =================
+  if (USE_SUPABASE) {
+    try {
+      const { data: userData } = await supa.from('users').select('co_parents').eq('uid', currentUser.uid).single();
+      const coParents = (userData && userData.co_parents) || [];
+
+      for (const id of coParents) {
+        try {
+          const { data: u } = await supa.from('users').select('*').eq('uid', id).single();
+          if (u) {
+            html += `
+              <div class="child-card" style="position:relative">
+                <div style="position:absolute;top:6px;right:6px;width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:white;z-index:2" onclick="event.stopPropagation();removeCoParent('${id}')">✕</div>
+                <div class="child-avatar" style="background:#0F6E56">${(u.pseudo || '?').charAt(0).toUpperCase()}</div>
+                <div class="child-name">${u.pseudo || 'Inconnu'}</div>
+                <div class="child-status">${u.prenom || ''}</div>
+              </div>`;
+          }
+        } catch (e) {}
+      }
+    } catch (e) {}
+
+    html += `
+      <div class="add-child-card" onclick="openCoParentsModal()">
+        <div class="add-child-icon">+</div>
+        <div class="add-child-text">Ajouter</div>
+      </div>`;
+    grid.innerHTML = html;
+    return;
+  }
+
+  // ================= FIREBASE MODE =================
   try {
     const userDoc = await db.collection('users').doc(currentUser.uid).get();
     const coParents = userDoc.data().coParents || [];
@@ -4476,46 +4732,69 @@ let splashReady = false;
 let splashTarget = 'loginPage'; // default
 
 // Auth detects where to go
-auth.onAuthStateChanged(async user => {
-  if (user) {
-    try {
-      const doc = await db.collection('users').doc(user.uid).get();
-      if (doc.exists) {
-        const data = doc.data();
-        if (data.role === 'parent') {
-          splashTarget = 'parentDashboard';
+// ================= SUPABASE AUTH STATE HANDLER =================
+if (USE_SUPABASE) {
+  supa.auth.onAuthStateChange(async (event, session) => {
+    if (session && session.user) {
+      try {
+        const { data: userData } = await supa.from('users').select('*').eq('uid', session.user.id).single();
+        if (userData) {
+          if (userData.role === 'parent') {
+            splashTarget = 'parentDashboard';
+            splashReady = true;
+            if (!document.getElementById('splash').classList.contains('active')) {
+              loadParentDashboard(session.user);
+            }
+            return;
+          }
+        }
+      } catch (e) {}
+    }
+    splashTarget = 'loginPage';
+    splashReady = true;
+  });
+} else {
+  auth.onAuthStateChanged(async user => {
+    if (user) {
+      try {
+        const doc = await db.collection('users').doc(user.uid).get();
+        if (doc.exists) {
+          const data = doc.data();
+          if (data.role === 'parent') {
+            splashTarget = 'parentDashboard';
+            splashReady = true;
+            // If splash already dismissed, load now
+            if (!document.getElementById('splash').classList.contains('active')) {
+              loadParentDashboard(user);
+            }
+            return;
+          }
+        }
+      } catch (e) {}
+    }
+
+    // Try child auto-login
+    const savedCode = localStorage.getItem('zamis-child-code');
+    const savedPin = localStorage.getItem('zamis-child-pin');
+    if (savedCode && savedPin) {
+      try {
+        const snap = await db.collection('users').where('friendCode', '==', savedCode).where('role', '==', 'child').get();
+        if (!snap.empty && snap.docs[0].data().pin === savedPin) {
+          splashTarget = 'childApp';
           splashReady = true;
-          // If splash already dismissed, load now
           if (!document.getElementById('splash').classList.contains('active')) {
-            loadParentDashboard(user);
+            currentUser = { uid: snap.docs[0].id };
+            loadChildApp(snap.docs[0].data());
           }
           return;
         }
-      }
-    } catch (e) {}
-  }
+      } catch (e) {}
+    }
 
-  // Try child auto-login
-  const savedCode = localStorage.getItem('zamis-child-code');
-  const savedPin = localStorage.getItem('zamis-child-pin');
-  if (savedCode && savedPin) {
-    try {
-      const snap = await db.collection('users').where('friendCode', '==', savedCode).where('role', '==', 'child').get();
-      if (!snap.empty && snap.docs[0].data().pin === savedPin) {
-        splashTarget = 'childApp';
-        splashReady = true;
-        if (!document.getElementById('splash').classList.contains('active')) {
-          currentUser = { uid: snap.docs[0].id };
-          loadChildApp(snap.docs[0].data());
-        }
-        return;
-      }
-    } catch (e) {}
-  }
-
-  splashTarget = 'loginPage';
-  splashReady = true;
-});
+    splashTarget = 'loginPage';
+    splashReady = true;
+  });
+}
 
 /* ============== GROUPS ============== */
 async function loadGroupsList() {
