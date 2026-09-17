@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zamis-v1.3.0';
+const CACHE_NAME = 'zamis-v2.0.0';
 const ASSETS = [
   './index.html',
   './manifest.json'
@@ -13,13 +13,7 @@ self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim()).then(() => {
-      return self.clients.matchAll({ type: 'window' }).then(clients => {
-        clients.forEach(client => {
-          client.postMessage({ type: 'SW_UPDATED', version: CACHE_NAME });
-        });
-      });
-    })
+    ).then(() => self.clients.claim())
   );
 });
 
@@ -30,7 +24,7 @@ self.addEventListener('message', e => {
 });
 
 self.addEventListener('fetch', e => {
-  if (e.request.url.includes('firebase') || e.request.url.includes('gstatic') || e.request.url.includes('supabase') || e.request.url.includes('jsdelivr')) return;
+  if (e.request.url.includes('supabase') || e.request.url.includes('jsdelivr')) return;
   e.respondWith(
     fetch(e.request)
       .then(response => {
