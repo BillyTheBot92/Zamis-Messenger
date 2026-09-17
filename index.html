@@ -1341,11 +1341,17 @@ let splashTarget = 'loginChoice';
 
 async function dismissSplash() {
   if (!splashReady) {
-    // Attendre que l'auth check soit fini
     setTimeout(dismissSplash, 100);
     return;
   }
   showPage(splashTarget);
+  
+  // Préparer les données APRÈS l'affichage de la page (sinon les containers ne sont pas actifs)
+  if (splashTarget === 'parentDashboard') {
+    setTimeout(() => prepareParentDashboard(), 50);
+  } else if (splashTarget === 'childApp') {
+    setTimeout(() => prepareChildApp(), 50);
+  }
 }
 
 /* ============================================================
@@ -1353,7 +1359,6 @@ async function dismissSplash() {
 ============================================================ */
 async function checkAutoLogin() {
   try {
-    // 1. Check session Supabase Auth (parent)
     const { data: { session } } = await supa.auth.getSession();
     if (session && session.user) {
       const { data: userData } = await supa.from('users').select('*').eq('uid', session.user.id).single();
@@ -1361,7 +1366,6 @@ async function checkAutoLogin() {
         splashTarget = 'parentDashboard';
         currentUser = normalizeCurrentUser(session.user);
         currentUserData = userData;
-        prepareParentDashboard();
         splashReady = true;
         return;
       }
@@ -1371,7 +1375,6 @@ async function checkAutoLogin() {
   }
 
   try {
-    // 2. Check localStorage (enfant)
     const code = localStorage.getItem('zamis-child-code');
     const pin = localStorage.getItem('zamis-child-pin');
     if (code && pin) {
@@ -1385,7 +1388,6 @@ async function checkAutoLogin() {
         currentUser = { uid: users[0].uid };
         currentUserData = users[0];
         isChildSession = true;
-        prepareChildApp();
         splashReady = true;
         return;
       }
@@ -3171,7 +3173,8 @@ function prepareChildApp() {
     header.insertAdjacentElement('afterend', banner);
   }
   
-  switchChildTab('messages');
+  // Attendre que le DOM soit prêt puis charger
+  setTimeout(() => { switchChildTab('messages'); }, 100);
 }
 
 function switchChildTab(tab) {
