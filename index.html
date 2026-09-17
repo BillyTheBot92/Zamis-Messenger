@@ -907,7 +907,7 @@ body {
   </div>
   <div class="splash-title">Zamis Messenger</div>
   <div class="splash-hint">Appuyer sur le Z pour continuer</div>
-  <div class="splash-version">v2.1.0</div>
+  <div class="splash-version">v2.1.1</div>
 </div>
 
 <!-- ============================================================
@@ -1079,7 +1079,7 @@ body {
       <div class="header-title">🔐 Espace Adulte</div>
       <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
     </div>
-    <span class="header-version">v2.1.0</span>
+    <span class="header-version">v2.1.1</span>
   </div>
   <div class="dashboard-content">
     <!-- Mes enfants -->
@@ -1217,7 +1217,7 @@ body {
 /* ============================================================
    CONFIG
 ============================================================ */
-const ZAMIS_VERSION = '2.1.0';
+const ZAMIS_VERSION = '2.1.1';
 const SUPABASE_URL = 'https://qsrfghnfqbrvoyefdbtd.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_c4lO9VvCGqn6WvrPjP37lg_-eLlw60s';
 const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -2661,22 +2661,111 @@ async function loadConversationsList(containerId) {
 
 let convListChannel = null;
 let convListContainerId = null;
+let convListPollTimer = null;
+
 function setupConvListRealtime(containerId) {
   convListContainerId = containerId;
-  if (convListChannel) return; // Une seule subscription
   
-  convListChannel = supa.channel('convlist')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => {
-      // Rafraîchir seulement si on est encore sur une page qui affiche des convs
-      if (convListContainerId && $(convListContainerId)) {
-        // Vérifier si le container est visible
-        const parentPage = $(convListContainerId).closest('.page');
-        if (parentPage && parentPage.classList.contains('active')) {
-          loadConversationsList(convListContainerId);
-        }
-      }
+  // Cleanup ancien channel
+  if (convListChannel) {
+    supa.removeChannel(convListChannel);
+    convListChannel = null;
+  }
+  
+  const myUid = getCurrentUid();
+  if (!myUid) {
+    console.warn('setupConvListRealtime: no UID');
+    return;
+  }
+  
+  // Subscribe realtime
+  convListChannel = supa.channel('convlist_' + myUid + '_' + Date.now())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, (payload) => {
+      console.log('[Realtime] conv change:', payload);
+      refreshConvListIfActive();
     })
-    .subscribe();
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (payload) => {
+      console.log('[Realtime] message change:', payload);
+      refreshConvListIfActive();
+    })
+    .subscribe((status) => {
+      console.log('[Realtime] status:', status);
+    });
+  
+  // Fallback : polling toutes les 8 secondes au cas où realtime échoue
+  if (convListPollTimer) clearInterval(convListPollTimer);
+  convListPollTimer = setInterval(() => {
+    refreshConvListIfActive();
+  }, 8000);
+}
+
+function refreshConvListIfActive() {
+  if (!convListContainerId) return;
+  const container = $(convListContainerId);
+  if (!container) return;
+  const parentPage = container.closest('.page');
+  if (parentPage && parentPage.classList.contains('active')) {
+    // Ne pas afficher le "Chargement..." pour éviter le flash
+    silentRefreshConvList(convListContainerId);
+  }
+}
+
+async function silentRefreshConvList(containerId) {
+  const container = $(containerId);
+  if (!container) return;
+  const myUid = getCurrentUid();
+  if (!myUid) return;
+
+  try {
+    const { data: convs } = await supa.from('conversations')
+      .select('*')
+      .contains('members', [myUid])
+      .order('last_message_at', { ascending: false });
+
+    if (!convs || convs.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-title">Aucune conversation</div><div class="empty-desc">Ajoute des contacts pour discuter</div></div>';
+      return;
+    }
+
+    let html = '';
+    convs.forEach(conv => {
+      const isGroup = conv.type === 'group';
+      let displayName, displayColor;
+
+      if (isGroup) {
+        displayName = conv.group_name || 'Groupe';
+        displayColor = '#7C5CFC';
+      } else {
+        const otherIds = (conv.members || []).filter(m => m !== myUid);
+        if (otherIds.length === 0) return;
+        const otherId = otherIds[0];
+        const names = conv.member_names || {};
+        const colors = conv.member_colors || {};
+        displayName = names[otherId] || 'Inconnu';
+        displayColor = colors[otherId] || '#7C5CFC';
+      }
+
+      const preview = conv.last_message || 'Nouvelle conversation';
+      const dateStr = formatDate(conv.last_message_at);
+      const initial = isGroup ? '👥' : displayName.charAt(0).toUpperCase();
+
+      html += `
+        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--card);border-radius:12px;margin-bottom:8px;cursor:pointer" onclick="openConversation('${conv.id}')">
+          <div style="width:48px;height:48px;border-radius:50%;background:${displayColor};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:18px;flex-shrink:0">${initial}</div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+              <div style="font-weight:600;font-size:15px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${displayName}</div>
+              <div style="font-size:11px;color:var(--text-tertiary);flex-shrink:0">${dateStr}</div>
+            </div>
+            <div style="font-size:13px;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px">${preview}</div>
+          </div>
+        </div>`;
+    });
+
+    container.innerHTML = html;
+  } catch (err) {
+    console.error('silentRefreshConvList error:', err);
+  }
 }
 
 function formatDate(iso) {
