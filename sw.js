@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zamis-v2.0.2';
+const CACHE_NAME = 'zamis-v2.1.0';
 const ASSETS = [
   './index.html',
   './manifest.json'
