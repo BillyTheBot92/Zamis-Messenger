@@ -703,6 +703,128 @@ body {
 <body>
 
 <!-- ============================================================
+     MODAL: ADD CHILD
+============================================================ -->
+<div class="modal-overlay" id="addChildModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('addChildModal')">×</button>
+    <div class="modal-title">👶 Ajouter un enfant</div>
+    <div class="error-msg" id="addChildError"></div>
+    <div class="form-group">
+      <label class="form-label">Prénom de l'enfant</label>
+      <input type="text" class="form-input" id="childPrenom" placeholder="Prénom">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Pseudo (3-15 car., sans espace)</label>
+      <input type="text" class="form-input" id="childPseudo" placeholder="Pseudo">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Code secret (4 chiffres)</label>
+      <input type="tel" maxlength="4" class="form-input" id="childPin" placeholder="****" style="text-align:center;letter-spacing:8px;font-size:22px" inputmode="numeric">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Couleur avatar</label>
+      <div class="color-picker" id="childColorPicker">
+        <div class="color-dot selected" style="background:#FFB347" data-color="#FFB347"></div>
+        <div class="color-dot" style="background:#FF6B9D" data-color="#FF6B9D"></div>
+        <div class="color-dot" style="background:#7C5CFC" data-color="#7C5CFC"></div>
+        <div class="color-dot" style="background:#4ECB71" data-color="#4ECB71"></div>
+        <div class="color-dot" style="background:#4A90D9" data-color="#4A90D9"></div>
+        <div class="color-dot" style="background:#FF8C42" data-color="#FF8C42"></div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="addChild()">Créer le compte enfant</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     PAGE: CONVERSATIONS LIST (Parent)
+============================================================ -->
+<div class="page" id="parentMessagesPage">
+  <div class="statusbar">
+    <span class="statusbar-brand">Zamis</span>
+    <span id="statusbar-date7"></span>
+  </div>
+  <div class="header header-parent">
+    <button class="header-back" onclick="showPage('parentDashboard')">←</button>
+    <div style="flex:1">
+      <div class="header-title">💬 Messagerie</div>
+      <div class="header-subtitle">Tes conversations</div>
+    </div>
+    <button class="header-action" onclick="openNewConversation()">✏️</button>
+  </div>
+  <div class="dashboard-content" id="parentConvList">
+    <div class="empty-state">
+      <div class="empty-icon">💬</div>
+      <div class="empty-title">Chargement...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     PAGE: CONVERSATION (messages)
+============================================================ -->
+<div class="page" id="conversationPage">
+  <div class="statusbar">
+    <span class="statusbar-brand">Zamis</span>
+    <span id="statusbar-date8"></span>
+  </div>
+  <div class="header header-parent" id="convHeader" style="cursor:pointer" onclick="openConvInfo()">
+    <button class="header-back" onclick="event.stopPropagation();backFromConv()">←</button>
+    <div class="entity-avatar" id="convAvatar" style="width:40px;height:40px;font-size:18px;background:var(--primary)">Z</div>
+    <div style="flex:1">
+      <div class="header-title" id="convName" style="font-size:16px">Conversation</div>
+      <div class="header-subtitle" id="convSubtitle">En ligne</div>
+    </div>
+    <button class="header-action" onclick="event.stopPropagation();openConvMenu()">⋮</button>
+  </div>
+  <div id="messagesArea" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px;background:var(--bg)"></div>
+  <div id="chatInputBar" style="padding:8px;background:var(--bg-2);border-top:1px solid var(--border);display:flex;gap:8px;align-items:center">
+    <input type="text" id="chatInput" placeholder="Écrire un message..." style="flex:1;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:20px;color:var(--text);font-size:14px;font-family:inherit;outline:none" onkeypress="if(event.key==='Enter')sendMessage()">
+    <button onclick="sendMessage()" style="background:var(--primary);border:none;color:white;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer">→</button>
+  </div>
+  <div id="readOnlyBar" style="display:none;padding:12px;background:var(--card);border-top:1px solid var(--border);text-align:center;color:var(--text-secondary);font-size:13px">
+    👁️ Mode lecture seule
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: CONV MENU
+============================================================ -->
+<div class="modal-overlay" id="convMenuModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('convMenuModal')">×</button>
+    <div class="modal-title" id="convMenuTitle">Options</div>
+    <button class="btn btn-secondary" style="margin-bottom:10px" onclick="showConvParticipants()">👥 Voir les participants</button>
+    <button class="btn btn-secondary" style="margin-bottom:10px" onclick="confirmDeleteConversation()">🗑️ Supprimer la conversation</button>
+    <button class="btn btn-danger" onclick="showBlockOptions()">🚫 Bloquer</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: CONV PARTICIPANTS
+============================================================ -->
+<div class="modal-overlay" id="participantsModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('participantsModal')">×</button>
+    <div class="modal-title" id="participantsTitle">Participants</div>
+    <div id="participantsList"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: NEW CONVERSATION
+============================================================ -->
+<div class="modal-overlay" id="newConvModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('newConvModal')">×</button>
+    <div class="modal-title">✏️ Nouvelle conversation</div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">Sélectionne un contact</div>
+    <div id="newConvList"></div>
+  </div>
+</div>
+
+<!-- ============================================================
      SPLASH PAGE
 ============================================================ -->
 <div class="page active" id="splash">
@@ -716,7 +838,7 @@ body {
   </div>
   <div class="splash-title">Zamis Messenger</div>
   <div class="splash-hint">Appuyer sur le Z pour continuer</div>
-  <div class="splash-version">v2.0.0</div>
+  <div class="splash-version">v2.0.1</div>
 </div>
 
 <!-- ============================================================
@@ -888,7 +1010,7 @@ body {
       <div class="header-title">🔐 Espace Adulte</div>
       <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
     </div>
-    <span class="header-version">v2.0.0</span>
+    <span class="header-version">v2.0.1</span>
   </div>
   <div class="dashboard-content">
     <!-- Mes enfants -->
@@ -1026,7 +1148,7 @@ body {
 /* ============================================================
    CONFIG
 ============================================================ */
-const ZAMIS_VERSION = '2.0.0';
+const ZAMIS_VERSION = '2.0.1';
 const SUPABASE_URL = 'https://qsrfghnfqbrvoyefdbtd.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_c4lO9VvCGqn6WvrPjP37lg_-eLlw60s';
 const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1399,14 +1521,14 @@ function prepareParentDashboard() {
   if (!currentUserData) return;
   $('parentWelcome').textContent = 'Bienvenue, ' + currentUserData.pseudo;
   
-  // Vider les sections pour bloc 1
-  $('childrenScroll').innerHTML = buildAddCard('showAddChildBlocked', 'Ajouter');
+  // Charger les données
+  loadChildren();
+  
+  // Sections non implémentées bloc 2
   $('coParentsScroll').innerHTML = buildAddCard('showAddCoParentBlocked', 'Ajouter');
   $('invitesScroll').innerHTML = buildAddCard('showAddAdultBlocked', 'Ajouter');
-  
-  $('childrenCount').textContent = '(0)';
-  $('coParentsCount').textContent = '(0)';
-  $('invitesCount').textContent = '(0)';
+  $('coParentsCount').textContent = '(' + ((currentUserData.co_parents || []).length) + ')';
+  $('invitesCount').textContent = '(' + ((currentUserData.adult_friends || []).length) + ')';
 }
 
 function buildAddCard(onclickFn, label) {
@@ -1416,14 +1538,749 @@ function buildAddCard(onclickFn, label) {
   </div>`;
 }
 
-// Placeholders bloc 1 (à implémenter dans les blocs suivants)
-function showAddChildBlocked() { showToast('Ajout enfant : bloc 2'); }
+// Modal helpers
+function openModal(id) { $(id).classList.add('show'); }
+function closeModal(id) { $(id).classList.remove('show'); }
+
+// Placeholders bloc 3-4 (à implémenter plus tard)
 function showAddCoParentBlocked() { showToast('Ajout co-parent : bloc 3'); }
 function showAddAdultBlocked() { showToast('Ajout adulte : bloc 3'); }
 function openSeeAllModal(type) { showToast('Voir tout : à venir'); }
-function openParentMessages() { showToast('Messages : bloc 2'); }
 function openBlockedList() { showToast('Bloqués : bloc 4'); }
 function openSettings() { showToast('Réglages : à venir'); }
+function showBlockOptions() { showToast('Blocage : bloc 4'); }
+
+// ============================================================
+// ADD CHILD
+// ============================================================
+let selectedChildColor = '#FFB347';
+
+function showAddChildModal() {
+  hideError('addChildError');
+  $('childPrenom').value = '';
+  $('childPseudo').value = '';
+  $('childPin').value = '';
+  selectedChildColor = '#FFB347';
+  document.querySelectorAll('#childColorPicker .color-dot').forEach(d => {
+    d.classList.toggle('selected', d.dataset.color === selectedChildColor);
+  });
+  openModal('addChildModal');
+}
+
+// Placeholder ancien (compatible bloc 1)
+function showAddChildBlocked() { showAddChildModal(); }
+
+// Init color picker listener
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('color-dot') && e.target.parentElement.id === 'childColorPicker') {
+    document.querySelectorAll('#childColorPicker .color-dot').forEach(d => d.classList.remove('selected'));
+    e.target.classList.add('selected');
+    selectedChildColor = e.target.dataset.color;
+  }
+});
+
+async function addChild() {
+  hideError('addChildError');
+  const prenom = $('childPrenom').value.trim();
+  const pseudo = $('childPseudo').value.trim();
+  const pin = $('childPin').value.trim();
+
+  if (!prenom) return showError('addChildError', 'Entre le prénom');
+  const pseudoErr = validatePseudo(pseudo);
+  if (pseudoErr) return showError('addChildError', pseudoErr);
+  if (!/^\d{4}$/.test(pin)) return showError('addChildError', 'Le code secret fait 4 chiffres');
+
+  showLoading();
+  try {
+    // Vérifier pseudo unique
+    const { data: existing } = await supa.from('users').select('uid').eq('pseudo', pseudo).limit(1);
+    if (existing && existing.length > 0) {
+      hideLoading();
+      return showError('addChildError', 'Ce pseudo est déjà pris');
+    }
+
+    // Générer un uid unique
+    const childUid = 'child_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+    const friendCode = generateFriendCode(pseudo);
+    const myCoParents = currentUserData.co_parents || [];
+
+    // Insérer l'enfant
+    const { error: insertErr } = await supa.from('users').insert({
+      uid: childUid,
+      pseudo: pseudo,
+      prenom: prenom,
+      pin: pin,
+      friend_code: friendCode,
+      role: 'child',
+      avatar: '😊',
+      avatar_color: selectedChildColor,
+      parent_id: currentUser.uid,
+      co_parent_ids: myCoParents,
+      children_ids: [],
+      co_parents: [],
+      adult_friends: [],
+      approved_contacts: [],
+      blocked_users: []
+    });
+
+    if (insertErr) {
+      hideLoading();
+      return showError('addChildError', 'DB : ' + insertErr.message);
+    }
+
+    // Ajouter aux childrenIds du parent
+    const newChildrenIds = [...(currentUserData.children_ids || []), childUid];
+    await supa.from('users').update({ children_ids: newChildrenIds }).eq('uid', currentUser.uid);
+    currentUserData.children_ids = newChildrenIds;
+
+    // Ajouter aussi aux co-parents
+    for (const coParentId of myCoParents) {
+      const { data: coParent } = await supa.from('users').select('children_ids').eq('uid', coParentId).single();
+      if (coParent) {
+        const newList = [...(coParent.children_ids || []), childUid];
+        await supa.from('users').update({ children_ids: newList }).eq('uid', coParentId);
+      }
+    }
+
+    // Créer la conversation Parent(s) ↔ Enfant
+    const convMembers = [currentUser.uid, childUid, ...myCoParents];
+    const convMemberNames = { [currentUser.uid]: currentUserData.pseudo, [childUid]: pseudo };
+    const convMemberColors = { [currentUser.uid]: currentUserData.avatar_color || '#7C5CFC', [childUid]: selectedChildColor };
+
+    for (const coParentId of myCoParents) {
+      const { data: cp } = await supa.from('users').select('pseudo,avatar_color').eq('uid', coParentId).single();
+      if (cp) {
+        convMemberNames[coParentId] = cp.pseudo;
+        convMemberColors[coParentId] = cp.avatar_color || '#0F6E56';
+      }
+    }
+
+    const convId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+    await supa.from('conversations').insert({
+      id: convId,
+      type: 'direct',
+      members: convMembers,
+      member_names: convMemberNames,
+      member_colors: convMemberColors,
+      last_message: 'Bienvenue sur Zamis ! 🎉',
+      last_message_at: new Date().toISOString(),
+      created_by: currentUser.uid
+    });
+
+    // Message de bienvenue
+    await supa.from('messages').insert({
+      id: 'msg_' + Date.now(),
+      conversation_id: convId,
+      sender_id: 'system',
+      sender_pseudo: 'Zamis',
+      type: 'text',
+      content: 'Bienvenue sur Zamis Messenger ! 🎉 Discutez ensemble.'
+    });
+
+    hideLoading();
+    closeModal('addChildModal');
+    showToast(pseudo + ' a été ajouté !');
+    loadChildren();
+  } catch (err) {
+    hideLoading();
+    showError('addChildError', err.message);
+  }
+}
+
+// ============================================================
+// LOAD CHILDREN (dashboard parent)
+// ============================================================
+async function loadChildren() {
+  const scroll = $('childrenScroll');
+  if (!scroll) return;
+
+  const directIds = currentUserData.children_ids || [];
+  const allIds = new Set(directIds);
+
+  // Enfants partagés via co-parenting
+  try {
+    const { data: coChildren } = await supa.from('users')
+      .select('uid')
+      .contains('co_parent_ids', [currentUser.uid])
+      .eq('role', 'child');
+    if (coChildren) coChildren.forEach(c => allIds.add(c.uid));
+  } catch (e) {}
+
+  const ids = [...allIds];
+  $('childrenCount').textContent = '(' + ids.length + ')';
+
+  if (ids.length === 0) {
+    scroll.innerHTML = buildAddCard('showAddChildModal', 'Ajouter');
+    return;
+  }
+
+  // Batch fetch
+  const { data: children } = await supa.from('users').select('*').in('uid', ids);
+  if (!children) {
+    scroll.innerHTML = buildAddCard('showAddChildModal', 'Ajouter');
+    return;
+  }
+
+  let html = '';
+  // Limite affichage à 4, reste dans "Voir tout"
+  const displayed = children.slice(0, 4);
+  displayed.forEach(child => {
+    const isDirect = directIds.includes(child.uid);
+    html += `
+      <div class="entity-card" onclick="viewChildAsParent('${child.uid}')">
+        ${isDirect ? `<button class="entity-remove" onclick="event.stopPropagation();confirmDeleteChild('${child.uid}','${escapeQuote(child.pseudo)}')">×</button>` : ''}
+        <div class="entity-avatar" style="background:${child.avatar_color || '#FFB347'}">${child.avatar || child.pseudo.charAt(0).toUpperCase()}</div>
+        <div class="entity-name">${child.pseudo}</div>
+        <div class="entity-sub">${child.friend_code}</div>
+      </div>`;
+  });
+  html += buildAddCard('showAddChildModal', 'Ajouter');
+  scroll.innerHTML = html;
+
+  // Bouton "Voir tout" si plus de 4
+  $('childrenSeeAll').style.display = children.length > 4 ? '' : 'none';
+}
+
+function escapeQuote(s) { return (s || '').replace(/'/g, "\\'"); }
+
+function confirmDeleteChild(childId, pseudo) {
+  const pwd = prompt('Entre le mot de passe de ' + pseudo + ' (4 chiffres) pour confirmer la suppression :');
+  if (!pwd) return;
+  deleteChild(childId, pwd);
+}
+
+async function deleteChild(childId, pin) {
+  showLoading();
+  try {
+    const { data: child } = await supa.from('users').select('*').eq('uid', childId).single();
+    if (!child) { hideLoading(); return showToast('Enfant introuvable'); }
+    if (child.pin !== pin) { hideLoading(); return showToast('Mot de passe incorrect'); }
+
+    // Retirer des childrenIds du parent + co-parents
+    const parentIds = [child.parent_id, ...(child.co_parent_ids || [])].filter(Boolean);
+    for (const pid of parentIds) {
+      const { data: p } = await supa.from('users').select('children_ids').eq('uid', pid).single();
+      if (p) {
+        const newList = (p.children_ids || []).filter(id => id !== childId);
+        await supa.from('users').update({ children_ids: newList }).eq('uid', pid);
+      }
+    }
+
+    // Supprimer les conversations (messages en cascade via FK)
+    const { data: convs } = await supa.from('conversations').select('id').contains('members', [childId]);
+    if (convs) {
+      for (const c of convs) {
+        await supa.from('conversations').delete().eq('id', c.id);
+      }
+    }
+
+    // Supprimer les invitations
+    await supa.from('invitations').delete().or(`from_child_id.eq.${childId},to_child_id.eq.${childId}`);
+
+    // Supprimer le user
+    await supa.from('users').delete().eq('uid', childId);
+
+    // Rafraîchir currentUserData
+    const { data: refreshed } = await supa.from('users').select('*').eq('uid', currentUser.uid).single();
+    if (refreshed) currentUserData = refreshed;
+
+    hideLoading();
+    showToast(child.pseudo + ' supprimé');
+    loadChildren();
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur : ' + err.message);
+  }
+}
+
+// ============================================================
+// VIEW CHILD AS PARENT (mode lecture)
+// ============================================================
+let isParentBrowsingChild = false;
+let parentBackupUser = null;
+let parentBackupData = null;
+
+async function viewChildAsParent(childId) {
+  showLoading();
+  try {
+    const { data: child } = await supa.from('users').select('*').eq('uid', childId).single();
+    if (!child) { hideLoading(); return showToast('Enfant introuvable'); }
+
+    // Sauvegarder l'état parent
+    parentBackupUser = currentUser;
+    parentBackupData = currentUserData;
+    isParentBrowsingChild = true;
+
+    // Passer en mode enfant (lecture seule)
+    currentUser = { uid: child.uid };
+    currentUserData = child;
+
+    hideLoading();
+    prepareChildApp();
+    showPage('childApp');
+    showToast('Mode lecture : ' + child.pseudo);
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur');
+  }
+}
+
+function backToParent() {
+  if (!isParentBrowsingChild) return;
+  currentUser = parentBackupUser;
+  currentUserData = parentBackupData;
+  isParentBrowsingChild = false;
+  parentBackupUser = null;
+  parentBackupData = null;
+  prepareParentDashboard();
+  showPage('parentDashboard');
+  loadChildren();
+}
+
+// ============================================================
+// PARENT MESSAGES PAGE
+// ============================================================
+async function openParentMessages() {
+  showPage('parentMessagesPage');
+  await loadConversationsList('parentConvList');
+}
+
+// ============================================================
+// LOAD CONVERSATIONS (parent OR child)
+// ============================================================
+async function loadConversationsList(containerId) {
+  const container = $(containerId);
+  if (!container) return;
+
+  container.innerHTML = '<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-title">Chargement...</div></div>';
+
+  try {
+    const { data: convs } = await supa.from('conversations')
+      .select('*')
+      .contains('members', [currentUser.uid])
+      .order('last_message_at', { ascending: false });
+
+    if (!convs || convs.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-title">Aucune conversation</div><div class="empty-desc">Ajoute des contacts pour discuter</div></div>';
+      return;
+    }
+
+    let html = '';
+    convs.forEach(conv => {
+      const isGroup = conv.type === 'group';
+      let displayName, displayColor;
+
+      if (isGroup) {
+        displayName = conv.group_name || 'Groupe';
+        displayColor = '#7C5CFC';
+      } else {
+        // Direct : trouver l'autre participant
+        const otherIds = (conv.members || []).filter(m => m !== currentUser.uid);
+        if (otherIds.length === 0) return;
+        const otherId = otherIds[0];
+        const names = conv.member_names || {};
+        const colors = conv.member_colors || {};
+        displayName = names[otherId] || 'Inconnu';
+        displayColor = colors[otherId] || '#7C5CFC';
+      }
+
+      const preview = conv.last_message || 'Nouvelle conversation';
+      const dateStr = formatDate(conv.last_message_at);
+      const initial = isGroup ? '👥' : displayName.charAt(0).toUpperCase();
+
+      html += `
+        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--card);border-radius:12px;margin-bottom:8px;cursor:pointer" onclick="openConversation('${conv.id}')">
+          <div style="width:48px;height:48px;border-radius:50%;background:${displayColor};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:18px;flex-shrink:0">${initial}</div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+              <div style="font-weight:600;font-size:15px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${displayName}</div>
+              <div style="font-size:11px;color:var(--text-tertiary);flex-shrink:0">${dateStr}</div>
+            </div>
+            <div style="font-size:13px;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px">${preview}</div>
+          </div>
+        </div>`;
+    });
+
+    container.innerHTML = html;
+  } catch (err) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Erreur</div><div class="empty-desc">' + err.message + '</div></div>';
+  }
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  if (isToday) {
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  }
+  return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+// ============================================================
+// OPEN CONVERSATION + LOAD MESSAGES + REALTIME
+// ============================================================
+let currentConvId = null;
+let currentConvData = null;
+let realtimeChannel = null;
+
+async function openConversation(convId) {
+  currentConvId = convId;
+
+  try {
+    const { data: conv } = await supa.from('conversations').select('*').eq('id', convId).single();
+    if (!conv) return showToast('Conversation introuvable');
+    currentConvData = conv;
+
+    const isGroup = conv.type === 'group';
+    let displayName, displayColor;
+    if (isGroup) {
+      displayName = conv.group_name || 'Groupe';
+      displayColor = '#7C5CFC';
+    } else {
+      const otherIds = (conv.members || []).filter(m => m !== currentUser.uid);
+      const otherId = otherIds[0];
+      const names = conv.member_names || {};
+      const colors = conv.member_colors || {};
+      displayName = names[otherId] || 'Inconnu';
+      displayColor = colors[otherId] || '#7C5CFC';
+    }
+
+    $('convName').textContent = displayName;
+    $('convSubtitle').textContent = isGroup ? (conv.members.length + ' membres') : 'En ligne';
+    $('convAvatar').textContent = isGroup ? '👥' : displayName.charAt(0).toUpperCase();
+    $('convAvatar').style.background = displayColor;
+
+    // Read only si parent en mode browsing enfant
+    if (isParentBrowsingChild) {
+      $('chatInputBar').style.display = 'none';
+      $('readOnlyBar').style.display = 'block';
+    } else {
+      $('chatInputBar').style.display = 'flex';
+      $('readOnlyBar').style.display = 'none';
+    }
+
+    showPage('conversationPage');
+    await loadMessages(convId);
+    setupRealtimeMessages(convId);
+  } catch (err) {
+    showToast('Erreur : ' + err.message);
+  }
+}
+
+async function loadMessages(convId) {
+  const area = $('messagesArea');
+  area.innerHTML = '';
+
+  try {
+    const { data: messages } = await supa.from('messages')
+      .select('*')
+      .eq('conversation_id', convId)
+      .order('created_at', { ascending: true });
+
+    if (!messages || messages.length === 0) return;
+
+    messages.forEach(msg => renderMessage(msg));
+    scrollMessagesBottom();
+  } catch (err) {
+    console.error('loadMessages error:', err);
+  }
+}
+
+function renderMessage(msg) {
+  const area = $('messagesArea');
+  const isMine = msg.sender_id === currentUser.uid;
+  const isSystem = msg.sender_id === 'system';
+  const conv = currentConvData || {};
+  const memberColors = conv.member_colors || {};
+  const memberNames = conv.member_names || {};
+  const isGroup = conv.type === 'group';
+
+  if (isSystem) {
+    const div = document.createElement('div');
+    div.style.cssText = 'align-self:center;background:var(--card);color:var(--text-secondary);padding:6px 12px;border-radius:12px;font-size:12px;margin:4px 0;text-align:center;max-width:80%';
+    div.textContent = msg.content;
+    area.appendChild(div);
+    return;
+  }
+
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'display:flex;flex-direction:column;max-width:75%;' + (isMine ? 'align-self:flex-end;align-items:flex-end' : 'align-self:flex-start;align-items:flex-start');
+
+  if (!isMine && isGroup) {
+    const senderLabel = document.createElement('div');
+    senderLabel.style.cssText = 'font-size:11px;color:' + (memberColors[msg.sender_id] || 'var(--text-secondary)') + ';margin-left:8px;margin-bottom:2px;font-weight:600';
+    senderLabel.textContent = memberNames[msg.sender_id] || msg.sender_pseudo || 'Inconnu';
+    wrapper.appendChild(senderLabel);
+  }
+
+  const bubble = document.createElement('div');
+  bubble.style.cssText = 'padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.4;word-break:break-word;' +
+    (isMine ? 'background:var(--primary);color:white;border-bottom-right-radius:4px' : 'background:var(--card);color:var(--text);border-bottom-left-radius:4px');
+  bubble.textContent = msg.content;
+  wrapper.appendChild(bubble);
+
+  const time = document.createElement('div');
+  time.style.cssText = 'font-size:10px;color:var(--text-tertiary);margin-top:2px;padding:0 4px';
+  const d = new Date(msg.created_at);
+  time.textContent = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  wrapper.appendChild(time);
+
+  area.appendChild(wrapper);
+}
+
+function scrollMessagesBottom() {
+  const area = $('messagesArea');
+  setTimeout(() => { area.scrollTop = area.scrollHeight; }, 50);
+}
+
+function setupRealtimeMessages(convId) {
+  // Nettoyer l'ancien channel
+  if (realtimeChannel) {
+    supa.removeChannel(realtimeChannel);
+    realtimeChannel = null;
+  }
+
+  realtimeChannel = supa.channel('messages:' + convId)
+    .on('postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'messages', filter: 'conversation_id=eq.' + convId },
+      (payload) => {
+        renderMessage(payload.new);
+        scrollMessagesBottom();
+      }
+    )
+    .subscribe();
+}
+
+async function sendMessage() {
+  const input = $('chatInput');
+  const content = input.value.trim();
+  if (!content) return;
+  if (!currentConvId) return;
+  if (isParentBrowsingChild) return showToast('Mode lecture seule');
+
+  input.value = '';
+
+  try {
+    const msgId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+    await supa.from('messages').insert({
+      id: msgId,
+      conversation_id: currentConvId,
+      sender_id: currentUser.uid,
+      sender_pseudo: currentUserData.pseudo,
+      type: 'text',
+      content: content
+    });
+
+    // Mettre à jour la conversation
+    await supa.from('conversations').update({
+      last_message: content,
+      last_message_at: new Date().toISOString(),
+      last_sender_id: currentUser.uid
+    }).eq('id', currentConvId);
+  } catch (err) {
+    showToast('Erreur envoi : ' + err.message);
+  }
+}
+
+function backFromConv() {
+  // Nettoyer realtime
+  if (realtimeChannel) {
+    supa.removeChannel(realtimeChannel);
+    realtimeChannel = null;
+  }
+  currentConvId = null;
+  currentConvData = null;
+
+  // Retour selon contexte
+  if (isChildSession || isParentBrowsingChild) {
+    showPage('childApp');
+  } else {
+    showPage('parentMessagesPage');
+    loadConversationsList('parentConvList');
+  }
+}
+
+function openConvMenu() { openModal('convMenuModal'); }
+function openConvInfo() { showConvParticipants(); }
+
+async function showConvParticipants() {
+  closeModal('convMenuModal');
+  if (!currentConvData) return;
+
+  const members = currentConvData.members || [];
+  const memberNames = currentConvData.member_names || {};
+  const memberColors = currentConvData.member_colors || {};
+
+  $('participantsTitle').textContent = (currentConvData.type === 'group' ? (currentConvData.group_name || 'Groupe') : 'Participants') + ' (' + members.length + ')';
+
+  let html = '';
+  for (const memberId of members) {
+    const name = memberNames[memberId] || 'Inconnu';
+    const color = memberColors[memberId] || '#7C5CFC';
+    const isSelf = memberId === currentUser.uid;
+    const isCreator = memberId === currentConvData.created_by;
+    html += `
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="width:40px;height:40px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;color:white;font-weight:700">${name.charAt(0).toUpperCase()}</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:600">${name}${isSelf ? ' (toi)' : ''}${isCreator ? ' ⭐' : ''}</div>
+        </div>
+      </div>`;
+  }
+  $('participantsList').innerHTML = html || '<div style="text-align:center;color:var(--text-secondary);padding:20px">Aucun participant</div>';
+  openModal('participantsModal');
+}
+
+async function confirmDeleteConversation() {
+  closeModal('convMenuModal');
+  if (!currentConvId) return;
+  if (!confirm('Supprimer cette conversation et tous ses messages ?')) return;
+
+  showLoading();
+  try {
+    await supa.from('conversations').delete().eq('id', currentConvId);
+    hideLoading();
+    showToast('Conversation supprimée');
+    backFromConv();
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur : ' + err.message);
+  }
+}
+
+// ============================================================
+// NEW CONVERSATION MODAL
+// ============================================================
+async function openNewConversation() {
+  openModal('newConvModal');
+  const list = $('newConvList');
+  list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary)">Chargement...</div>';
+
+  // Charger les contacts disponibles
+  const contactIds = new Set();
+  (currentUserData.children_ids || []).forEach(id => contactIds.add(id));
+  (currentUserData.co_parents || []).forEach(id => contactIds.add(id));
+  (currentUserData.adult_friends || []).forEach(id => contactIds.add(id));
+
+  if (contactIds.size === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:13px">Aucun contact. Ajoute d\'abord un enfant ou un ami.</div>';
+    return;
+  }
+
+  const { data: contacts } = await supa.from('users').select('*').in('uid', [...contactIds]);
+  if (!contacts) {
+    list.innerHTML = '<div style="text-align:center;padding:20px">Erreur</div>';
+    return;
+  }
+
+  let html = '';
+  contacts.forEach(c => {
+    html += `
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="startConvWith('${c.uid}')">
+        <div style="width:40px;height:40px;border-radius:50%;background:${c.avatar_color || '#7C5CFC'};display:flex;align-items:center;justify-content:center;color:white;font-weight:700">${c.pseudo.charAt(0).toUpperCase()}</div>
+        <div style="flex:1;font-size:14px;font-weight:600">${c.pseudo}</div>
+      </div>`;
+  });
+  list.innerHTML = html;
+}
+
+async function startConvWith(otherUid) {
+  closeModal('newConvModal');
+  showLoading();
+
+  try {
+    // Vérifier si conv directe existe déjà
+    const { data: convs } = await supa.from('conversations')
+      .select('*')
+      .eq('type', 'direct')
+      .contains('members', [currentUser.uid]);
+
+    let existing = null;
+    if (convs) {
+      for (const c of convs) {
+        const members = c.members || [];
+        if (members.length === 2 && members.includes(otherUid)) {
+          existing = c;
+          break;
+        }
+      }
+    }
+
+    if (existing) {
+      hideLoading();
+      openConversation(existing.id);
+      return;
+    }
+
+    // Créer la conversation
+    const { data: other } = await supa.from('users').select('*').eq('uid', otherUid).single();
+    if (!other) { hideLoading(); return showToast('Contact introuvable'); }
+
+    const convId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+    await supa.from('conversations').insert({
+      id: convId,
+      type: 'direct',
+      members: [currentUser.uid, otherUid],
+      member_names: { [currentUser.uid]: currentUserData.pseudo, [otherUid]: other.pseudo },
+      member_colors: { [currentUser.uid]: currentUserData.avatar_color || '#7C5CFC', [otherUid]: other.avatar_color || '#7C5CFC' },
+      last_message: 'Conversation créée',
+      last_message_at: new Date().toISOString(),
+      created_by: currentUser.uid
+    });
+
+    hideLoading();
+    openConversation(convId);
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur : ' + err.message);
+  }
+}
+
+// ============================================================
+// CHILD APP TABS (mise à jour)
+// ============================================================
+async function switchChildTab(tab) {
+  currentChildTab = tab;
+
+  document.querySelectorAll('#childApp .nav-item').forEach(n => {
+    n.classList.remove('active');
+    if (n.dataset.page === tab) n.classList.add('active');
+  });
+
+  const titles = {
+    messages: '💬 Messages',
+    contacts: '📇 Contacts',
+    invite: '👋 Inviter',
+    profile: '👤 Profil'
+  };
+  $('childHeaderTitle').textContent = titles[tab] || 'Zamis';
+
+  const content = $('childContent');
+  content.innerHTML = '<div class="empty-state"><div class="empty-icon">⏳</div></div>';
+
+  if (tab === 'messages') {
+    await loadConversationsList('childContent');
+    return;
+  }
+
+  const emptyStates = {
+    contacts: { icon: '📇', title: 'Pas encore de contacts', desc: 'Va dans Inviter pour ajouter' },
+    invite: { icon: '👋', title: 'Inviter un ami', desc: 'Bloc 3 - à venir' },
+    profile: { icon: '👤', title: 'Ton profil', desc: 'Bloc 4 - à venir' }
+  };
+  const s = emptyStates[tab];
+  content.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">${s.icon}</div>
+      <div class="empty-title">${s.title}</div>
+      <div class="empty-desc">${s.desc}</div>
+    </div>`;
+}
+
+function showChildSearch() { showToast('Recherche : bloc 3'); }
+function showNewMessageOptions() { openNewConversation(); }
 
 /* ============================================================
    CHILD APP PREP
@@ -1431,6 +2288,20 @@ function openSettings() { showToast('Réglages : à venir'); }
 function prepareChildApp() {
   if (!currentUserData) return;
   $('childWelcome').textContent = 'Bienvenue, ' + currentUserData.pseudo;
+  
+  // Si parent en mode browsing, afficher un bandeau
+  const header = document.querySelector('#childApp .header');
+  const existingBanner = document.getElementById('parentBrowsingBanner');
+  if (existingBanner) existingBanner.remove();
+  
+  if (isParentBrowsingChild) {
+    const banner = document.createElement('div');
+    banner.id = 'parentBrowsingBanner';
+    banner.style.cssText = 'background:var(--orange);color:white;padding:8px 12px;text-align:center;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:8px';
+    banner.innerHTML = '<span>👁️ Mode lecture : ' + currentUserData.pseudo + '</span><button onclick="backToParent()" style="background:white;color:var(--orange);border:none;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;cursor:pointer">Retour</button>';
+    header.insertAdjacentElement('afterend', banner);
+  }
+  
   switchChildTab('messages');
 }
 
