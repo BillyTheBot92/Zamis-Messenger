@@ -838,7 +838,7 @@ body {
   </div>
   <div class="splash-title">Zamis Messenger</div>
   <div class="splash-hint">Appuyer sur le Z pour continuer</div>
-  <div class="splash-version">v2.0.1</div>
+  <div class="splash-version">v2.0.2</div>
 </div>
 
 <!-- ============================================================
@@ -1010,7 +1010,7 @@ body {
       <div class="header-title">🔐 Espace Adulte</div>
       <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
     </div>
-    <span class="header-version">v2.0.1</span>
+    <span class="header-version">v2.0.2</span>
   </div>
   <div class="dashboard-content">
     <!-- Mes enfants -->
@@ -1148,7 +1148,7 @@ body {
 /* ============================================================
    CONFIG
 ============================================================ */
-const ZAMIS_VERSION = '2.0.1';
+const ZAMIS_VERSION = '2.0.2';
 const SUPABASE_URL = 'https://qsrfghnfqbrvoyefdbtd.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_c4lO9VvCGqn6WvrPjP37lg_-eLlw60s';
 const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1162,6 +1162,20 @@ let currentUser = null;      // Supabase auth user OR child user
 let currentUserData = null;  // Row from users table
 let isChildSession = false;  // true si login enfant (code+pin)
 let currentChildTab = 'messages';
+
+// Helper: retourne le UID courant (marche pour auth Supabase ET enfant)
+function getCurrentUid() {
+  if (!currentUser) return null;
+  return currentUser.uid || currentUser.id || null;
+}
+
+// Helper: normaliser currentUser pour toujours avoir .uid
+function normalizeCurrentUser(user) {
+  if (!user) return null;
+  if (user.uid) return user;
+  if (user.id) return { ...user, uid: user.id };
+  return user;
+}
 
 /* ============================================================
    UTILS
@@ -1276,7 +1290,7 @@ async function checkAutoLogin() {
       const { data: userData } = await supa.from('users').select('*').eq('uid', session.user.id).single();
       if (userData && userData.role === 'parent') {
         splashTarget = 'parentDashboard';
-        currentUser = session.user;
+        currentUser = normalizeCurrentUser(session.user);
         currentUserData = userData;
         prepareParentDashboard();
         splashReady = true;
@@ -1398,7 +1412,7 @@ async function registerParent() {
 
     // Charger les données et rediriger
     const { data: userData } = await supa.from('users').select('*').eq('uid', uid).single();
-    currentUser = authData.user;
+    currentUser = normalizeCurrentUser(authData.user);
     currentUserData = userData;
 
     hideLoading();
@@ -1456,7 +1470,7 @@ async function loginParent() {
       return showError('loginParentError', 'Pseudo ou mot de passe incorrect');
     }
 
-    currentUser = authData.user;
+    currentUser = normalizeCurrentUser(authData.user);
     currentUserData = userData;
     hideLoading();
     prepareParentDashboard();
