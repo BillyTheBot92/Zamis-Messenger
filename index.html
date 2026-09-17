@@ -3177,42 +3177,6 @@ function prepareChildApp() {
   setTimeout(() => { switchChildTab('messages'); }, 100);
 }
 
-function switchChildTab(tab) {
-  currentChildTab = tab;
-  
-  // Update nav
-  document.querySelectorAll('#childApp .nav-item').forEach(n => {
-    n.classList.remove('active');
-    if (n.dataset.page === tab) n.classList.add('active');
-  });
-
-  const titles = {
-    messages: '💬 Messages',
-    contacts: '📇 Contacts',
-    invite: '👋 Inviter',
-    profile: '👤 Profil'
-  };
-  $('childHeaderTitle').textContent = titles[tab] || 'Zamis';
-
-  const emptyStates = {
-    messages: { icon: '💬', title: 'Pas encore de messages', desc: 'Ajoute des amis pour commencer' },
-    contacts: { icon: '📇', title: 'Pas encore de contacts', desc: 'Va dans Inviter pour ajouter' },
-    invite: { icon: '👋', title: 'Inviter un ami', desc: 'Bloc 3 - à venir' },
-    profile: { icon: '👤', title: 'Ton profil', desc: 'Bloc 4 - à venir' }
-  };
-  
-  const s = emptyStates[tab];
-  $('childContent').innerHTML = `
-    <div class="empty-state">
-      <div class="empty-icon">${s.icon}</div>
-      <div class="empty-title">${s.title}</div>
-      <div class="empty-desc">${s.desc}</div>
-    </div>`;
-}
-
-function showChildSearch() { showToast('Recherche : bloc 2'); }
-function showNewMessageOptions() { showToast('Nouveau message : bloc 2'); }
-
 /* ============================================================
    LOGOUT
 ============================================================ */
