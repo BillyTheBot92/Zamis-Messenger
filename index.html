@@ -690,7 +690,7 @@ body {
   </div>
   <div class="splash-title">Zamis Messenger</div>
   <div class="splash-hint">Appuyer sur le Z pour continuer</div>
-  <div class="splash-version">v2.5.2</div>
+  <div class="splash-version">v2.6.0</div>
 </div>
 
 <!-- ============================================================
@@ -814,7 +814,7 @@ body {
       <div class="header-title">🔐 Espace Adulte</div>
       <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
     </div>
-    <span class="header-version">v2.5.2</span>
+    <span class="header-version">v2.6.0</span>
   </div>
   <div class="dashboard-content">
     <div class="section">
@@ -851,9 +851,10 @@ body {
         <div class="section-title">⚡ Actions rapides</div>
       </div>
       <div class="quick-actions">
-        <div class="quick-action" onclick="openParentMessages()">
+        <div class="quick-action" onclick="openParentMessages()" style="position:relative">
           <div class="quick-action-icon">💬</div>
           <div>Messagerie</div>
+          <span id="parentMsgBadge" style="position:absolute;top:6px;right:12px;background:var(--red);color:white;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 5px"></span>
         </div>
         <div class="quick-action" onclick="openParentProfile()">
           <div class="quick-action-icon">👤</div>
@@ -1193,7 +1194,7 @@ body {
 /* ============================================================
    CONFIG + ÉTAT GLOBAL
 ============================================================ */
-const ZAMIS_VERSION = '2.5.2';
+const ZAMIS_VERSION = '2.6.0';
 const SUPABASE_URL = 'https://qsrfghnfqbrvoyefdbtd.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_c4lO9VvCGqn6WvrPjP37lg_-eLlw60s';
 const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1503,8 +1504,162 @@ async function loginUser() {
 }
 
 /* ============================================================
-   LOGOUT
+   UNREAD BADGE (messages non lus)
 ============================================================ */
+async function updateUnreadBadge() {
+  if (!currentUser) return;
+  try {
+    const { data: convs } = await supa.from('conversations').select('id,last_message_at,last_sender_id,last_read_by').contains('members', [currentUser.uid]);
+    if (!convs) return;
+    let total = 0;
+    for (const c of convs) {
+      const lastReadBy = c.last_read_by || {};
+      const myLastRead = lastReadBy[currentUser.uid] || '1970-01-01T00:00:00Z';
+      const lastMsgAt = c.last_message_at || '1970-01-01T00:00:00Z';
+      const lastSender = c.last_sender_id || '';
+      if (lastSender !== currentUser.uid && lastSender !== 'system' && new Date(lastMsgAt) > new Date(myLastRead)) {
+        total++;
+      }
+    }
+    // Mettre à jour les badges visibles
+    document.querySelectorAll('.nav-badge').forEach(b => {
+      if (total > 0) {
+        b.textContent = total > 99 ? '99+' : total;
+        b.style.display = 'flex';
+      } else {
+        b.style.display = 'none';
+      }
+    });
+    // Badge sur le bouton Messagerie du dashboard parent
+    const msgBadge = $('parentMsgBadge');
+    if (msgBadge) {
+      if (total > 0) {
+        msgBadge.textContent = total;
+        msgBadge.style.display = 'flex';
+      } else {
+        msgBadge.style.display = 'none';
+      }
+    }
+  } catch (e) { console.error('updateUnreadBadge:', e); }
+}
+
+async function markConvAsRead(convId) {
+  if (!currentUser || !convId) return;
+  try {
+    const { data: conv } = await supa.from('conversations').select('last_read_by').eq('id', convId).single();
+    if (!conv) return;
+    const lastReadBy = { ...(conv.last_read_by || {}) };
+    lastReadBy[currentUser.uid] = new Date().toISOString();
+    await supa.from('conversations').update({ last_read_by: lastReadBy }).eq('id', convId);
+    updateUnreadBadge();
+  } catch (e) {}
+}
+
+/* ============================================================
+   BLOCAGE
+============================================================ */
+async function blockUser(uid, name) {
+  if (!confirm('Bloquer ' + name + ' ? Vous ne pourrez plus vous envoyer de messages.')) return;
+  showLoading();
+  try {
+    // Ajouter à mes blocked_users
+    const myBlocked = currentUserData.blocked_users || [];
+    if (!myBlocked.includes(uid)) {
+      await supa.from('users').update({ blocked_users: [...myBlocked, uid] }).eq('uid', currentUser.uid);
+    }
+    // Retirer des contacts approuvés (bidirectionnel)
+    const myApproved = (currentUserData.approved_contacts || []).filter(id => id !== uid);
+    await supa.from('users').update({ approved_contacts: myApproved }).eq('uid', currentUser.uid);
+    const { data: theirData } = await supa.from('users').select('approved_contacts').eq('uid', uid).single();
+    if (theirData) {
+      const theirApproved = (theirData.approved_contacts || []).filter(id => id !== currentUser.uid);
+      await supa.from('users').update({ approved_contacts: theirApproved }).eq('uid', uid);
+    }
+    // Retirer des adult_friends (bidirectionnel)
+    const myFriends = (currentUserData.adult_friends || []).filter(id => id !== uid);
+    await supa.from('users').update({ adult_friends: myFriends }).eq('uid', currentUser.uid);
+    const { data: theirFriends } = await supa.from('users').select('adult_friends').eq('uid', uid).single();
+    if (theirFriends) {
+      const tl = (theirFriends.adult_friends || []).filter(id => id !== currentUser.uid);
+      await supa.from('users').update({ adult_friends: tl }).eq('uid', uid);
+    }
+
+    // Notifier le parent si c'est un enfant qui bloque
+    if (currentUserData.role === 'child' && currentUserData.parent_id) {
+      await supa.from('parent_notifications').insert({
+        parent_id: currentUserData.parent_id,
+        child_id: currentUser.uid,
+        type: 'child_blocked_user',
+        data: { blocked_uid: uid, blocked_name: name, child_pseudo: currentUserData.pseudo }
+      });
+    }
+
+    // Refresh
+    const { data: refreshed } = await supa.from('users').select('*').eq('uid', currentUser.uid).single();
+    if (refreshed) currentUserData = refreshed;
+
+    hideLoading();
+    showToast(name + ' bloqué');
+    // Refresh la vue
+    if (currentUserData.role === 'child') await loadContacts('childContent');
+    else { loadFriends(); loadCoParents(); }
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur : ' + err.message);
+  }
+}
+
+async function unblockUser(uid, name) {
+  if (!confirm('Débloquer ' + name + ' ?')) return;
+  showLoading();
+  try {
+    const myBlocked = (currentUserData.blocked_users || []).filter(id => id !== uid);
+    await supa.from('users').update({ blocked_users: myBlocked }).eq('uid', currentUser.uid);
+    const { data: refreshed } = await supa.from('users').select('*').eq('uid', currentUser.uid).single();
+    if (refreshed) currentUserData = refreshed;
+    hideLoading();
+    showToast(name + ' débloqué');
+    renderBlockedList();
+  } catch (err) { hideLoading(); showToast('Erreur'); }
+}
+
+async function openBlockedList() {
+  showPage('parentProfilePage');
+  renderBlockedList();
+}
+
+async function renderBlockedList() {
+  const c = $('parentProfileContent');
+  if (!c) return;
+  const blocked = currentUserData.blocked_users || [];
+  let html = '<div style="font-size:18px;font-weight:700;margin-bottom:16px">🚫 Utilisateurs bloqués</div>';
+  if (blocked.length === 0) {
+    html += '<div class="empty-state"><div class="empty-icon">🚫</div><div class="empty-title">Aucun bloqué</div></div>';
+    html += '<button class="btn btn-secondary" onclick="showPage(\'parentDashboard\')">← Retour</button>';
+    c.innerHTML = html;
+    return;
+  }
+  const { data: users } = await supa.from('users').select('uid,pseudo,avatar_color').in('uid', blocked);
+  if (!users) {
+    html += '<div class="empty-state">Erreur</div>';
+    c.innerHTML = html;
+    return;
+  }
+  users.forEach(u => {
+    html += '<div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--card);border-radius:12px;margin-bottom:8px">' +
+      '<div style="width:40px;height:40px;border-radius:50%;background:' + (u.avatar_color || '#7C5CFC') + ';display:flex;align-items:center;justify-content:center;color:white;font-weight:700">' + u.pseudo.charAt(0).toUpperCase() + '</div>' +
+      '<div style="flex:1;font-weight:600">' + u.pseudo + '</div>' +
+      '<button class="btn btn-secondary" style="width:auto;padding:6px 12px;font-size:12px" onclick="unblockUser(\'' + u.uid + '\',\'' + escapeQuote(u.pseudo) + '\')">Débloquer</button>' +
+      '</div>';
+  });
+  html += '<button class="btn btn-secondary" style="margin-top:16px" onclick="showPage(\'parentDashboard\')">← Retour</button>';
+  c.innerHTML = html;
+}
+
+// Vérifier si un user est bloqué (pour filtrer l'envoi de messages)
+function isBlocked(uid) {
+  return (currentUserData.blocked_users || []).includes(uid);
+}
 async function logout() {
   if (!confirm('Se déconnecter ?')) return;
   try { await supa.auth.signOut(); } catch (e) {}
@@ -1529,6 +1684,7 @@ function prepareParentDashboard() {
   loadFriends();
   loadPendingRequests();
   setupParentRealtime();
+  updateUnreadBadge();
 }
 
 async function loadChildren() {
@@ -1991,14 +2147,10 @@ async function addChild() {
       }
     }
 
-    // Créer conversation parent(s) ↔ enfant
-    const convMembers = [currentUser.uid, childUid, ...myCoParents];
+    // Créer conversation parent ↔ enfant (1-to-1 uniquement)
+    const convMembers = [currentUser.uid, childUid];
     const convNames = { [currentUser.uid]: currentUserData.pseudo, [childUid]: pseudo };
     const convColors = { [currentUser.uid]: currentUserData.avatar_color || '#7C5CFC', [childUid]: selectedChildColor };
-    for (const cpId of myCoParents) {
-      const { data: cp } = await supa.from('users').select('pseudo,avatar_color').eq('uid', cpId).single();
-      if (cp) { convNames[cpId] = cp.pseudo; convColors[cpId] = cp.avatar_color || '#0F6E56'; }
-    }
     const convId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
     await supa.from('conversations').insert({
       id: convId, type: 'direct', members: convMembers,
@@ -2425,7 +2577,7 @@ function prepareChildApp() {
     banner.innerHTML = '<span>👁️ Mode lecture : ' + currentUserData.pseudo + '</span><button onclick="backToParent()" style="background:white;color:var(--orange);border:none;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;cursor:pointer">Retour</button>';
     header.insertAdjacentElement('afterend', banner);
   }
-  setTimeout(() => switchChildTab('messages'), 100);
+  setTimeout(() => { switchChildTab('messages'); updateUnreadBadge(); }, 100);
 }
 
 async function switchChildTab(tab) {
@@ -2668,6 +2820,7 @@ async function refreshConvListIfActive() {
   if (!container) return;
   const parent = container.closest('.page');
   if (!parent || !parent.classList.contains('active')) return;
+  updateUnreadBadge();
   try {
     const { data: convs } = await supa.from('conversations').select('*').contains('members', [currentUser.uid]).order('last_message_at', { ascending: false });
     if (!convs || convs.length === 0) {
@@ -2709,6 +2862,7 @@ async function openConversation(convId) {
     showPage('conversationPage');
     await loadMessages(convId);
     setupRealtimeMessages(convId);
+    markConvAsRead(convId);
   } catch (err) { showToast('Erreur : ' + err.message); }
 }
 
@@ -2781,6 +2935,17 @@ async function sendMessage() {
   if (!content) return;
   if (!currentConvId) return;
   if (isParentBrowsingChild) return showToast('Mode lecture seule');
+
+  // Vérifier si un membre de la conv m'a bloqué ou si je l'ai bloqué
+  if (currentConvData && currentConvData.type === 'direct') {
+    const otherIds = (currentConvData.members || []).filter(m => m !== currentUser.uid);
+    for (const otherId of otherIds) {
+      if (isBlocked(otherId)) return showToast('Tu as bloqué cet utilisateur');
+      const { data: other } = await supa.from('users').select('blocked_users').eq('uid', otherId).single();
+      if (other && (other.blocked_users || []).includes(currentUser.uid)) return showToast('Cet utilisateur t\'a bloqué');
+    }
+  }
+
   input.value = '';
   try {
     const msgId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
@@ -3031,13 +3196,18 @@ async function showConvParticipants() {
   const colors = currentConvData.member_colors || {};
   $('participantsTitle').textContent = 'Participants (' + members.length + ')';
   let html = '';
+  const myBlocked = currentUserData.blocked_users || [];
   members.forEach(id => {
     const name = names[id] || 'Inconnu';
     const color = colors[id] || '#7C5CFC';
     const isSelf = id === currentUser.uid;
+    const blocked = myBlocked.includes(id);
     html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">' +
       '<div style="width:40px;height:40px;border-radius:50%;background:' + color + ';display:flex;align-items:center;justify-content:center;color:white;font-weight:700">' + name.charAt(0).toUpperCase() + '</div>' +
-      '<div style="flex:1"><div style="font-size:14px;font-weight:600">' + name + (isSelf ? ' (toi)' : '') + '</div></div>' +
+      '<div style="flex:1"><div style="font-size:14px;font-weight:600">' + name + (isSelf ? ' (toi)' : '') + (blocked ? ' 🚫' : '') + '</div></div>' +
+      (isSelf ? '' : (blocked
+        ? '<button style="background:var(--green);color:white;border:none;padding:4px 8px;border-radius:8px;font-size:11px;cursor:pointer" onclick="unblockUser(\'' + id + '\',\'' + escapeQuote(name) + '\');closeModal(\'participantsModal\')">Débloquer</button>'
+        : '<button style="background:var(--red);color:white;border:none;padding:4px 8px;border-radius:8px;font-size:11px;cursor:pointer" onclick="blockUser(\'' + id + '\',\'' + escapeQuote(name) + '\');closeModal(\'participantsModal\')">Bloquer</button>')) +
       '</div>';
   });
   $('participantsList').innerHTML = html || '<div style="text-align:center;color:var(--text-secondary);padding:20px">Aucun</div>';
