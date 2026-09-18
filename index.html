@@ -690,7 +690,7 @@ body {
   </div>
   <div class="splash-title">Zamis Messenger</div>
   <div class="splash-hint">Appuyer sur le Z pour continuer</div>
-  <div class="splash-version">v2.5.0</div>
+  <div class="splash-version">v2.5.2</div>
 </div>
 
 <!-- ============================================================
@@ -814,7 +814,7 @@ body {
       <div class="header-title">🔐 Espace Adulte</div>
       <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
     </div>
-    <span class="header-version">v2.5.0</span>
+    <span class="header-version">v2.5.2</span>
   </div>
   <div class="dashboard-content">
     <div class="section">
@@ -1066,11 +1066,11 @@ body {
     <div class="error-msg" id="deleteAccountError"></div>
     <div style="background:rgba(255,76,106,0.1);border:1px solid var(--red);padding:12px;border-radius:12px;margin-bottom:16px;font-size:13px;color:var(--text)">
       <strong>Attention :</strong> cette action est <strong>définitive</strong>.<br><br>
-      Tout sera supprimé :<br>
-      • Ton compte et tes données<br>
-      • Les comptes de tes enfants<br>
-      • Toutes tes conversations et messages<br>
-      • Toutes tes invitations et contacts
+      Sera supprimé :<br>
+      • Ton compte et tes données personnelles<br>
+      • Tes conversations 1-à-1<br>
+      • Tes invitations en attente<br><br>
+      <strong>Tes enfants garderont leur compte</strong> (rattachés au co-parent s'il y en a un, ou promus adulte s'ils sont majeurs).
     </div>
     <div class="form-group">
       <label class="form-label">Confirme avec ton mot de passe</label>
@@ -1193,7 +1193,7 @@ body {
 /* ============================================================
    CONFIG + ÉTAT GLOBAL
 ============================================================ */
-const ZAMIS_VERSION = '2.5.0';
+const ZAMIS_VERSION = '2.5.2';
 const SUPABASE_URL = 'https://qsrfghnfqbrvoyefdbtd.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_c4lO9VvCGqn6WvrPjP37lg_-eLlw60s';
 const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1247,8 +1247,54 @@ function togglePwd(inputId, btn) {
   if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙉'; }
   else { input.type = 'password'; btn.textContent = '🙈'; }
 }
-function openModal(id) { $(id).classList.add('show'); }
-function closeModal(id) { $(id).classList.remove('show'); }
+function openModal(id) {
+  const modal = $(id);
+  if (!modal) return;
+  modal.classList.add('show');
+  // Push state pour que le back du navigateur ferme le modal au lieu de quitter
+  try { history.pushState({ modal: id }, ''); } catch(e) {}
+}
+function closeModal(id) {
+  const modal = $(id);
+  if (!modal) return;
+  modal.classList.remove('show');
+  // Si le state actuel est ce modal, pop pour nettoyer
+  try {
+    if (history.state && history.state.modal === id) history.back();
+  } catch(e) {}
+}
+
+// Backdrop click: fermer le modal quand on clique en dehors
+document.addEventListener('click', function(e) {
+  if (e.target && e.target.classList && e.target.classList.contains('modal-overlay')) {
+    const id = e.target.id;
+    if (id) closeModal(id);
+  }
+});
+
+// Empêcher propagation quand on clique dans le contenu du modal
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.modal').forEach(function(m) {
+    m.addEventListener('click', function(e) { e.stopPropagation(); });
+  });
+});
+// Fallback si DOMContentLoaded déjà passé
+setTimeout(function() {
+  document.querySelectorAll('.modal').forEach(function(m) {
+    m.addEventListener('click', function(e) { e.stopPropagation(); });
+  });
+}, 100);
+
+// Gérer le back navigator: fermer modal ouvert au lieu de naviguer
+window.addEventListener('popstate', function(e) {
+  const openModals = document.querySelectorAll('.modal-overlay.show');
+  if (openModals.length > 0) {
+    // Fermer le dernier modal ouvert
+    openModals[openModals.length - 1].classList.remove('show');
+    // Push state pour rester sur la page
+    try { history.pushState({}, ''); } catch(err) {}
+  }
+});
 function updateStatusBarDate() {
   const now = new Date();
   const jours = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
@@ -1724,11 +1770,10 @@ async function confirmDeleteAccount() {
   hideError('deleteAccountError');
   const pwd = $('deleteAccountPwd').value;
   if (!pwd) return showError('deleteAccountError', 'Entre ton mot de passe');
-  if (!confirm('DERNIER AVERTISSEMENT : ton compte et TOUT sera supprimé. Continuer ?')) return;
 
   showLoading();
   try {
-    // Vérifier password via un signIn temporaire (déjà loggé, mais on re-vérifie)
+    // Vérifier password
     const { error: authErr } = await supa.auth.signInWithPassword({
       email: currentUserData.internal_email, password: pwd
     });
@@ -1736,10 +1781,59 @@ async function confirmDeleteAccount() {
 
     const myUid = currentUser.uid;
 
-    // Récupérer tous les enfants dont je suis parent direct (pas co-parent)
-    const { data: myChildren } = await supa.from('users').select('uid,internal_email').eq('parent_id', myUid).eq('role', 'child');
+    // Récupérer mes enfants directs
+    const { data: myChildren } = await supa.from('users').select('*').eq('parent_id', myUid).eq('role', 'child');
 
-    // Retirer moi des co-parent_ids des enfants où je suis co-parent
+    // Vérifier chaque enfant : s'il n'a pas de co-parent ET est mineur → bloquer
+    const mineurOrphelins = [];
+    if (myChildren) {
+      for (const child of myChildren) {
+        const hasCoParent = (child.co_parent_ids || []).length > 0;
+        const age = calcAge(child.date_naissance);
+        if (!hasCoParent && age !== null && age < 18) {
+          mineurOrphelins.push(child.pseudo);
+        }
+      }
+    }
+    if (mineurOrphelins.length > 0) {
+      hideLoading();
+      return showError('deleteAccountError',
+        'Impossible : ces enfants mineurs seraient sans parent : ' + mineurOrphelins.join(', ') +
+        '. Ajoute d\'abord un co-parent pour eux.');
+    }
+
+    if (!confirm('DERNIER AVERTISSEMENT : ton compte sera supprimé.\n\nTes enfants garderont leur compte et leurs données.\nContinuer ?')) {
+      hideLoading();
+      return;
+    }
+
+    // ===== Traiter les enfants =====
+    if (myChildren) {
+      for (const child of myChildren) {
+        const hasCoParent = (child.co_parent_ids || []).length > 0;
+        const age = calcAge(child.date_naissance);
+        
+        if (hasCoParent) {
+          // Retirer moi comme parent_id, prendre le 1er co-parent
+          const newCoParentIds = (child.co_parent_ids || []).filter(id => id !== myUid);
+          const newParentId = newCoParentIds[0] || null;
+          const remainingCoParents = newCoParentIds.slice(1);
+          await supa.from('users').update({
+            parent_id: newParentId,
+            co_parent_ids: remainingCoParents
+          }).eq('uid', child.uid);
+        } else if (age !== null && age >= 18) {
+          // Majeur sans co-parent → auto-promotion en parent
+          await supa.from('users').update({
+            role: 'parent',
+            parent_id: null,
+            co_parent_ids: []
+          }).eq('uid', child.uid);
+        }
+      }
+    }
+
+    // Retirer moi des co_parent_ids des enfants où je suis co-parent (pas parent direct)
     const { data: coParentChildren } = await supa.from('users').select('uid,co_parent_ids').contains('co_parent_ids', [myUid]).eq('role', 'child');
     if (coParentChildren) {
       for (const c of coParentChildren) {
@@ -1756,7 +1850,8 @@ async function confirmDeleteAccount() {
         await supa.from('users').update({ co_parents: newList }).eq('uid', p.uid);
       }
     }
-    // Idem adult_friends
+
+    // Retirer moi des adult_friends
     const { data: myFriends } = await supa.from('users').select('uid,adult_friends').contains('adult_friends', [myUid]);
     if (myFriends) {
       for (const p of myFriends) {
@@ -1764,7 +1859,8 @@ async function confirmDeleteAccount() {
         await supa.from('users').update({ adult_friends: newList }).eq('uid', p.uid);
       }
     }
-    // Idem approved_contacts
+
+    // Retirer moi des approved_contacts
     const { data: myApproved } = await supa.from('users').select('uid,approved_contacts').contains('approved_contacts', [myUid]);
     if (myApproved) {
       for (const p of myApproved) {
@@ -1773,13 +1869,13 @@ async function confirmDeleteAccount() {
       }
     }
 
-    // Supprimer conversations où je suis (cascade supprime messages)
+    // Conversations où je suis
     const { data: myConvs } = await supa.from('conversations').select('id,members,type').contains('members', [myUid]);
     if (myConvs) {
       for (const c of myConvs) {
-        // Si groupe et d'autres membres, retirer juste moi
         const remaining = (c.members || []).filter(id => id !== myUid);
-        if (c.type === 'group' && remaining.length > 0) {
+        if (remaining.length > 0) {
+          // Retirer juste moi (pour direct 1-to-1, ça laisse l'autre seul mais la conv reste)
           await supa.from('conversations').update({ members: remaining }).eq('id', c.id);
         } else {
           await supa.from('conversations').delete().eq('id', c.id);
@@ -1790,23 +1886,10 @@ async function confirmDeleteAccount() {
     // Supprimer mes invitations
     await supa.from('invitations').delete().eq('parent_approval_id', myUid);
 
-    // Supprimer les enfants (leurs convs et invitations + auth)
-    if (myChildren) {
-      for (const child of myChildren) {
-        // Convs de l'enfant
-        const { data: cConvs } = await supa.from('conversations').select('id').contains('members', [child.uid]);
-        if (cConvs) for (const cc of cConvs) await supa.from('conversations').delete().eq('id', cc.id);
-        // Invitations
-        await supa.from('invitations').delete().or('from_child_id.eq.' + child.uid + ',to_child_id.eq.' + child.uid);
-        // Row user
-        await supa.from('users').delete().eq('uid', child.uid);
-      }
-    }
-
     // Supprimer mon user row
     await supa.from('users').delete().eq('uid', myUid);
 
-    // Supprimer auth user (on ne peut pas depuis anon key, mais signOut vide la session)
+    // Signout
     await supa.auth.signOut();
 
     currentUser = null;
@@ -2379,7 +2462,8 @@ function renderChildProfile() {
       '</div>' +
     '</div>' +
     (isParentBrowsingChild ? '' : '<button class="btn btn-secondary" style="margin-bottom:10px" onclick="openEditProfile()">✏️ Modifier mon profil</button>') +
-    '<button class="btn btn-secondary" onclick="copyMyCode()">📋 Copier mon code Zamis</button>';
+    '<button class="btn btn-secondary" style="margin-bottom:10px" onclick="copyMyCode()">📋 Copier mon code Zamis</button>' +
+    (isParentBrowsingChild ? '' : '<button class="btn btn-danger" onclick="logout()">🚪 Se déconnecter</button>');
 }
 
 function renderInvitePage() {
