@@ -9,7 +9,6 @@
 <title>Zamis Messenger</title>
 <link rel="manifest" href="./manifest.json">
 <style>
-/* ===================== VARIABLES ===================== */
 :root {
   --bg: #0F0F1E;
   --bg-2: #1A1A2E;
@@ -31,9 +30,7 @@
   --gradient-parent: linear-gradient(135deg, #0F6E56 0%, #14A67F 100%);
   --gradient-child: linear-gradient(135deg, #7C5CFC 0%, #A17CFC 100%);
 }
-
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg);
@@ -45,8 +42,6 @@ body {
   overflow: hidden;
   position: relative;
 }
-
-/* ===================== PAGES ===================== */
 .page {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -58,7 +53,7 @@ body {
 }
 .page.active { display: flex; }
 
-/* ===================== SPLASH ===================== */
+/* ===== SPLASH ===== */
 #splash {
   background: var(--gradient-splash);
   align-items: center;
@@ -124,7 +119,7 @@ body {
   color: rgba(255,255,255,0.5);
 }
 
-/* ===================== STATUS BAR ===================== */
+/* ===== STATUS + HEADER ===== */
 .statusbar {
   background: var(--bg-2);
   padding: 8px 16px;
@@ -136,7 +131,6 @@ body {
 }
 .statusbar-brand { font-weight: 700; color: var(--text); }
 
-/* ===================== HEADER ===================== */
 .header {
   padding: 16px;
   display: flex;
@@ -147,6 +141,7 @@ body {
 }
 .header-parent { background: var(--gradient-parent); }
 .header-child { background: var(--gradient-child); }
+.header-neutral { background: var(--gradient-splash); }
 .header-title { font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
 .header-subtitle { font-size: 13px; opacity: 0.85; margin-top: 2px; }
 .header-version { font-size: 12px; opacity: 0.6; }
@@ -172,7 +167,7 @@ body {
   padding: 4px;
 }
 
-/* ===================== BOTTOM NAV ===================== */
+/* ===== BOTTOM NAV ===== */
 .bottomnav {
   position: sticky;
   bottom: 0;
@@ -196,11 +191,8 @@ body {
   font-size: 11px;
   cursor: pointer;
   position: relative;
-  transition: color 0.2s;
 }
 .nav-item.active { color: var(--primary); }
-.nav-item.active-child { color: var(--primary); }
-.nav-item.active-parent { color: var(--secondary-light); }
 .nav-icon { font-size: 22px; }
 .nav-badge {
   position: absolute;
@@ -219,7 +211,7 @@ body {
   padding: 0 5px;
 }
 
-/* ===================== FORMS ===================== */
+/* ===== FORMS ===== */
 .form-container {
   padding: 20px;
   flex: 1;
@@ -241,14 +233,12 @@ body {
   color: var(--text);
   font-size: 15px;
   font-family: inherit;
-  transition: border-color 0.2s;
 }
 .form-input:focus, .form-select:focus {
   outline: none;
   border-color: var(--primary);
 }
 .form-input::placeholder { color: var(--text-tertiary); }
-
 .password-wrapper { position: relative; }
 .password-toggle {
   position: absolute;
@@ -262,7 +252,6 @@ body {
   color: var(--text-secondary);
   padding: 4px;
 }
-
 .btn {
   width: 100%;
   padding: 14px;
@@ -271,8 +260,8 @@ body {
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.1s, opacity 0.2s;
   font-family: inherit;
+  transition: transform 0.1s;
 }
 .btn:active { transform: scale(0.98); }
 .btn-primary { background: var(--primary); color: white; }
@@ -290,7 +279,6 @@ body {
   display: none;
 }
 .error-msg.show { display: block; }
-
 .success-msg {
   background: rgba(78, 203, 113, 0.15);
   color: var(--green);
@@ -301,7 +289,6 @@ body {
   display: none;
 }
 .success-msg.show { display: block; }
-
 .link-btn {
   background: none;
   border: none;
@@ -312,9 +299,9 @@ body {
   padding: 4px;
 }
 
-/* ===================== LOGIN CHOICE ===================== */
-.role-choice {
-  padding: 20px;
+/* ===== HOME (accueil après splash) ===== */
+.home-choice {
+  padding: 32px 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -322,45 +309,44 @@ body {
   justify-content: center;
   flex: 1;
 }
-.role-card {
-  width: 100%;
-  padding: 24px;
-  background: var(--card);
-  border-radius: 20px;
-  cursor: pointer;
-  transition: transform 0.2s;
-  border: 2px solid transparent;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.role-card:active { transform: scale(0.98); }
-.role-card:hover { border-color: var(--primary); }
-.role-icon {
-  width: 60px;
-  height: 60px;
+.home-logo {
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
+  background: var(--gradient-splash);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
-  flex-shrink: 0;
+  font-size: 48px;
+  font-weight: 900;
+  color: white;
+  margin-bottom: 12px;
+  box-shadow: 0 8px 24px rgba(124,92,252,0.4);
 }
-.role-icon-parent { background: var(--gradient-parent); }
-.role-icon-child { background: var(--gradient-child); }
-.role-info { flex: 1; }
-.role-title { font-size: 17px; font-weight: 600; color: var(--text); }
-.role-desc { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+.home-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.home-sub {
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 24px;
+}
+.home-btn {
+  width: 100%;
+  max-width: 320px;
+}
 
-/* ===================== DASHBOARD ===================== */
+/* ===== DASHBOARD ===== */
 .dashboard-content {
   flex: 1;
   padding: 16px;
   padding-bottom: 80px;
 }
-.section {
-  margin-bottom: 24px;
-}
+.section { margin-bottom: 24px; }
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -379,7 +365,6 @@ body {
 .section-count {
   color: var(--text-tertiary);
   font-size: 13px;
-  font-weight: 400;
 }
 .section-see-all {
   background: none;
@@ -389,7 +374,6 @@ body {
   cursor: pointer;
   padding: 4px 8px;
 }
-
 .card-scroll {
   display: flex;
   gap: 10px;
@@ -399,7 +383,6 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 .card-scroll::-webkit-scrollbar { display: none; }
-
 .entity-card {
   min-width: 100px;
   width: 100px;
@@ -413,10 +396,7 @@ body {
   cursor: pointer;
   position: relative;
   scroll-snap-align: start;
-  transition: transform 0.15s;
 }
-.entity-card:active { transform: scale(0.96); }
-
 .entity-avatar {
   width: 54px;
   height: 54px;
@@ -463,7 +443,6 @@ body {
   border: none;
   cursor: pointer;
 }
-
 .add-card {
   min-width: 100px;
   width: 100px;
@@ -477,22 +456,11 @@ body {
   justify-content: center;
   gap: 6px;
   cursor: pointer;
-  scroll-snap-align: start;
-  transition: border-color 0.2s;
   min-height: 108px;
 }
 .add-card:hover { border-color: var(--primary); }
-.add-icon {
-  font-size: 32px;
-  color: var(--text-tertiary);
-  font-weight: 300;
-  line-height: 1;
-}
-.add-text {
-  font-size: 12px;
-  color: var(--text-tertiary);
-}
-
+.add-icon { font-size: 32px; color: var(--text-tertiary); font-weight: 300; line-height: 1; }
+.add-text { font-size: 12px; color: var(--text-tertiary); }
 .pending-section {
   background: var(--card);
   border-radius: 12px;
@@ -505,7 +473,6 @@ body {
   font-size: 13px;
   padding: 8px 0;
 }
-
 .quick-actions {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -522,14 +489,12 @@ body {
   align-items: center;
   gap: 6px;
   cursor: pointer;
-  transition: transform 0.15s;
   color: var(--text);
   font-size: 12px;
 }
-.quick-action:active { transform: scale(0.96); }
 .quick-action-icon { font-size: 22px; }
 
-/* ===================== TOAST ===================== */
+/* ===== TOAST + LOADING ===== */
 #toast {
   position: fixed;
   bottom: 90px;
@@ -547,12 +512,7 @@ body {
   transition: opacity 0.3s, transform 0.3s;
   border: 1px solid var(--border);
 }
-#toast.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-
-/* ===================== LOADING ===================== */
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 #loading {
   position: fixed;
   inset: 0;
@@ -573,7 +533,7 @@ body {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ===================== MODALS ===================== */
+/* ===== MODALS ===== */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -582,11 +542,8 @@ body {
   align-items: flex-end;
   justify-content: center;
   z-index: 5000;
-  animation: fadeIn 0.2s;
 }
 .modal-overlay.show { display: flex; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
 .modal {
   background: var(--bg-2);
   width: 100%;
@@ -599,7 +556,6 @@ body {
   animation: slideUp 0.3s;
 }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
 .modal-close {
   position: absolute;
   top: 12px;
@@ -622,8 +578,6 @@ body {
   padding-right: 30px;
   color: var(--text);
 }
-
-/* ===================== COLOR PICKER ===================== */
 .color-picker {
   display: flex;
   gap: 10px;
@@ -636,36 +590,10 @@ body {
   border-radius: 50%;
   cursor: pointer;
   border: 3px solid transparent;
-  transition: transform 0.15s, border-color 0.2s;
 }
-.color-dot:hover { transform: scale(1.1); }
-.color-dot.selected { border-color: var(--text); transform: scale(1.05); }
+.color-dot.selected { border-color: var(--text); }
 
-/* ===================== PIN INPUT ===================== */
-.pin-container {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin: 20px 0;
-}
-.pin-digit {
-  width: 44px;
-  height: 54px;
-  background: var(--card);
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  text-align: center;
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--text);
-  font-family: inherit;
-}
-.pin-digit:focus {
-  outline: none;
-  border-color: var(--primary);
-}
-
-/* ===================== UPDATE POPUP ===================== */
+/* ===== UPDATE POPUP ===== */
 #updatePopup {
   position: fixed;
   bottom: 20px;
@@ -675,21 +603,15 @@ body {
   color: white;
   padding: 12px 16px;
   border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
   z-index: 99999;
   display: none;
   align-items: center;
   gap: 12px;
   max-width: 90%;
-  animation: slideUpPopup 0.4s ease-out;
 }
 #updatePopup.show { display: flex; }
-@keyframes slideUpPopup {
-  from { transform: translate(-50%, 100px); opacity: 0; }
-  to { transform: translate(-50%, 0); opacity: 1; }
-}
 
-/* ===================== EMPTY STATE ===================== */
+/* ===== EMPTY ===== */
 .empty-state {
   text-align: center;
   padding: 40px 20px;
@@ -698,12 +620,332 @@ body {
 .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
 .empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
 .empty-desc { font-size: 13px; color: var(--text-tertiary); }
+
+/* ===== PROFIL ===== */
+.profile-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.profile-avatar-big {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 32px;
+  font-weight: 700;
+}
+.profile-info { flex: 1; }
+.profile-name { font-size: 18px; font-weight: 700; color: var(--text); }
+.profile-detail { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.profile-code {
+  display: inline-block;
+  background: var(--primary);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 6px;
+}
 </style>
 </head>
 <body>
 
 <!-- ============================================================
-     MODAL: ADD CHILD
+     SPLASH
+============================================================ -->
+<div class="page active" id="splash">
+  <div class="splash-wrapper">
+    <div class="glow-ring"></div>
+    <div class="glow-ring"></div>
+    <div class="glow-ring"></div>
+    <div class="splash-logo" onclick="dismissSplash()"><span>Z</span></div>
+  </div>
+  <div class="splash-title">Zamis Messenger</div>
+  <div class="splash-hint">Appuyer sur le Z pour continuer</div>
+  <div class="splash-version">v2.2.0</div>
+</div>
+
+<!-- ============================================================
+     HOME (accueil : Créer / Se connecter)
+============================================================ -->
+<div class="page" id="homePage">
+  <div class="statusbar">
+    <span class="statusbar-brand">Zamis</span>
+    <span id="statusbar-date"></span>
+  </div>
+  <div class="home-choice">
+    <div class="home-logo">Z</div>
+    <div class="home-title">Bienvenue sur Zamis</div>
+    <div class="home-sub">La messagerie sécurisée<br>pour toute la famille</div>
+    <button class="btn btn-primary home-btn" onclick="showPage('registerPage')">Créer un compte</button>
+    <button class="btn btn-secondary home-btn" onclick="showPage('loginPage')">J'ai déjà un compte</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     REGISTER
+============================================================ -->
+<div class="page" id="registerPage">
+  <div class="statusbar">
+    <span class="statusbar-brand">Zamis</span>
+    <span id="statusbar-date2"></span>
+  </div>
+  <div class="header header-neutral">
+    <button class="header-back" onclick="showPage('homePage')">←</button>
+    <div style="flex:1">
+      <div class="header-title">Inscription</div>
+      <div class="header-subtitle">Réservé aux adultes (18 ans et +)</div>
+    </div>
+  </div>
+  <div class="form-container">
+    <div class="error-msg" id="registerError"></div>
+    <div class="success-msg" id="registerSuccess"></div>
+    <div class="form-group">
+      <label class="form-label">Nom</label>
+      <input type="text" class="form-input" id="regNom" placeholder="Ton nom" autocomplete="family-name">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Prénom</label>
+      <input type="text" class="form-input" id="regPrenom" placeholder="Ton prénom" autocomplete="given-name">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Pseudo (3-15 car., sans espace)</label>
+      <input type="text" class="form-input" id="regPseudo" placeholder="Ton pseudo" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date de naissance</label>
+      <input type="date" class="form-input" id="regBirth">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mot de passe (6 caractères minimum)</label>
+      <div class="password-wrapper">
+        <input type="password" class="form-input" id="regPwd" placeholder="Mot de passe" autocomplete="new-password">
+        <button class="password-toggle" onclick="togglePwd('regPwd', this)" type="button">🙈</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Confirmer le mot de passe</label>
+      <div class="password-wrapper">
+        <input type="password" class="form-input" id="regPwd2" placeholder="Retape le mot de passe" autocomplete="new-password">
+        <button class="password-toggle" onclick="togglePwd('regPwd2', this)" type="button">🙈</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="registerUser()">Créer mon compte</button>
+    <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-secondary)">
+      Tu as moins de 18 ans ? Demande à tes parents de te créer un compte.
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     LOGIN
+============================================================ -->
+<div class="page" id="loginPage">
+  <div class="statusbar">
+    <span class="statusbar-brand">Zamis</span>
+    <span id="statusbar-date3"></span>
+  </div>
+  <div class="header header-neutral">
+    <button class="header-back" onclick="showPage('homePage')">←</button>
+    <div style="flex:1">
+      <div class="header-title">Connexion</div>
+      <div class="header-subtitle">Ton code Zamis + mot de passe</div>
+    </div>
+  </div>
+  <div class="form-container">
+    <div class="error-msg" id="loginError"></div>
+    <div class="form-group">
+      <label class="form-label">Code Zamis</label>
+      <input type="text" class="form-input" id="loginCode" placeholder="pseudo.xxxxx" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mot de passe</label>
+      <div class="password-wrapper">
+        <input type="password" class="form-input" id="loginPwd" placeholder="Ton mot de passe" autocomplete="current-password">
+        <button class="password-toggle" onclick="togglePwd('loginPwd', this)" type="button">🙈</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="loginUser()">Se connecter</button>
+    <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-secondary)">
+      Pas encore de compte ?
+      <button class="link-btn" onclick="showPage('registerPage')">Créer un compte</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     PARENT DASHBOARD
+============================================================ -->
+<div class="page" id="parentDashboard">
+  <div class="statusbar">
+    <span class="statusbar-brand">Zamis</span>
+    <span id="statusbar-date4"></span>
+  </div>
+  <div class="header header-parent">
+    <div style="flex:1">
+      <div class="header-title">🔐 Espace Adulte</div>
+      <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
+    </div>
+    <span class="header-version">v2.2.0</span>
+  </div>
+  <div class="dashboard-content">
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">👶 Mes enfants <span class="section-count" id="childrenCount"></span></div>
+        <button class="section-see-all" id="childrenSeeAll" onclick="openSeeAllModal('children')" style="display:none">Voir tout</button>
+      </div>
+      <div class="card-scroll" id="childrenScroll"></div>
+    </div>
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">🔑 Co-parents <span class="section-count" id="coParentsCount"></span></div>
+        <button class="section-see-all" id="coParentsSeeAll" onclick="openSeeAllModal('coparents')" style="display:none">Voir tout</button>
+      </div>
+      <div class="card-scroll" id="coParentsScroll"></div>
+    </div>
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">💬 Mes amis <span class="section-count" id="friendsCount"></span></div>
+        <button class="section-see-all" id="friendsSeeAll" onclick="openSeeAllModal('friends')" style="display:none">Voir tout</button>
+      </div>
+      <div class="card-scroll" id="friendsScroll"></div>
+    </div>
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title" style="color:var(--red)">🔔 Demandes en attente</div>
+      </div>
+      <div class="pending-section" id="pendingRequests">
+        <div class="pending-empty">Aucune demande en attente</div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">⚡ Actions rapides</div>
+      </div>
+      <div class="quick-actions">
+        <div class="quick-action" onclick="openParentMessages()">
+          <div class="quick-action-icon">💬</div>
+          <div>Messagerie</div>
+        </div>
+        <div class="quick-action" onclick="openParentProfile()">
+          <div class="quick-action-icon">👤</div>
+          <div>Mon profil</div>
+        </div>
+        <div class="quick-action" onclick="logout()">
+          <div class="quick-action-icon">🚪</div>
+          <div>Déconnexion</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     PARENT PROFILE
+============================================================ -->
+<div class="page" id="parentProfilePage">
+  <div class="statusbar">
+    <span class="statusbar-brand">Zamis</span>
+    <span id="statusbar-date5"></span>
+  </div>
+  <div class="header header-parent">
+    <button class="header-back" onclick="showPage('parentDashboard')">←</button>
+    <div style="flex:1">
+      <div class="header-title">👤 Mon profil</div>
+    </div>
+  </div>
+  <div class="dashboard-content" id="parentProfileContent"></div>
+</div>
+
+<!-- ============================================================
+     CHILD APP
+============================================================ -->
+<div class="page" id="childApp">
+  <div class="statusbar">
+    <span class="statusbar-brand">Zamis</span>
+    <span id="statusbar-date6"></span>
+  </div>
+  <div class="header header-child">
+    <div style="flex:1">
+      <div class="header-title" id="childHeaderTitle">💬 Messages</div>
+      <div class="header-subtitle" id="childWelcome">Bienvenue</div>
+    </div>
+    <button class="header-action" onclick="openNewConversation()">✏️</button>
+  </div>
+  <div class="dashboard-content" id="childContent"></div>
+  <div class="bottomnav">
+    <button class="nav-item active" data-page="messages" onclick="switchChildTab('messages')">
+      <span class="nav-icon">💬</span><span>Messages</span>
+    </button>
+    <button class="nav-item" data-page="contacts" onclick="switchChildTab('contacts')">
+      <span class="nav-icon">📇</span><span>Contacts</span>
+    </button>
+    <button class="nav-item" data-page="invite" onclick="switchChildTab('invite')">
+      <span class="nav-icon">👋</span><span>Inviter</span>
+    </button>
+    <button class="nav-item" data-page="profile" onclick="switchChildTab('profile')">
+      <span class="nav-icon">👤</span><span>Profil</span>
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================
+     MESSAGERIE PARENT (liste conv)
+============================================================ -->
+<div class="page" id="parentMessagesPage">
+  <div class="statusbar">
+    <span class="statusbar-brand">Zamis</span>
+    <span id="statusbar-date7"></span>
+  </div>
+  <div class="header header-parent">
+    <button class="header-back" onclick="showPage('parentDashboard')">←</button>
+    <div style="flex:1">
+      <div class="header-title">💬 Messagerie</div>
+      <div class="header-subtitle">Tes conversations</div>
+    </div>
+    <button class="header-action" onclick="openNewConversation()">✏️</button>
+  </div>
+  <div class="dashboard-content" id="parentConvList"></div>
+</div>
+
+<!-- ============================================================
+     CONVERSATION
+============================================================ -->
+<div class="page" id="conversationPage">
+  <div class="statusbar">
+    <span class="statusbar-brand">Zamis</span>
+    <span id="statusbar-date8"></span>
+  </div>
+  <div class="header header-parent" id="convHeader">
+    <button class="header-back" onclick="backFromConv()">←</button>
+    <div class="entity-avatar" id="convAvatar" style="width:40px;height:40px;font-size:18px;background:var(--primary)">Z</div>
+    <div style="flex:1;cursor:pointer" onclick="openConvMenu()">
+      <div class="header-title" id="convName" style="font-size:16px">Conversation</div>
+      <div class="header-subtitle" id="convSubtitle">En ligne</div>
+    </div>
+    <button class="header-action" onclick="openConvMenu()">⋮</button>
+  </div>
+  <div id="messagesArea" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px;background:var(--bg)"></div>
+  <div id="chatInputBar" style="padding:8px;background:var(--bg-2);border-top:1px solid var(--border);display:flex;gap:8px;align-items:center">
+    <input type="text" id="chatInput" placeholder="Écrire un message..." style="flex:1;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:20px;color:var(--text);font-size:14px;font-family:inherit;outline:none" onkeypress="if(event.key==='Enter')sendMessage()">
+    <button onclick="sendMessage()" style="background:var(--primary);border:none;color:white;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer">→</button>
+  </div>
+  <div id="readOnlyBar" style="display:none;padding:12px;background:var(--card);border-top:1px solid var(--border);text-align:center;color:var(--text-secondary);font-size:13px">
+    👁️ Mode lecture seule
+  </div>
+</div>
+
+<!-- ============================================================
+     ADD CHILD MODAL
 ============================================================ -->
 <div class="modal-overlay" id="addChildModal">
   <div class="modal">
@@ -711,7 +953,7 @@ body {
     <div class="modal-title">👶 Ajouter un enfant</div>
     <div class="error-msg" id="addChildError"></div>
     <div class="form-group">
-      <label class="form-label">Prénom de l'enfant</label>
+      <label class="form-label">Prénom</label>
       <input type="text" class="form-input" id="childPrenom" placeholder="Prénom">
     </div>
     <div class="form-group">
@@ -719,8 +961,15 @@ body {
       <input type="text" class="form-input" id="childPseudo" placeholder="Pseudo">
     </div>
     <div class="form-group">
-      <label class="form-label">Code secret (4 chiffres)</label>
-      <input type="tel" maxlength="4" class="form-input" id="childPin" placeholder="****" style="text-align:center;letter-spacing:8px;font-size:22px" inputmode="numeric">
+      <label class="form-label">Date de naissance</label>
+      <input type="date" class="form-input" id="childBirth">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mot de passe (6 caractères minimum)</label>
+      <div class="password-wrapper">
+        <input type="password" class="form-input" id="childPwd" placeholder="Mot de passe">
+        <button class="password-toggle" onclick="togglePwd('childPwd', this)" type="button">🙈</button>
+      </div>
     </div>
     <div class="form-group">
       <label class="form-label">Couleur avatar</label>
@@ -738,72 +987,16 @@ body {
 </div>
 
 <!-- ============================================================
-     PAGE: CONVERSATIONS LIST (Parent)
-============================================================ -->
-<div class="page" id="parentMessagesPage">
-  <div class="statusbar">
-    <span class="statusbar-brand">Zamis</span>
-    <span id="statusbar-date7"></span>
-  </div>
-  <div class="header header-parent">
-    <button class="header-back" onclick="showPage('parentDashboard')">←</button>
-    <div style="flex:1">
-      <div class="header-title">💬 Messagerie</div>
-      <div class="header-subtitle">Tes conversations</div>
-    </div>
-    <button class="header-action" onclick="openNewConversation()">✏️</button>
-  </div>
-  <div class="dashboard-content" id="parentConvList">
-    <div class="empty-state">
-      <div class="empty-icon">💬</div>
-      <div class="empty-title">Chargement...</div>
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================
-     PAGE: CONVERSATION (messages)
-============================================================ -->
-<div class="page" id="conversationPage">
-  <div class="statusbar">
-    <span class="statusbar-brand">Zamis</span>
-    <span id="statusbar-date8"></span>
-  </div>
-  <div class="header header-parent" id="convHeader" style="cursor:pointer" onclick="openConvInfo()">
-    <button class="header-back" onclick="event.stopPropagation();backFromConv()">←</button>
-    <div class="entity-avatar" id="convAvatar" style="width:40px;height:40px;font-size:18px;background:var(--primary)">Z</div>
-    <div style="flex:1">
-      <div class="header-title" id="convName" style="font-size:16px">Conversation</div>
-      <div class="header-subtitle" id="convSubtitle">En ligne</div>
-    </div>
-    <button class="header-action" onclick="event.stopPropagation();openConvMenu()">⋮</button>
-  </div>
-  <div id="messagesArea" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px;background:var(--bg)"></div>
-  <div id="chatInputBar" style="padding:8px;background:var(--bg-2);border-top:1px solid var(--border);display:flex;gap:8px;align-items:center">
-    <input type="text" id="chatInput" placeholder="Écrire un message..." style="flex:1;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:20px;color:var(--text);font-size:14px;font-family:inherit;outline:none" onkeypress="if(event.key==='Enter')sendMessage()">
-    <button onclick="sendMessage()" style="background:var(--primary);border:none;color:white;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer">→</button>
-  </div>
-  <div id="readOnlyBar" style="display:none;padding:12px;background:var(--card);border-top:1px solid var(--border);text-align:center;color:var(--text-secondary);font-size:13px">
-    👁️ Mode lecture seule
-  </div>
-</div>
-
-<!-- ============================================================
-     MODAL: CONV MENU
+     CONV MENU / PARTICIPANTS / NEW CONV
 ============================================================ -->
 <div class="modal-overlay" id="convMenuModal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('convMenuModal')">×</button>
-    <div class="modal-title" id="convMenuTitle">Options</div>
-    <button class="btn btn-secondary" style="margin-bottom:10px" onclick="showConvParticipants()">👥 Voir les participants</button>
-    <button class="btn btn-secondary" style="margin-bottom:10px" onclick="confirmDeleteConversation()">🗑️ Supprimer la conversation</button>
-    <button class="btn btn-danger" onclick="showBlockOptions()">🚫 Bloquer</button>
+    <div class="modal-title">Options</div>
+    <button class="btn btn-secondary" style="margin-bottom:10px" onclick="showConvParticipants()">👥 Participants</button>
+    <button class="btn btn-danger" onclick="confirmDeleteConversation()">🗑️ Supprimer la conversation</button>
   </div>
 </div>
-
-<!-- ============================================================
-     MODAL: CONV PARTICIPANTS
-============================================================ -->
 <div class="modal-overlay" id="participantsModal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('participantsModal')">×</button>
@@ -811,10 +1004,6 @@ body {
     <div id="participantsList"></div>
   </div>
 </div>
-
-<!-- ============================================================
-     MODAL: NEW CONVERSATION
-============================================================ -->
 <div class="modal-overlay" id="newConvModal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('newConvModal')">×</button>
@@ -825,14 +1014,14 @@ body {
 </div>
 
 <!-- ============================================================
-     MODAL: ADD CO-PARENT
+     ADD CO-PARENT / ADULT FRIEND
 ============================================================ -->
 <div class="modal-overlay" id="addCoParentModal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('addCoParentModal')">×</button>
     <div class="modal-title">🔑 Ajouter un co-parent</div>
     <div class="error-msg" id="addCoParentError"></div>
-    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">Entre le code Zamis d'un autre adulte. Vous partagerez la gestion de vos enfants.</div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">Entre le code Zamis d'un autre adulte. Vous partagerez la gestion des enfants.</div>
     <div class="form-group">
       <label class="form-label">Code Zamis</label>
       <input type="text" class="form-input" id="coParentCode" placeholder="pseudo.xxxxx">
@@ -840,426 +1029,65 @@ body {
     <button class="btn btn-primary" onclick="addCoParent()">Ajouter co-parent</button>
   </div>
 </div>
-
-<!-- ============================================================
-     MODAL: ADD ADULT FRIEND
-============================================================ -->
-<div class="modal-overlay" id="addAdultModal">
+<div class="modal-overlay" id="addFriendModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('addAdultModal')">×</button>
-    <div class="modal-title">💬 Ajouter un adulte</div>
-    <div class="error-msg" id="addAdultError"></div>
-    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">Entre le code Zamis d'un autre adulte pour discuter avec lui.</div>
+    <button class="modal-close" onclick="closeModal('addFriendModal')">×</button>
+    <div class="modal-title">💬 Ajouter un ami</div>
+    <div class="error-msg" id="addFriendError"></div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">Entre le code Zamis d'un autre adulte pour discuter.</div>
     <div class="form-group">
       <label class="form-label">Code Zamis</label>
-      <input type="text" class="form-input" id="adultCode" placeholder="pseudo.xxxxx">
+      <input type="text" class="form-input" id="friendCode" placeholder="pseudo.xxxxx">
     </div>
-    <button class="btn btn-primary" onclick="addAdultFriend()">Ajouter</button>
+    <button class="btn btn-primary" onclick="addFriend()">Ajouter</button>
   </div>
 </div>
 
-<!-- ============================================================
-     PAGE: INVITE (child)
-============================================================ -->
-<div class="page" id="invitePage">
-  <div class="statusbar">
-    <span class="statusbar-brand">Zamis</span>
-    <span id="statusbar-date9"></span>
-  </div>
-  <div class="header header-child">
-    <button class="header-back" onclick="showPage('childApp')">←</button>
-    <div style="flex:1">
-      <div class="header-title">👋 Inviter un ami</div>
-      <div class="header-subtitle">Ajoute un Zamis</div>
-    </div>
-  </div>
-  <div class="form-container">
-    <div class="error-msg" id="inviteError"></div>
-    <div class="success-msg" id="inviteSuccess"></div>
-    <div style="background:var(--card);padding:14px;border-radius:12px;margin-bottom:20px">
-      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px">Ton code Zamis</div>
-      <div style="font-size:20px;font-weight:700;color:var(--primary)" id="myFriendCode">-</div>
-      <div style="font-size:11px;color:var(--text-tertiary);margin-top:8px">Partage ce code avec un ami pour qu'il t'ajoute</div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Code Zamis d'un ami</label>
-      <input type="text" class="form-input" id="inviteFriendCode" placeholder="pseudo.xxxxx">
-    </div>
-    <button class="btn btn-primary" onclick="sendFriendRequest()">Envoyer l'invitation</button>
-    <div style="margin-top:24px">
-      <div style="font-size:14px;font-weight:600;margin-bottom:8px">📤 Mes demandes en attente</div>
-      <div id="myPendingRequests"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================
-     SPLASH PAGE
-============================================================ -->
-<div class="page active" id="splash">
-  <div class="splash-wrapper">
-    <div class="glow-ring"></div>
-    <div class="glow-ring"></div>
-    <div class="glow-ring"></div>
-    <div class="splash-logo" onclick="dismissSplash()">
-      <span>Z</span>
-    </div>
-  </div>
-  <div class="splash-title">Zamis Messenger</div>
-  <div class="splash-hint">Appuyer sur le Z pour continuer</div>
-  <div class="splash-version">v2.1.1</div>
-</div>
-
-<!-- ============================================================
-     LOGIN CHOICE (role selection)
-============================================================ -->
-<div class="page" id="loginChoice">
-  <div class="statusbar">
-    <span class="statusbar-brand">Zamis</span>
-    <span id="statusbar-date"></span>
-  </div>
-  <div class="header header-parent">
-    <div>
-      <div class="header-title">🔐 Connexion</div>
-      <div class="header-subtitle">Choisis ton espace</div>
-    </div>
-  </div>
-  <div class="role-choice">
-    <div class="role-card" onclick="showPage('loginParentPage')">
-      <div class="role-icon role-icon-parent">👨‍👩‍👧</div>
-      <div class="role-info">
-        <div class="role-title">Espace Adulte</div>
-        <div class="role-desc">Parents et responsables</div>
-      </div>
-    </div>
-    <div class="role-card" onclick="showPage('loginChildPage')">
-      <div class="role-icon role-icon-child">😊</div>
-      <div class="role-info">
-        <div class="role-title">Espace Enfant</div>
-        <div class="role-desc">Se connecter avec son code Zamis</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================
-     LOGIN PARENT
-============================================================ -->
-<div class="page" id="loginParentPage">
-  <div class="statusbar">
-    <span class="statusbar-brand">Zamis</span>
-    <span id="statusbar-date2"></span>
-  </div>
-  <div class="header header-parent">
-    <button class="header-back" onclick="showPage('loginChoice')">←</button>
-    <div style="flex:1">
-      <div class="header-title">Espace Adulte</div>
-      <div class="header-subtitle">Se connecter</div>
-    </div>
-  </div>
-  <div class="form-container">
-    <div class="error-msg" id="loginParentError"></div>
-    <div class="form-group">
-      <label class="form-label">Pseudo ou Code Zamis</label>
-      <input type="text" class="form-input" id="loginParentPseudo" placeholder="Ton pseudo" autocomplete="username">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Mot de passe</label>
-      <div class="password-wrapper">
-        <input type="password" class="form-input" id="loginParentPwd" placeholder="Ton mot de passe" autocomplete="current-password">
-        <button class="password-toggle" onclick="togglePwd('loginParentPwd', this)" type="button">🙈</button>
-      </div>
-    </div>
-    <button class="btn btn-primary" onclick="loginParent()">Se connecter</button>
-    <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-secondary)">
-      Pas encore de compte ?
-      <button class="link-btn" onclick="showPage('registerParentPage')">Créer un compte</button>
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================
-     REGISTER PARENT
-============================================================ -->
-<div class="page" id="registerParentPage">
-  <div class="statusbar">
-    <span class="statusbar-brand">Zamis</span>
-    <span id="statusbar-date3"></span>
-  </div>
-  <div class="header header-parent">
-    <button class="header-back" onclick="showPage('loginParentPage')">←</button>
-    <div style="flex:1">
-      <div class="header-title">Inscription Adulte</div>
-      <div class="header-subtitle">Créer un compte</div>
-    </div>
-  </div>
-  <div class="form-container">
-    <div class="error-msg" id="registerParentError"></div>
-    <div class="success-msg" id="registerParentSuccess"></div>
-    <div class="form-group">
-      <label class="form-label">Nom</label>
-      <input type="text" class="form-input" id="registerNom" placeholder="Ton nom" autocomplete="family-name">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Prénom</label>
-      <input type="text" class="form-input" id="registerPrenom" placeholder="Ton prénom" autocomplete="given-name">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Pseudo (3-15 car., sans espace)</label>
-      <input type="text" class="form-input" id="registerPseudo" placeholder="Ton pseudo" autocomplete="username">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Date de naissance</label>
-      <input type="date" class="form-input" id="registerBirth">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Mot de passe (6-20 car., lettres/chiffres)</label>
-      <div class="password-wrapper">
-        <input type="password" class="form-input" id="registerPwd" placeholder="Mot de passe" autocomplete="new-password">
-        <button class="password-toggle" onclick="togglePwd('registerPwd', this)" type="button">🙈</button>
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Confirmer le mot de passe</label>
-      <div class="password-wrapper">
-        <input type="password" class="form-input" id="registerPwd2" placeholder="Retape le mot de passe" autocomplete="new-password">
-        <button class="password-toggle" onclick="togglePwd('registerPwd2', this)" type="button">🙈</button>
-      </div>
-    </div>
-    <button class="btn btn-primary" onclick="registerParent()">Créer mon compte</button>
-    <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-secondary)">
-      Déjà un compte ?
-      <button class="link-btn" onclick="showPage('loginParentPage')">Se connecter</button>
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================
-     LOGIN CHILD
-============================================================ -->
-<div class="page" id="loginChildPage">
-  <div class="statusbar">
-    <span class="statusbar-brand">Zamis</span>
-    <span id="statusbar-date4"></span>
-  </div>
-  <div class="header header-child">
-    <button class="header-back" onclick="showPage('loginChoice')">←</button>
-    <div style="flex:1">
-      <div class="header-title">Espace Enfant</div>
-      <div class="header-subtitle">Ton code + ton code secret</div>
-    </div>
-  </div>
-  <div class="form-container">
-    <div class="error-msg" id="loginChildError"></div>
-    <div class="form-group">
-      <label class="form-label">Ton code Zamis</label>
-      <input type="text" class="form-input" id="loginChildCode" placeholder="pseudo.xxxxx" autocomplete="username">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Ton code secret (4 chiffres)</label>
-      <input type="tel" maxlength="4" class="form-input" id="loginChildPin" placeholder="****" style="text-align:center;letter-spacing:8px;font-size:22px" inputmode="numeric" autocomplete="current-password">
-    </div>
-    <button class="btn btn-primary" onclick="loginChild()">Entrer</button>
-    <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-secondary)">
-      Ton compte est créé par tes parents.
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================
-     PARENT DASHBOARD
-============================================================ -->
-<div class="page" id="parentDashboard">
-  <div class="statusbar">
-    <span class="statusbar-brand">Zamis</span>
-    <span id="statusbar-date5"></span>
-  </div>
-  <div class="header header-parent">
-    <div style="flex:1">
-      <div class="header-title">🔐 Espace Adulte</div>
-      <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
-    </div>
-    <span class="header-version">v2.1.1</span>
-  </div>
-  <div class="dashboard-content">
-    <!-- Mes enfants -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-title">👶 Mes enfants <span class="section-count" id="childrenCount"></span></div>
-        <button class="section-see-all" id="childrenSeeAll" onclick="openSeeAllModal('children')" style="display:none">Voir tout</button>
-      </div>
-      <div class="card-scroll" id="childrenScroll"></div>
-    </div>
-
-    <!-- Co-parents -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-title">🔑 Co-parents <span class="section-count" id="coParentsCount"></span></div>
-        <button class="section-see-all" id="coParentsSeeAll" onclick="openSeeAllModal('coparents')" style="display:none">Voir tout</button>
-      </div>
-      <div class="card-scroll" id="coParentsScroll"></div>
-    </div>
-
-    <!-- Invités -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-title">💬 Invités <span class="section-count" id="invitesCount"></span></div>
-        <button class="section-see-all" id="invitesSeeAll" onclick="openSeeAllModal('invites')" style="display:none">Voir tout</button>
-      </div>
-      <div class="card-scroll" id="invitesScroll"></div>
-    </div>
-
-    <!-- Demandes en attente -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-title" style="color:var(--red)">🔔 Demandes en attente</div>
-      </div>
-      <div class="pending-section" id="pendingRequests">
-        <div class="pending-empty">Aucune demande en attente</div>
-      </div>
-    </div>
-
-    <!-- Actions rapides -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-title">⚡ Actions rapides</div>
-      </div>
-      <div class="quick-actions">
-        <div class="quick-action" onclick="openParentMessages()">
-          <div class="quick-action-icon">💬</div>
-          <div>Messagerie</div>
-        </div>
-        <div class="quick-action" onclick="openBlockedList()">
-          <div class="quick-action-icon">🚫</div>
-          <div>Bloqués</div>
-        </div>
-        <div class="quick-action" onclick="openSettings()">
-          <div class="quick-action-icon">⚙️</div>
-          <div>Réglages</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================
-     CHILD APP (main container)
-============================================================ -->
-<div class="page" id="childApp">
-  <div class="statusbar">
-    <span class="statusbar-brand">Zamis</span>
-    <span id="statusbar-date6"></span>
-  </div>
-  <div class="header header-child">
-    <div style="flex:1">
-      <div class="header-title" id="childHeaderTitle">💬 Messages</div>
-      <div class="header-subtitle" id="childWelcome">Bienvenue</div>
-    </div>
-    <button class="header-action" onclick="showChildSearch()">🔍</button>
-    <button class="header-action" onclick="showNewMessageOptions()">✏️</button>
-  </div>
-  <div class="dashboard-content" id="childContent">
-    <div class="empty-state">
-      <div class="empty-icon">💬</div>
-      <div class="empty-title">Pas encore de messages</div>
-      <div class="empty-desc">Ajoute des amis pour commencer</div>
-    </div>
-  </div>
-
-  <div class="bottomnav">
-    <button class="nav-item active active-child" data-page="messages" onclick="switchChildTab('messages')">
-      <span class="nav-icon">💬</span>
-      <span>Messages</span>
-      <span class="nav-badge" id="messagesBadge">0</span>
-    </button>
-    <button class="nav-item" data-page="contacts" onclick="switchChildTab('contacts')">
-      <span class="nav-icon">📇</span>
-      <span>Contacts</span>
-    </button>
-    <button class="nav-item" data-page="invite" onclick="switchChildTab('invite')">
-      <span class="nav-icon">👋</span>
-      <span>Inviter</span>
-    </button>
-    <button class="nav-item" data-page="profile" onclick="switchChildTab('profile')">
-      <span class="nav-icon">👤</span>
-      <span>Profil</span>
-    </button>
-  </div>
-</div>
-
-<!-- ============================================================
-     TOAST + LOADING
-============================================================ -->
+<!-- TOAST + LOADING + UPDATE -->
 <div id="toast"></div>
 <div id="loading"><div class="spinner"></div></div>
-
-<!-- ============================================================
-     UPDATE POPUP
-============================================================ -->
 <div id="updatePopup">
   <div style="font-size:22px">🎉</div>
   <div style="flex:1">
-    <div style="font-weight:600;font-size:13px;margin-bottom:2px">Nouvelle version disponible</div>
+    <div style="font-weight:600;font-size:13px">Nouvelle version disponible</div>
     <div style="font-size:11px;opacity:0.9">Cliquez pour mettre à jour</div>
   </div>
   <button onclick="applyUpdate()" style="background:white;color:var(--primary);border:none;padding:6px 14px;border-radius:20px;font-weight:600;font-size:12px;cursor:pointer">Mettre à jour</button>
   <button onclick="document.getElementById('updatePopup').classList.remove('show')" style="background:transparent;color:white;border:none;font-size:18px;cursor:pointer;padding:0 4px;opacity:0.7">×</button>
 </div>
 
-<!-- ============================================================
-     SUPABASE SDK
-============================================================ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
 'use strict';
 
 /* ============================================================
-   CONFIG
+   CONFIG + ÉTAT GLOBAL
 ============================================================ */
-const ZAMIS_VERSION = '2.1.1';
+const ZAMIS_VERSION = '2.2.0';
 const SUPABASE_URL = 'https://qsrfghnfqbrvoyefdbtd.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_c4lO9VvCGqn6WvrPjP37lg_-eLlw60s';
 const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 console.log('Zamis v' + ZAMIS_VERSION + ' | Backend: Supabase');
 
-/* ============================================================
-   ÉTAT GLOBAL
-============================================================ */
-let currentUser = null;      // Supabase auth user OR child user
+let currentUser = null;      // {uid, ...} unifié (parent OU enfant)
 let currentUserData = null;  // Row from users table
-let isChildSession = false;  // true si login enfant (code+pin)
+let isParentBrowsingChild = false;
+let parentBackupUser = null;
+let parentBackupData = null;
 let currentChildTab = 'messages';
-
-// Helper: retourne le UID courant (marche pour auth Supabase ET enfant)
-function getCurrentUid() {
-  if (!currentUser) return null;
-  return currentUser.uid || currentUser.id || null;
-}
-
-// Helper: normaliser currentUser pour toujours avoir .uid
-function normalizeCurrentUser(user) {
-  if (!user) return null;
-  if (user.uid) return user;
-  if (user.id) return { ...user, uid: user.id };
-  return user;
-}
 
 /* ============================================================
    UTILS
 ============================================================ */
 function $(id) { return document.getElementById(id); }
-
 function showPage(pageId) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const page = $(pageId);
   if (page) page.classList.add('active');
 }
-
 function showLoading() { $('loading').classList.add('show'); }
 function hideLoading() { $('loading').classList.remove('show'); }
-
 let toastTimer = null;
 function showToast(msg) {
   const toast = $('toast');
@@ -1268,7 +1096,6 @@ function showToast(msg) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
 }
-
 function showError(id, msg) {
   const el = $(id);
   if (!el) return;
@@ -1285,18 +1112,13 @@ function showSuccess(id, msg) {
   el.textContent = msg;
   el.classList.add('show');
 }
-
 function togglePwd(inputId, btn) {
   const input = $(inputId);
-  if (input.type === 'password') {
-    input.type = 'text';
-    btn.textContent = '🙉';
-  } else {
-    input.type = 'password';
-    btn.textContent = '🙈';
-  }
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙉'; }
+  else { input.type = 'password'; btn.textContent = '🙈'; }
 }
-
+function openModal(id) { $(id).classList.add('show'); }
+function closeModal(id) { $(id).classList.remove('show'); }
 function updateStatusBarDate() {
   const now = new Date();
   const jours = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
@@ -1304,9 +1126,42 @@ function updateStatusBarDate() {
   const d = String(now.getDate()).padStart(2, '0');
   const m = String(now.getMonth() + 1).padStart(2, '0');
   const dateStr = j + ' ' + d + '/' + m;
-  document.querySelectorAll('[id^="statusbar-date"]').forEach(el => {
-    el.textContent = dateStr;
-  });
+  document.querySelectorAll('[id^="statusbar-date"]').forEach(el => { el.textContent = dateStr; });
+}
+function escapeQuote(s) { return (s || '').replace(/'/g, "\\'"); }
+function calcAge(birthStr) {
+  if (!birthStr) return null;
+  const b = new Date(birthStr);
+  const t = new Date();
+  let age = t.getFullYear() - b.getFullYear();
+  const m = t.getMonth() - b.getMonth();
+  if (m < 0 || (m === 0 && t.getDate() < b.getDate())) age--;
+  return age;
+}
+function formatBirthFr(birthStr) {
+  if (!birthStr) return '';
+  const d = new Date(birthStr);
+  const mois = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+  return d.getDate() + ' ' + mois[d.getMonth()] + ' ' + d.getFullYear();
+}
+function membreDepuis(createdAt) {
+  if (!createdAt) return '';
+  const c = new Date(createdAt);
+  const t = new Date();
+  const monthDiff = (t.getFullYear() - c.getFullYear()) * 12 + (t.getMonth() - c.getMonth());
+  if (monthDiff < 1) return 'Membre depuis moins d\'un mois';
+  if (monthDiff === 1) return 'Membre depuis 1 mois';
+  if (monthDiff < 12) return 'Membre depuis ' + monthDiff + ' mois';
+  const years = Math.floor(monthDiff / 12);
+  return 'Membre depuis ' + years + ' an' + (years > 1 ? 's' : '');
+}
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  if (isToday) return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
 }
 
 /* ============================================================
@@ -1322,9 +1177,8 @@ function validatePseudo(pseudo) {
 }
 function validatePassword(pwd) {
   if (!pwd) return 'Entre un mot de passe';
-  if (pwd.length < 6) return 'Mot de passe trop court (min 6)';
-  if (pwd.length > 20) return 'Mot de passe trop long (max 20)';
-  if (!/[a-zA-Z]/.test(pwd) || !/[0-9]/.test(pwd)) return 'Lettres ET chiffres requis';
+  if (pwd.length < 6) return 'Mot de passe trop court (min 6 caractères)';
+  if (pwd.length > 30) return 'Mot de passe trop long (max 30)';
   return null;
 }
 function generateFriendCode(pseudo) {
@@ -1332,985 +1186,319 @@ function generateFriendCode(pseudo) {
   const random = Math.random().toString(36).substring(2, 7);
   return clean + '.' + random;
 }
-
-/* ============================================================
-   SPLASH
-============================================================ */
-let splashReady = false;
-let splashTarget = 'loginChoice';
-
-async function dismissSplash() {
-  if (!splashReady) {
-    setTimeout(dismissSplash, 100);
-    return;
-  }
-  showPage(splashTarget);
-  
-  // Préparer les données APRÈS l'affichage de la page (sinon les containers ne sont pas actifs)
-  if (splashTarget === 'parentDashboard') {
-    setTimeout(() => prepareParentDashboard(), 50);
-  } else if (splashTarget === 'childApp') {
-    setTimeout(() => prepareChildApp(), 50);
-  }
+function generateInternalEmail(pseudo) {
+  const clean = pseudo.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const random = Math.random().toString(36).substring(2, 8);
+  return clean + '.' + random + '@zamis.app';
 }
 
 /* ============================================================
-   AUTO-LOGIN au démarrage
+   SPLASH + AUTO-LOGIN
 ============================================================ */
+let splashReady = false;
+let splashTarget = 'homePage';
+
+async function dismissSplash() {
+  if (!splashReady) { setTimeout(dismissSplash, 100); return; }
+  showPage(splashTarget);
+  if (splashTarget === 'parentDashboard') setTimeout(prepareParentDashboard, 50);
+  else if (splashTarget === 'childApp') setTimeout(prepareChildApp, 50);
+}
+
 async function checkAutoLogin() {
   try {
     const { data: { session } } = await supa.auth.getSession();
     if (session && session.user) {
       const { data: userData } = await supa.from('users').select('*').eq('uid', session.user.id).single();
-      if (userData && userData.role === 'parent') {
-        splashTarget = 'parentDashboard';
-        currentUser = normalizeCurrentUser(session.user);
+      if (userData) {
+        currentUser = { uid: session.user.id };
         currentUserData = userData;
+        splashTarget = (userData.role === 'parent') ? 'parentDashboard' : 'childApp';
         splashReady = true;
         return;
       }
     }
-  } catch (e) {
-    console.log('Auto-login parent skip:', e.message);
-  }
-
-  try {
-    const code = localStorage.getItem('zamis-child-code');
-    const pin = localStorage.getItem('zamis-child-pin');
-    if (code && pin) {
-      const { data: users } = await supa.from('users')
-        .select('*')
-        .eq('friend_code', code)
-        .eq('role', 'child')
-        .limit(1);
-      if (users && users.length > 0 && users[0].pin === pin) {
-        splashTarget = 'childApp';
-        currentUser = { uid: users[0].uid };
-        currentUserData = users[0];
-        isChildSession = true;
-        splashReady = true;
-        return;
-      }
-    }
-  } catch (e) {
-    console.log('Auto-login child skip:', e.message);
-  }
-
-  splashTarget = 'loginChoice';
+  } catch (e) { console.log('Auto-login skip:', e.message); }
+  splashTarget = 'homePage';
   splashReady = true;
 }
 
 /* ============================================================
-   REGISTER PARENT
+   REGISTER (unifié adulte uniquement)
 ============================================================ */
-async function registerParent() {
-  hideError('registerParentError');
-  const nom = $('registerNom').value.trim();
-  const prenom = $('registerPrenom').value.trim();
-  const pseudo = $('registerPseudo').value.trim();
-  const birth = $('registerBirth').value;
-  const pwd = $('registerPwd').value;
-  const pwd2 = $('registerPwd2').value;
+async function registerUser() {
+  hideError('registerError');
+  const nom = $('regNom').value.trim();
+  const prenom = $('regPrenom').value.trim();
+  const pseudo = $('regPseudo').value.trim();
+  const birth = $('regBirth').value;
+  const pwd = $('regPwd').value;
+  const pwd2 = $('regPwd2').value;
 
-  if (!nom) return showError('registerParentError', 'Entre ton nom');
-  if (!prenom) return showError('registerParentError', 'Entre ton prénom');
-  const pseudoErr = validatePseudo(pseudo);
-  if (pseudoErr) return showError('registerParentError', pseudoErr);
-  if (!birth) return showError('registerParentError', 'Entre ta date de naissance');
-  const pwdErr = validatePassword(pwd);
-  if (pwdErr) return showError('registerParentError', pwdErr);
-  if (pwd !== pwd2) return showError('registerParentError', 'Les mots de passe ne correspondent pas');
+  if (!nom) return showError('registerError', 'Entre ton nom');
+  if (!prenom) return showError('registerError', 'Entre ton prénom');
+  const pErr = validatePseudo(pseudo);
+  if (pErr) return showError('registerError', pErr);
+  if (!birth) return showError('registerError', 'Entre ta date de naissance');
+  const age = calcAge(birth);
+  if (age === null) return showError('registerError', 'Date de naissance invalide');
+  if (age < 18) return showError('registerError', 'Tu dois avoir 18 ans. Demande à tes parents de te créer un compte.');
+  const wErr = validatePassword(pwd);
+  if (wErr) return showError('registerError', wErr);
+  if (pwd !== pwd2) return showError('registerError', 'Les mots de passe ne correspondent pas');
 
-  // Vérif âge ≥ 18 ans
-  const birthDate = new Date(birth);
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const m = today.getMonth() - birthDate.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
-  if (age < 18) return showError('registerParentError', 'Tu dois avoir 18 ans');
-
-  if (!confirm('Tu confirmes avoir plus de 18 ans.\n\nTu es responsable de ce compte et des comptes enfants que tu gères.\n\nConfirmer ?')) return;
+  if (!confirm('Tu confirmes avoir plus de 18 ans.\n\nTu es responsable de ce compte et des comptes enfants que tu vas créer.\n\nConfirmer ?')) return;
 
   showLoading();
   try {
-    // Vérifier pseudo unique
-    const { data: existingPseudo } = await supa.from('users').select('uid').eq('pseudo', pseudo).limit(1);
-    if (existingPseudo && existingPseudo.length > 0) {
+    const { data: existing } = await supa.from('users').select('uid').eq('pseudo', pseudo).limit(1);
+    if (existing && existing.length > 0) {
       hideLoading();
-      return showError('registerParentError', 'Ce pseudo est déjà pris');
+      return showError('registerError', 'Ce pseudo est déjà pris');
     }
 
-    const cleanPseudo = pseudo.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const randomSuffix = Math.random().toString(36).substring(2, 8);
-    const autoEmail = cleanPseudo + '.' + randomSuffix + '@zamis.app';
+    const email = generateInternalEmail(pseudo);
     const friendCode = generateFriendCode(pseudo);
 
-    // Créer compte Supabase Auth
-    const { data: authData, error: authErr } = await supa.auth.signUp({
-      email: autoEmail,
-      password: pwd
-    });
-    if (authErr) {
-      hideLoading();
-      return showError('registerParentError', authErr.message);
-    }
+    const { data: authData, error: authErr } = await supa.auth.signUp({ email, password: pwd });
+    if (authErr) { hideLoading(); return showError('registerError', authErr.message); }
 
     const uid = authData.user.id;
-
-    // Créer row users
     const { error: insertErr } = await supa.from('users').insert({
-      uid: uid,
-      pseudo: pseudo,
-      nom: nom,
-      prenom: prenom,
-      date_naissance: birth,
-      internal_email: autoEmail,
-      friend_code: friendCode,
-      role: 'parent',
-      avatar: '😊',
-      avatar_color: '#7C5CFC',
-      children_ids: [],
-      co_parents: [],
-      co_parent_ids: [],
-      adult_friends: [],
-      approved_contacts: [],
-      blocked_users: []
+      uid, pseudo, nom, prenom, date_naissance: birth, internal_email: email, friend_code: friendCode,
+      role: 'parent', avatar: '😊', avatar_color: '#7C5CFC',
+      children_ids: [], co_parents: [], co_parent_ids: [], adult_friends: [], approved_contacts: [], blocked_users: []
     });
-    if (insertErr) {
-      hideLoading();
-      return showError('registerParentError', 'DB: ' + insertErr.message);
-    }
+    if (insertErr) { hideLoading(); return showError('registerError', 'DB: ' + insertErr.message); }
 
-    // Charger les données et rediriger
     const { data: userData } = await supa.from('users').select('*').eq('uid', uid).single();
-    currentUser = normalizeCurrentUser(authData.user);
+    currentUser = { uid };
     currentUserData = userData;
 
     hideLoading();
-    showSuccess('registerParentSuccess', 'Compte créé ! Bienvenue.');
-    setTimeout(() => {
-      prepareParentDashboard();
-      showPage('parentDashboard');
-    }, 800);
+    showSuccess('registerSuccess', 'Compte créé ! Bienvenue ' + pseudo);
+    setTimeout(() => { prepareParentDashboard(); showPage('parentDashboard'); }, 800);
   } catch (err) {
     hideLoading();
-    showError('registerParentError', err.message);
+    showError('registerError', err.message);
   }
 }
 
 /* ============================================================
-   LOGIN PARENT
+   LOGIN (unifié)
 ============================================================ */
-async function loginParent() {
-  hideError('loginParentError');
-  const pseudoOrCode = $('loginParentPseudo').value.trim();
-  const pwd = $('loginParentPwd').value;
-
-  if (!pseudoOrCode || !pwd) return showError('loginParentError', 'Remplis tous les champs');
-
-  showLoading();
-  try {
-    // Chercher par pseudo puis par friend_code
-    let { data: users } = await supa.from('users').select('*').eq('pseudo', pseudoOrCode).limit(1);
-    if (!users || users.length === 0) {
-      const res = await supa.from('users').select('*').eq('friend_code', pseudoOrCode.toLowerCase()).limit(1);
-      users = res.data;
-    }
-
-    if (!users || users.length === 0) {
-      hideLoading();
-      return showError('loginParentError', 'Pseudo introuvable');
-    }
-
-    const userData = users[0];
-    if (userData.role !== 'parent') {
-      hideLoading();
-      return showError('loginParentError', 'Ce compte n\'est pas un compte adulte');
-    }
-    if (!userData.internal_email) {
-      hideLoading();
-      return showError('loginParentError', 'Compte incompatible');
-    }
-
-    const { data: authData, error: authErr } = await supa.auth.signInWithPassword({
-      email: userData.internal_email,
-      password: pwd
-    });
-    if (authErr) {
-      hideLoading();
-      return showError('loginParentError', 'Pseudo ou mot de passe incorrect');
-    }
-
-    currentUser = normalizeCurrentUser(authData.user);
-    currentUserData = userData;
-    hideLoading();
-    prepareParentDashboard();
-    showPage('parentDashboard');
-  } catch (err) {
-    hideLoading();
-    showError('loginParentError', err.message);
-  }
-}
-
-/* ============================================================
-   LOGIN CHILD
-============================================================ */
-async function loginChild() {
-  hideError('loginChildError');
-  const code = $('loginChildCode').value.trim().toLowerCase();
-  const pin = $('loginChildPin').value.trim();
-
-  if (!code || !pin) return showError('loginChildError', 'Remplis tous les champs');
-  if (pin.length !== 4) return showError('loginChildError', 'Le code secret fait 4 chiffres');
-
-  showLoading();
-  try {
-    const { data: users } = await supa.from('users')
-      .select('*')
-      .eq('friend_code', code)
-      .eq('role', 'child')
-      .limit(1);
-
-    if (!users || users.length === 0) {
-      hideLoading();
-      return showError('loginChildError', 'Code introuvable');
-    }
-
-    const child = users[0];
-    if (child.pin !== pin) {
-      hideLoading();
-      return showError('loginChildError', 'Code secret incorrect');
-    }
-
-    // Sauvegarder pour auto-login
-    localStorage.setItem('zamis-child-code', code);
-    localStorage.setItem('zamis-child-pin', pin);
-
-    currentUser = { uid: child.uid };
-    currentUserData = child;
-    isChildSession = true;
-
-    hideLoading();
-    prepareChildApp();
-    showPage('childApp');
-  } catch (err) {
-    hideLoading();
-    showError('loginChildError', err.message);
-  }
-}
-
-/* ============================================================
-   PARENT DASHBOARD PREP
-============================================================ */
-function prepareParentDashboard() {
-  if (!currentUserData) return;
-  $('parentWelcome').textContent = 'Bienvenue, ' + currentUserData.pseudo;
-  
-  loadChildren();
-  loadCoParents();
-  loadAdultFriends();
-  loadPendingRequests();
-  setupParentRealtime();
-}
-
-let parentRealtimeChannel = null;
-function setupParentRealtime() {
-  if (parentRealtimeChannel) {
-    supa.removeChannel(parentRealtimeChannel);
-  }
-  const myUid = getCurrentUid();
-  if (!myUid) return;
-  parentRealtimeChannel = supa.channel('parent:' + myUid)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'invitations', filter: 'parent_approval_id=eq.' + myUid }, () => {
-      loadPendingRequests();
-    })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => {
-      // Refresh conv list si on est dessus
-      const parentMsgActive = document.querySelector('#parentMessagesPage.active');
-      if (parentMsgActive) loadConversationsList('parentConvList');
-    })
-    .subscribe();
-}
-
-function buildAddCard(onclickFn, label) {
-  return `<div class="add-card" onclick="${onclickFn}()">
-    <div class="add-icon">+</div>
-    <div class="add-text">${label}</div>
-  </div>`;
-}
-
-// Modal helpers
-function openModal(id) { $(id).classList.add('show'); }
-function closeModal(id) { $(id).classList.remove('show'); }
-
-// Placeholders bloc 4
-function openBlockedList() { showToast('Bloqués : bloc 4'); }
-function openSettings() { showToast('Réglages : à venir'); }
-function showBlockOptions() { showToast('Blocage : bloc 4'); }
-
-// ============================================================
-// ADD CO-PARENT (parent)
-// ============================================================
-function showAddCoParentBlocked() {
-  hideError('addCoParentError');
-  $('coParentCode').value = '';
-  openModal('addCoParentModal');
-}
-
-async function addCoParent() {
-  hideError('addCoParentError');
-  const code = $('coParentCode').value.trim().toLowerCase();
-  if (!code) return showError('addCoParentError', 'Entre un code');
-
-  showLoading();
-  try {
-    const { data: users } = await supa.from('users')
-      .select('*')
-      .eq('friend_code', code)
-      .eq('role', 'parent')
-      .limit(1);
-
-    if (!users || users.length === 0) {
-      hideLoading();
-      return showError('addCoParentError', 'Code parent introuvable');
-    }
-
-    const coParent = users[0];
-    if (coParent.uid === getCurrentUid()) {
-      hideLoading();
-      return showError('addCoParentError', 'C\'est ton propre code !');
-    }
-
-    const myCoParents = currentUserData.co_parents || [];
-    if (myCoParents.includes(coParent.uid)) {
-      hideLoading();
-      return showError('addCoParentError', 'Déjà co-parent');
-    }
-
-    // Add bidirectionnel
-    const myUid = getCurrentUid();
-    await supa.from('users').update({ co_parents: [...myCoParents, coParent.uid] }).eq('uid', myUid);
-    const theirCoParents = coParent.co_parents || [];
-    await supa.from('users').update({ co_parents: [...theirCoParents, myUid] }).eq('uid', coParent.uid);
-
-    // Partager les enfants (mutuel)
-    const myChildren = currentUserData.children_ids || [];
-    const theirChildren = coParent.children_ids || [];
-
-    // Mes enfants -> ajouter co-parent dans co_parent_ids + ajouter aux childrenIds du co-parent
-    for (const childId of myChildren) {
-      const { data: c } = await supa.from('users').select('co_parent_ids').eq('uid', childId).single();
-      if (c) {
-        const list = c.co_parent_ids || [];
-        if (!list.includes(coParent.uid)) {
-          await supa.from('users').update({ co_parent_ids: [...list, coParent.uid] }).eq('uid', childId);
-        }
-      }
-    }
-    if (myChildren.length > 0) {
-      const newList = [...theirChildren];
-      for (const cid of myChildren) if (!newList.includes(cid)) newList.push(cid);
-      await supa.from('users').update({ children_ids: newList }).eq('uid', coParent.uid);
-    }
-
-    // Enfants du co-parent -> ajouter moi dans co_parent_ids + ajouter aux miens
-    for (const childId of theirChildren) {
-      const { data: c } = await supa.from('users').select('co_parent_ids').eq('uid', childId).single();
-      if (c) {
-        const list = c.co_parent_ids || [];
-        if (!list.includes(myUid)) {
-          await supa.from('users').update({ co_parent_ids: [...list, myUid] }).eq('uid', childId);
-        }
-      }
-    }
-    if (theirChildren.length > 0) {
-      const newList = [...myChildren];
-      for (const cid of theirChildren) if (!newList.includes(cid)) newList.push(cid);
-      await supa.from('users').update({ children_ids: newList }).eq('uid', myUid);
-    }
-
-    // Créer conversation entre les 2 co-parents
-    const convId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
-    await supa.from('conversations').insert({
-      id: convId,
-      type: 'direct',
-      members: [myUid, coParent.uid],
-      member_names: { [myUid]: currentUserData.pseudo, [coParent.uid]: coParent.pseudo },
-      member_colors: { [myUid]: currentUserData.avatar_color || '#7C5CFC', [coParent.uid]: coParent.avatar_color || '#0F6E56' },
-      last_message: 'Vous êtes co-parents ! 🎉',
-      last_message_at: new Date().toISOString(),
-      created_by: myUid
-    });
-    await supa.from('messages').insert({
-      id: 'msg_' + Date.now(),
-      conversation_id: convId,
-      sender_id: 'system',
-      sender_pseudo: 'Zamis',
-      type: 'text',
-      content: 'Vous êtes maintenant co-parents ! 🎉 Collaborez pour vos enfants.'
-    });
-
-    // Refresh currentUserData
-    const { data: refreshed } = await supa.from('users').select('*').eq('uid', myUid).single();
-    if (refreshed) currentUserData = refreshed;
-
-    hideLoading();
-    closeModal('addCoParentModal');
-    showToast('Co-parent ajouté !');
-    loadCoParents();
-    loadChildren();
-  } catch (err) {
-    hideLoading();
-    showError('addCoParentError', err.message);
-  }
-}
-
-// ============================================================
-// ADD ADULT FRIEND (parent)
-// ============================================================
-function showAddAdultBlocked() {
-  hideError('addAdultError');
-  $('adultCode').value = '';
-  openModal('addAdultModal');
-}
-
-async function addAdultFriend() {
-  hideError('addAdultError');
-  const code = $('adultCode').value.trim().toLowerCase();
-  if (!code) return showError('addAdultError', 'Entre un code');
-
-  showLoading();
-  try {
-    const { data: users } = await supa.from('users')
-      .select('*')
-      .eq('friend_code', code)
-      .eq('role', 'parent')
-      .limit(1);
-
-    if (!users || users.length === 0) {
-      hideLoading();
-      return showError('addAdultError', 'Code adulte introuvable');
-    }
-
-    const adult = users[0];
-    const myUid = getCurrentUid();
-
-    if (adult.uid === myUid) {
-      hideLoading();
-      return showError('addAdultError', 'C\'est ton propre code');
-    }
-
-    const myFriends = currentUserData.adult_friends || [];
-    if (myFriends.includes(adult.uid)) {
-      hideLoading();
-      return showError('addAdultError', 'Déjà dans tes contacts');
-    }
-    if ((currentUserData.co_parents || []).includes(adult.uid)) {
-      hideLoading();
-      return showError('addAdultError', 'C\'est déjà ton co-parent');
-    }
-
-    // Ajouter bidirectionnel dans adult_friends
-    await supa.from('users').update({ adult_friends: [...myFriends, adult.uid] }).eq('uid', myUid);
-    const theirFriends = adult.adult_friends || [];
-    await supa.from('users').update({ adult_friends: [...theirFriends, myUid] }).eq('uid', adult.uid);
-
-    // Créer conversation
-    const convId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
-    await supa.from('conversations').insert({
-      id: convId,
-      type: 'direct',
-      members: [myUid, adult.uid],
-      member_names: { [myUid]: currentUserData.pseudo, [adult.uid]: adult.pseudo },
-      member_colors: { [myUid]: currentUserData.avatar_color || '#7C5CFC', [adult.uid]: adult.avatar_color || '#4A90D9' },
-      last_message: 'Conversation créée',
-      last_message_at: new Date().toISOString(),
-      created_by: myUid
-    });
-    await supa.from('messages').insert({
-      id: 'msg_' + Date.now(),
-      conversation_id: convId,
-      sender_id: 'system',
-      sender_pseudo: 'Zamis',
-      type: 'text',
-      content: currentUserData.pseudo + ' et ' + adult.pseudo + ' peuvent maintenant discuter !'
-    });
-
-    // Refresh
-    const { data: refreshed } = await supa.from('users').select('*').eq('uid', myUid).single();
-    if (refreshed) currentUserData = refreshed;
-
-    hideLoading();
-    closeModal('addAdultModal');
-    showToast(adult.pseudo + ' ajouté !');
-    loadAdultFriends();
-  } catch (err) {
-    hideLoading();
-    showError('addAdultError', err.message);
-  }
-}
-
-// ============================================================
-// LOAD CO-PARENTS + ADULTS (dashboard)
-// ============================================================
-async function loadCoParents() {
-  const scroll = $('coParentsScroll');
-  if (!scroll) return;
-  const ids = currentUserData.co_parents || [];
-  $('coParentsCount').textContent = '(' + ids.length + ')';
-  if (ids.length === 0) {
-    scroll.innerHTML = buildAddCard('showAddCoParentBlocked', 'Ajouter');
-    return;
-  }
-  const { data } = await supa.from('users').select('*').in('uid', ids);
-  if (!data) {
-    scroll.innerHTML = buildAddCard('showAddCoParentBlocked', 'Ajouter');
-    return;
-  }
-  let html = '';
-  data.slice(0, 4).forEach(u => {
-    html += `
-      <div class="entity-card" onclick="startConvWith('${u.uid}')">
-        <button class="entity-remove" onclick="event.stopPropagation();removeCoParent('${u.uid}','${escapeQuote(u.pseudo)}')">×</button>
-        <div class="entity-avatar" style="background:${u.avatar_color || '#0F6E56'}">${u.pseudo.charAt(0).toUpperCase()}</div>
-        <div class="entity-name">${u.pseudo}</div>
-        <div class="entity-sub">${u.prenom || ''}</div>
-      </div>`;
-  });
-  html += buildAddCard('showAddCoParentBlocked', 'Ajouter');
-  scroll.innerHTML = html;
-  $('coParentsSeeAll').style.display = data.length > 4 ? '' : 'none';
-}
-
-async function loadAdultFriends() {
-  const scroll = $('invitesScroll');
-  if (!scroll) return;
-  const ids = currentUserData.adult_friends || [];
-  $('invitesCount').textContent = '(' + ids.length + ')';
-  if (ids.length === 0) {
-    scroll.innerHTML = buildAddCard('showAddAdultBlocked', 'Ajouter');
-    return;
-  }
-  const { data } = await supa.from('users').select('*').in('uid', ids);
-  if (!data) {
-    scroll.innerHTML = buildAddCard('showAddAdultBlocked', 'Ajouter');
-    return;
-  }
-  let html = '';
-  data.slice(0, 4).forEach(u => {
-    html += `
-      <div class="entity-card" onclick="startConvWith('${u.uid}')">
-        <button class="entity-remove" onclick="event.stopPropagation();removeAdultFriend('${u.uid}','${escapeQuote(u.pseudo)}')">×</button>
-        <div class="entity-avatar" style="background:${u.avatar_color || '#4A90D9'}">${u.pseudo.charAt(0).toUpperCase()}</div>
-        <div class="entity-name">${u.pseudo}</div>
-      </div>`;
-  });
-  html += buildAddCard('showAddAdultBlocked', 'Ajouter');
-  scroll.innerHTML = html;
-  $('invitesSeeAll').style.display = data.length > 4 ? '' : 'none';
-}
-
-async function removeCoParent(uid, name) {
-  if (!confirm('Retirer ' + name + ' des co-parents ?\n\nCela retire aussi ses accès aux enfants partagés.')) return;
-  showLoading();
-  try {
-    const myUid = getCurrentUid();
-    // Bidirectionnel: retirer de MES coParents ET des SIENS
-    const myCoParents = (currentUserData.co_parents || []).filter(id => id !== uid);
-    await supa.from('users').update({ co_parents: myCoParents }).eq('uid', myUid);
-
-    const { data: theirData } = await supa.from('users').select('co_parents').eq('uid', uid).single();
-    if (theirData) {
-      const theirCoParents = (theirData.co_parents || []).filter(id => id !== myUid);
-      await supa.from('users').update({ co_parents: theirCoParents }).eq('uid', uid);
-    }
-
-    // Retirer moi des co_parent_ids de leurs enfants (les enfants qui étaient à eux)
-    // Pour simplifier: on retire juste la relation co-parent, les enfants restent partagés
-
-    const { data: refreshed } = await supa.from('users').select('*').eq('uid', myUid).single();
-    if (refreshed) currentUserData = refreshed;
-
-    hideLoading();
-    showToast('Co-parent retiré');
-    loadCoParents();
-  } catch (err) {
-    hideLoading();
-    showToast('Erreur');
-  }
-}
-
-async function removeAdultFriend(uid, name) {
-  if (!confirm('Retirer ' + name + ' des contacts ?')) return;
-  showLoading();
-  try {
-    const myUid = getCurrentUid();
-    const myFriends = (currentUserData.adult_friends || []).filter(id => id !== uid);
-    await supa.from('users').update({ adult_friends: myFriends }).eq('uid', myUid);
-
-    const { data: theirData } = await supa.from('users').select('adult_friends').eq('uid', uid).single();
-    if (theirData) {
-      const theirFriends = (theirData.adult_friends || []).filter(id => id !== myUid);
-      await supa.from('users').update({ adult_friends: theirFriends }).eq('uid', uid);
-    }
-
-    const { data: refreshed } = await supa.from('users').select('*').eq('uid', myUid).single();
-    if (refreshed) currentUserData = refreshed;
-
-    hideLoading();
-    showToast('Contact retiré');
-    loadAdultFriends();
-  } catch (err) {
-    hideLoading();
-    showToast('Erreur');
-  }
-}
-
-// ============================================================
-// PENDING REQUESTS (parent) - approbation
-// ============================================================
-async function loadPendingRequests() {
-  const container = $('pendingRequests');
-  if (!container) return;
-  const myUid = getCurrentUid();
-  if (!myUid) return;
-
-  try {
-    const { data: invitations } = await supa.from('invitations')
-      .select('*')
-      .eq('parent_approval_id', myUid)
-      .eq('status', 'pending');
-
-    if (!invitations || invitations.length === 0) {
-      container.innerHTML = '<div class="pending-empty">Aucune demande en attente</div>';
-      return;
-    }
-
-    let html = '';
-    invitations.forEach(inv => {
-      html += `
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
-          <div style="width:36px;height:36px;border-radius:50%;background:var(--orange);color:white;display:flex;align-items:center;justify-content:center;font-weight:700">${(inv.from_child_pseudo || '?').charAt(0).toUpperCase()}</div>
-          <div style="flex:1;font-size:13px">
-            <div style="font-weight:600">${inv.from_child_pseudo}</div>
-            <div style="color:var(--text-secondary);font-size:12px">veut ajouter ${inv.to_child_pseudo}</div>
-          </div>
-          <button style="background:var(--green);color:white;border:none;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer" onclick="approveRequest('${inv.id}')">✓</button>
-          <button style="background:var(--red);color:white;border:none;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer" onclick="rejectRequest('${inv.id}')">✕</button>
-        </div>`;
-    });
-    container.innerHTML = html;
-  } catch (err) {
-    container.innerHTML = '<div class="pending-empty">Erreur</div>';
-  }
-}
-
-async function approveRequest(invId) {
-  showLoading();
-  try {
-    const { data: inv } = await supa.from('invitations').select('*').eq('id', invId).single();
-    if (!inv) { hideLoading(); return showToast('Invitation introuvable'); }
-
-    // Vérifier si déjà approuvé (autre parent l'a fait avant)
-    const { data: fromChild } = await supa.from('users').select('*').eq('uid', inv.from_child_id).single();
-    const { data: toChild } = await supa.from('users').select('*').eq('uid', inv.to_child_id).single();
-    if (!fromChild || !toChild) { hideLoading(); return showToast('User introuvable'); }
-
-    const fromApproved = fromChild.approved_contacts || [];
-    const toApproved = toChild.approved_contacts || [];
-
-    if (fromApproved.includes(inv.to_child_id) && toApproved.includes(inv.from_child_id)) {
-      // Déjà fait par l'autre parent : juste marquer tous les invitations comme approuvées
-      await supa.from('invitations').update({ status: 'approved' })
-        .eq('from_child_id', inv.from_child_id).eq('to_child_id', inv.to_child_id);
-      hideLoading();
-      showToast('Déjà approuvé');
-      loadPendingRequests();
-      return;
-    }
-
-    // Ajouter dans approved_contacts (bidirectionnel)
-    await supa.from('users').update({ approved_contacts: [...fromApproved, inv.to_child_id] }).eq('uid', inv.from_child_id);
-    await supa.from('users').update({ approved_contacts: [...toApproved, inv.from_child_id] }).eq('uid', inv.to_child_id);
-
-    // Créer conversation si n'existe pas
-    const { data: convs } = await supa.from('conversations').select('*').eq('type', 'direct').contains('members', [inv.from_child_id]);
-    let convExists = false;
-    if (convs) {
-      for (const c of convs) {
-        if ((c.members || []).length === 2 && (c.members || []).includes(inv.to_child_id)) {
-          convExists = true;
-          break;
-        }
-      }
-    }
-
-    if (!convExists) {
-      const convId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
-      await supa.from('conversations').insert({
-        id: convId,
-        type: 'direct',
-        members: [inv.from_child_id, inv.to_child_id],
-        member_names: { [inv.from_child_id]: fromChild.pseudo, [inv.to_child_id]: toChild.pseudo },
-        member_colors: { [inv.from_child_id]: fromChild.avatar_color || '#FFB347', [inv.to_child_id]: toChild.avatar_color || '#5DCAA5' },
-        last_message: 'Vous êtes maintenant amis ! 🎉',
-        last_message_at: new Date().toISOString(),
-        created_by: getCurrentUid()
-      });
-      await supa.from('messages').insert({
-        id: 'msg_' + Date.now(),
-        conversation_id: convId,
-        sender_id: 'system',
-        sender_pseudo: 'Zamis',
-        type: 'text',
-        content: fromChild.pseudo + ' et ' + toChild.pseudo + ' sont maintenant amis ! 🎉'
-      });
-    }
-
-    // Marquer TOUTES les invitations de cette paire comme approuvées
-    await supa.from('invitations').update({ status: 'approved' })
-      .eq('from_child_id', inv.from_child_id).eq('to_child_id', inv.to_child_id);
-
-    hideLoading();
-    showToast('Demande approuvée !');
-    loadPendingRequests();
-  } catch (err) {
-    hideLoading();
-    showToast('Erreur : ' + err.message);
-  }
-}
-
-async function rejectRequest(invId) {
-  try {
-    const { data: inv } = await supa.from('invitations').select('*').eq('id', invId).single();
-    if (!inv) return;
-    await supa.from('invitations').update({ status: 'rejected' })
-      .eq('from_child_id', inv.from_child_id).eq('to_child_id', inv.to_child_id);
-    showToast('Demande refusée');
-    loadPendingRequests();
-  } catch (err) {
-    showToast('Erreur');
-  }
-}
-
-// ============================================================
-// INVITE PAGE (child)
-// ============================================================
-function openInvitePage() {
-  showPage('invitePage');
-  $('myFriendCode').textContent = currentUserData.friend_code || '-';
-  $('inviteFriendCode').value = '';
-  hideError('inviteError');
-  const successMsg = $('inviteSuccess');
-  if (successMsg) successMsg.classList.remove('show');
-  loadMyPendingRequests();
-}
-
-async function sendFriendRequest() {
-  hideError('inviteError');
-  const successMsg = $('inviteSuccess');
-  if (successMsg) successMsg.classList.remove('show');
-  const code = $('inviteFriendCode').value.trim().toLowerCase();
-  if (!code) return showError('inviteError', 'Entre un code');
+async function loginUser() {
+  hideError('loginError');
+  const code = $('loginCode').value.trim().toLowerCase();
+  const pwd = $('loginPwd').value;
+  if (!code || !pwd) return showError('loginError', 'Remplis tous les champs');
 
   showLoading();
   try {
     const { data: users } = await supa.from('users').select('*').eq('friend_code', code).limit(1);
     if (!users || users.length === 0) {
       hideLoading();
-      return showError('inviteError', 'Code Zamis introuvable');
+      return showError('loginError', 'Code Zamis introuvable');
     }
-
-    const target = users[0];
-    const myUid = getCurrentUid();
-    if (target.uid === myUid) {
+    const userData = users[0];
+    if (!userData.internal_email) {
       hideLoading();
-      return showError('inviteError', 'C\'est ton propre code');
+      return showError('loginError', 'Compte incompatible');
     }
 
-    // Déjà ami ?
-    if ((currentUserData.approved_contacts || []).includes(target.uid)) {
+    const { data: authData, error: authErr } = await supa.auth.signInWithPassword({
+      email: userData.internal_email, password: pwd
+    });
+    if (authErr) {
       hideLoading();
-      return showError('inviteError', 'Déjà dans tes contacts');
+      return showError('loginError', 'Code ou mot de passe incorrect');
     }
 
-    // Enfant vers adulte parent : envoyer demande aux parents
-    if (currentUserData.role === 'child' && target.role === 'parent') {
-      // Vérifier invitations en attente
-      const { data: existing } = await supa.from('invitations')
-        .select('*').eq('from_child_id', myUid).eq('to_child_id', target.uid).eq('status', 'pending');
-      if (existing && existing.length > 0) {
-        hideLoading();
-        return showError('inviteError', 'Demande déjà envoyée');
-      }
-
-      const parentIds = [currentUserData.parent_id, ...(currentUserData.co_parent_ids || [])].filter(Boolean);
-      const invitations = parentIds.map(pid => ({
-        id: 'inv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
-        from_child_id: myUid,
-        from_child_pseudo: currentUserData.pseudo,
-        to_child_id: target.uid,
-        to_child_pseudo: target.pseudo,
-        target_is_adult: true,
-        parent_approval_id: pid,
-        status: 'pending'
-      }));
-
-      if (invitations.length > 0) {
-        await supa.from('invitations').insert(invitations);
-      }
-
-      hideLoading();
-      $('inviteFriendCode').value = '';
-      showSuccess('inviteSuccess', 'Demande envoyée à tes parents');
-      loadMyPendingRequests();
-      return;
-    }
-
-    // Enfant vers enfant
-    if (currentUserData.role === 'child' && target.role === 'child') {
-      // Check invitations existantes (dans les 2 sens)
-      const { data: ex1 } = await supa.from('invitations').select('*')
-        .eq('from_child_id', myUid).eq('to_child_id', target.uid).eq('status', 'pending');
-      const { data: ex2 } = await supa.from('invitations').select('*')
-        .eq('from_child_id', target.uid).eq('to_child_id', myUid).eq('status', 'pending');
-      if ((ex1 && ex1.length > 0) || (ex2 && ex2.length > 0)) {
-        hideLoading();
-        return showError('inviteError', 'Invitation déjà en cours');
-      }
-
-      // Créer invitations pour TOUS les parents concernés (les 2 côtés)
-      const fromParents = [currentUserData.parent_id, ...(currentUserData.co_parent_ids || [])].filter(Boolean);
-      const toParents = [target.parent_id, ...(target.co_parent_ids || [])].filter(Boolean);
-      const allParents = new Set([...fromParents, ...toParents]);
-
-      const invitations = [...allParents].map(pid => ({
-        id: 'inv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
-        from_child_id: myUid,
-        from_child_pseudo: currentUserData.pseudo,
-        to_child_id: target.uid,
-        to_child_pseudo: target.pseudo,
-        target_is_adult: false,
-        parent_approval_id: pid,
-        status: 'pending'
-      }));
-
-      if (invitations.length > 0) {
-        await supa.from('invitations').insert(invitations);
-      }
-
-      hideLoading();
-      $('inviteFriendCode').value = '';
-      showSuccess('inviteSuccess', 'Invitation envoyée ! En attente de validation.');
-      loadMyPendingRequests();
-      return;
-    }
+    currentUser = { uid: authData.user.id };
+    currentUserData = userData;
 
     hideLoading();
-    showError('inviteError', 'Type de contact non supporté');
+    if (userData.role === 'parent') { prepareParentDashboard(); showPage('parentDashboard'); }
+    else { prepareChildApp(); showPage('childApp'); }
   } catch (err) {
     hideLoading();
-    showError('inviteError', err.message);
+    showError('loginError', err.message);
   }
 }
 
-async function loadMyPendingRequests() {
-  const container = $('myPendingRequests');
-  if (!container) return;
-  const myUid = getCurrentUid();
+/* ============================================================
+   LOGOUT
+============================================================ */
+async function logout() {
+  if (!confirm('Se déconnecter ?')) return;
+  try { await supa.auth.signOut(); } catch (e) {}
+  currentUser = null;
+  currentUserData = null;
+  isParentBrowsingChild = false;
+  showPage('homePage');
+}
 
+/* ============================================================
+   PARENT DASHBOARD
+============================================================ */
+function buildAddCard(fn, label) {
+  return '<div class="add-card" onclick="' + fn + '()"><div class="add-icon">+</div><div class="add-text">' + label + '</div></div>';
+}
+
+function prepareParentDashboard() {
+  if (!currentUserData) return;
+  $('parentWelcome').textContent = 'Bienvenue, ' + currentUserData.pseudo;
+  loadChildren();
+  loadCoParents();
+  loadFriends();
+  loadPendingRequests();
+  setupParentRealtime();
+}
+
+async function loadChildren() {
+  const scroll = $('childrenScroll');
+  if (!scroll) return;
+  const directIds = currentUserData.children_ids || [];
+  const allIds = new Set(directIds);
   try {
-    const { data: invs } = await supa.from('invitations')
-      .select('*').eq('from_child_id', myUid).eq('status', 'pending');
-    if (!invs || invs.length === 0) {
-      container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-tertiary);font-size:12px">Aucune demande</div>';
-      return;
-    }
-    // Dédupliquer par to_child_id (car il peut y avoir plusieurs invitations pour la même paire)
-    const seen = new Set();
-    const unique = invs.filter(i => {
-      if (seen.has(i.to_child_id)) return false;
-      seen.add(i.to_child_id);
-      return true;
-    });
+    const { data: coChildren } = await supa.from('users').select('uid').contains('co_parent_ids', [currentUser.uid]).eq('role', 'child');
+    if (coChildren) coChildren.forEach(c => allIds.add(c.uid));
+  } catch (e) {}
+  const ids = [...allIds];
+  $('childrenCount').textContent = '(' + ids.length + ')';
+  if (ids.length === 0) { scroll.innerHTML = buildAddCard('showAddChildModal', 'Ajouter'); return; }
+  const { data: children } = await supa.from('users').select('*').in('uid', ids);
+  if (!children) { scroll.innerHTML = buildAddCard('showAddChildModal', 'Ajouter'); return; }
+  let html = '';
+  children.slice(0, 4).forEach(child => {
+    const isDirect = directIds.includes(child.uid);
+    html += '<div class="entity-card" onclick="viewChildAsParent(\'' + child.uid + '\')">' +
+      (isDirect ? '<button class="entity-remove" onclick="event.stopPropagation();confirmDeleteChild(\'' + child.uid + '\',\'' + escapeQuote(child.pseudo) + '\')">×</button>' : '') +
+      '<div class="entity-avatar" style="background:' + (child.avatar_color || '#FFB347') + '">' + (child.avatar || child.pseudo.charAt(0).toUpperCase()) + '</div>' +
+      '<div class="entity-name">' + child.pseudo + '</div>' +
+      '<div class="entity-sub">' + child.friend_code + '</div>' +
+      '</div>';
+  });
+  html += buildAddCard('showAddChildModal', 'Ajouter');
+  scroll.innerHTML = html;
+  $('childrenSeeAll').style.display = children.length > 4 ? '' : 'none';
+}
+
+async function loadCoParents() {
+  const scroll = $('coParentsScroll');
+  if (!scroll) return;
+  const ids = currentUserData.co_parents || [];
+  $('coParentsCount').textContent = '(' + ids.length + ')';
+  if (ids.length === 0) { scroll.innerHTML = buildAddCard('openAddCoParentModal', 'Ajouter'); return; }
+  const { data } = await supa.from('users').select('*').in('uid', ids);
+  if (!data) { scroll.innerHTML = buildAddCard('openAddCoParentModal', 'Ajouter'); return; }
+  let html = '';
+  data.slice(0, 4).forEach(u => {
+    html += '<div class="entity-card" onclick="startConvWith(\'' + u.uid + '\')">' +
+      '<button class="entity-remove" onclick="event.stopPropagation();removeCoParent(\'' + u.uid + '\',\'' + escapeQuote(u.pseudo) + '\')">×</button>' +
+      '<div class="entity-avatar" style="background:' + (u.avatar_color || '#0F6E56') + '">' + u.pseudo.charAt(0).toUpperCase() + '</div>' +
+      '<div class="entity-name">' + u.pseudo + '</div>' +
+      '<div class="entity-sub">' + (u.prenom || '') + '</div>' +
+      '</div>';
+  });
+  html += buildAddCard('openAddCoParentModal', 'Ajouter');
+  scroll.innerHTML = html;
+  $('coParentsSeeAll').style.display = data.length > 4 ? '' : 'none';
+}
+
+async function loadFriends() {
+  const scroll = $('friendsScroll');
+  if (!scroll) return;
+  const ids = currentUserData.adult_friends || [];
+  $('friendsCount').textContent = '(' + ids.length + ')';
+  if (ids.length === 0) { scroll.innerHTML = buildAddCard('openAddFriendModal', 'Ajouter'); return; }
+  const { data } = await supa.from('users').select('*').in('uid', ids);
+  if (!data) { scroll.innerHTML = buildAddCard('openAddFriendModal', 'Ajouter'); return; }
+  let html = '';
+  data.slice(0, 4).forEach(u => {
+    html += '<div class="entity-card" onclick="startConvWith(\'' + u.uid + '\')">' +
+      '<button class="entity-remove" onclick="event.stopPropagation();removeFriend(\'' + u.uid + '\',\'' + escapeQuote(u.pseudo) + '\')">×</button>' +
+      '<div class="entity-avatar" style="background:' + (u.avatar_color || '#4A90D9') + '">' + u.pseudo.charAt(0).toUpperCase() + '</div>' +
+      '<div class="entity-name">' + u.pseudo + '</div>' +
+      '</div>';
+  });
+  html += buildAddCard('openAddFriendModal', 'Ajouter');
+  scroll.innerHTML = html;
+  $('friendsSeeAll').style.display = data.length > 4 ? '' : 'none';
+}
+
+async function loadPendingRequests() {
+  const container = $('pendingRequests');
+  if (!container) return;
+  try {
+    const { data: invs } = await supa.from('invitations').select('*').eq('parent_approval_id', currentUser.uid).eq('status', 'pending');
+    if (!invs || invs.length === 0) { container.innerHTML = '<div class="pending-empty">Aucune demande en attente</div>'; return; }
     let html = '';
-    unique.forEach(inv => {
-      html += `
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
-          <div style="width:32px;height:32px;border-radius:50%;background:var(--orange);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">⏳</div>
-          <div style="flex:1;font-size:13px">
-            <div style="font-weight:600">${inv.to_child_pseudo}</div>
-            <div style="color:var(--text-secondary);font-size:11px">En attente de validation</div>
-          </div>
-        </div>`;
+    invs.forEach(inv => {
+      html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">' +
+        '<div style="width:36px;height:36px;border-radius:50%;background:var(--orange);color:white;display:flex;align-items:center;justify-content:center;font-weight:700">' + (inv.from_child_pseudo || '?').charAt(0).toUpperCase() + '</div>' +
+        '<div style="flex:1;font-size:13px"><div style="font-weight:600">' + inv.from_child_pseudo + '</div><div style="color:var(--text-secondary);font-size:12px">veut ajouter ' + inv.to_child_pseudo + '</div></div>' +
+        '<button style="background:var(--green);color:white;border:none;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer" onclick="approveRequest(\'' + inv.id + '\')">✓</button>' +
+        '<button style="background:var(--red);color:white;border:none;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer" onclick="rejectRequest(\'' + inv.id + '\')">✕</button>' +
+        '</div>';
     });
     container.innerHTML = html;
-  } catch (err) {
-    container.innerHTML = '';
-  }
+  } catch (e) { container.innerHTML = '<div class="pending-empty">Erreur</div>'; }
 }
 
-// ============================================================
-// CONTACTS (child + parent)
-// ============================================================
-async function loadContacts(containerId) {
-  const container = $(containerId);
-  if (!container) return;
-  container.innerHTML = '<div class="empty-state"><div class="empty-icon">⏳</div></div>';
-
-  const myUid = getCurrentUid();
-  const contactIds = new Set();
-
-  // Enfant : approved_contacts + parents
-  if (currentUserData.role === 'child') {
-    (currentUserData.approved_contacts || []).forEach(id => contactIds.add(id));
-    if (currentUserData.parent_id) contactIds.add(currentUserData.parent_id);
-    (currentUserData.co_parent_ids || []).forEach(id => contactIds.add(id));
-  } else {
-    // Parent : enfants + co-parents + adult_friends
-    (currentUserData.children_ids || []).forEach(id => contactIds.add(id));
-    (currentUserData.co_parents || []).forEach(id => contactIds.add(id));
-    (currentUserData.adult_friends || []).forEach(id => contactIds.add(id));
-  }
-
-  if (contactIds.size === 0) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📇</div><div class="empty-title">Aucun contact</div><div class="empty-desc">Ajoute des amis dans "Inviter"</div></div>';
-    return;
-  }
-
-  const { data: contacts } = await supa.from('users').select('*').in('uid', [...contactIds]);
-  if (!contacts) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Erreur</div></div>';
-    return;
-  }
-  contacts.sort((a, b) => (a.pseudo || '').toLowerCase().localeCompare((b.pseudo || '').toLowerCase()));
-
-  let html = '';
-  contacts.forEach(c => {
-    const roleLabel = c.role === 'child' ? 'Enfant' : (c.uid === currentUserData.parent_id ? 'Parent' : 'Adulte');
-    html += `
-      <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--card);border-radius:12px;margin-bottom:8px;cursor:pointer" onclick="startConvWith('${c.uid}')">
-        <div style="width:44px;height:44px;border-radius:50%;background:${c.avatar_color || '#7C5CFC'};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:16px">${(c.pseudo || '?').charAt(0).toUpperCase()}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:600;font-size:15px;color:var(--text)">${c.pseudo}</div>
-          <div style="font-size:12px;color:var(--text-tertiary)">${roleLabel}</div>
-        </div>
-        <div style="font-size:20px;color:var(--text-tertiary)">💬</div>
-      </div>`;
-  });
-  container.innerHTML = html;
+let parentRealtimeChannel = null;
+function setupParentRealtime() {
+  if (parentRealtimeChannel) supa.removeChannel(parentRealtimeChannel);
+  if (!currentUser) return;
+  parentRealtimeChannel = supa.channel('parent_' + currentUser.uid + '_' + Date.now())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'invitations', filter: 'parent_approval_id=eq.' + currentUser.uid }, () => loadPendingRequests())
+    .subscribe();
 }
 
-// ============================================================
-// ADD CHILD
-// ============================================================
+/* ============================================================
+   PARENT PROFILE
+============================================================ */
+function openParentProfile() {
+  showPage('parentProfilePage');
+  renderParentProfile();
+}
+
+function renderParentProfile() {
+  const c = $('parentProfileContent');
+  if (!c || !currentUserData) return;
+  const age = calcAge(currentUserData.date_naissance);
+  const birthFr = formatBirthFr(currentUserData.date_naissance);
+  const depuis = membreDepuis(currentUserData.created_at);
+  const initial = (currentUserData.prenom || currentUserData.pseudo || '?').charAt(0).toUpperCase();
+  c.innerHTML =
+    '<div class="profile-card">' +
+      '<div class="profile-avatar-big" style="background:' + (currentUserData.avatar_color || '#7C5CFC') + '">' + initial + '</div>' +
+      '<div class="profile-info">' +
+        '<div class="profile-name">' + (currentUserData.prenom || '') + ' ' + (currentUserData.nom || '') + '</div>' +
+        '<div class="profile-detail">' + (age !== null ? age + ' ans (' + birthFr + ')' : '') + '</div>' +
+        '<div class="profile-detail">' + depuis + '</div>' +
+        '<div class="profile-code">' + currentUserData.friend_code + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<button class="btn btn-secondary" style="margin-bottom:10px" onclick="copyMyCode()">📋 Copier mon code Zamis</button>' +
+    '<button class="btn btn-danger" onclick="logout()">🚪 Se déconnecter</button>';
+}
+
+function copyMyCode() {
+  if (!currentUserData) return;
+  navigator.clipboard.writeText(currentUserData.friend_code).then(() => showToast('Code copié !'));
+}
+
+/* ============================================================
+   ADD CHILD
+============================================================ */
 let selectedChildColor = '#FFB347';
-
 function showAddChildModal() {
   hideError('addChildError');
   $('childPrenom').value = '';
   $('childPseudo').value = '';
-  $('childPin').value = '';
+  $('childBirth').value = '';
+  $('childPwd').value = '';
   selectedChildColor = '#FFB347';
   document.querySelectorAll('#childColorPicker .color-dot').forEach(d => {
     d.classList.toggle('selected', d.dataset.color === selectedChildColor);
@@ -2318,10 +1506,6 @@ function showAddChildModal() {
   openModal('addChildModal');
 }
 
-// Placeholder ancien (compatible bloc 1)
-function showAddChildBlocked() { showAddChildModal(); }
-
-// Init color picker listener
 document.addEventListener('click', e => {
   if (e.target.classList.contains('color-dot') && e.target.parentElement.id === 'childColorPicker') {
     document.querySelectorAll('#childColorPicker .color-dot').forEach(d => d.classList.remove('selected'));
@@ -2334,49 +1518,48 @@ async function addChild() {
   hideError('addChildError');
   const prenom = $('childPrenom').value.trim();
   const pseudo = $('childPseudo').value.trim();
-  const pin = $('childPin').value.trim();
+  const birth = $('childBirth').value;
+  const pwd = $('childPwd').value;
 
   if (!prenom) return showError('addChildError', 'Entre le prénom');
-  const pseudoErr = validatePseudo(pseudo);
-  if (pseudoErr) return showError('addChildError', pseudoErr);
-  if (!/^\d{4}$/.test(pin)) return showError('addChildError', 'Le code secret fait 4 chiffres');
+  const pErr = validatePseudo(pseudo);
+  if (pErr) return showError('addChildError', pErr);
+  if (!birth) return showError('addChildError', 'Entre la date de naissance');
+  const age = calcAge(birth);
+  if (age === null) return showError('addChildError', 'Date invalide');
+  if (age >= 18) return showError('addChildError', 'Un adulte doit créer son propre compte');
+  const wErr = validatePassword(pwd);
+  if (wErr) return showError('addChildError', wErr);
 
   showLoading();
   try {
-    // Vérifier pseudo unique
     const { data: existing } = await supa.from('users').select('uid').eq('pseudo', pseudo).limit(1);
-    if (existing && existing.length > 0) {
-      hideLoading();
-      return showError('addChildError', 'Ce pseudo est déjà pris');
-    }
+    if (existing && existing.length > 0) { hideLoading(); return showError('addChildError', 'Pseudo déjà pris'); }
 
-    // Générer un uid unique
-    const childUid = 'child_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+    const email = generateInternalEmail(pseudo);
     const friendCode = generateFriendCode(pseudo);
     const myCoParents = currentUserData.co_parents || [];
 
-    // Insérer l'enfant
-    const { error: insertErr } = await supa.from('users').insert({
-      uid: childUid,
-      pseudo: pseudo,
-      prenom: prenom,
-      pin: pin,
-      friend_code: friendCode,
-      role: 'child',
-      avatar: '😊',
-      avatar_color: selectedChildColor,
-      parent_id: currentUser.uid,
-      co_parent_ids: myCoParents,
-      children_ids: [],
-      co_parents: [],
-      adult_friends: [],
-      approved_contacts: [],
-      blocked_users: []
-    });
+    // IMPORTANT: on doit rester loggé en tant que parent
+    // Utiliser signUp crée le compte mais garde la session parent inchangée
+    // en récupérant l'uid du user créé sans switcher de session
+    const parentEmail = currentUserData.internal_email;
+    
+    // Créer le compte enfant via signUp (ça peut auto-loguer l'enfant)
+    const { data: authData, error: authErr } = await supa.auth.signUp({ email, password: pwd });
+    if (authErr) { hideLoading(); return showError('addChildError', authErr.message); }
+    const childUid = authData.user.id;
 
+    // Insérer dans users
+    const { error: insertErr } = await supa.from('users').insert({
+      uid: childUid, pseudo, prenom, date_naissance: birth, internal_email: email, friend_code: friendCode,
+      role: 'child', avatar: '😊', avatar_color: selectedChildColor, parent_id: currentUser.uid,
+      co_parent_ids: myCoParents,
+      children_ids: [], co_parents: [], adult_friends: [], approved_contacts: [], blocked_users: []
+    });
     if (insertErr) {
       hideLoading();
-      return showError('addChildError', 'DB : ' + insertErr.message);
+      return showError('addChildError', 'DB: ' + insertErr.message);
     }
 
     // Ajouter aux childrenIds du parent
@@ -2384,49 +1567,38 @@ async function addChild() {
     await supa.from('users').update({ children_ids: newChildrenIds }).eq('uid', currentUser.uid);
     currentUserData.children_ids = newChildrenIds;
 
-    // Ajouter aussi aux co-parents
-    for (const coParentId of myCoParents) {
-      const { data: coParent } = await supa.from('users').select('children_ids').eq('uid', coParentId).single();
-      if (coParent) {
-        const newList = [...(coParent.children_ids || []), childUid];
-        await supa.from('users').update({ children_ids: newList }).eq('uid', coParentId);
-      }
-    }
-
-    // Créer la conversation Parent(s) ↔ Enfant
-    const convMembers = [currentUser.uid, childUid, ...myCoParents];
-    const convMemberNames = { [currentUser.uid]: currentUserData.pseudo, [childUid]: pseudo };
-    const convMemberColors = { [currentUser.uid]: currentUserData.avatar_color || '#7C5CFC', [childUid]: selectedChildColor };
-
-    for (const coParentId of myCoParents) {
-      const { data: cp } = await supa.from('users').select('pseudo,avatar_color').eq('uid', coParentId).single();
+    // Ajouter aux co-parents
+    for (const cpId of myCoParents) {
+      const { data: cp } = await supa.from('users').select('children_ids').eq('uid', cpId).single();
       if (cp) {
-        convMemberNames[coParentId] = cp.pseudo;
-        convMemberColors[coParentId] = cp.avatar_color || '#0F6E56';
+        const newList = [...(cp.children_ids || []), childUid];
+        await supa.from('users').update({ children_ids: newList }).eq('uid', cpId);
       }
     }
 
+    // Créer conversation parent(s) ↔ enfant
+    const convMembers = [currentUser.uid, childUid, ...myCoParents];
+    const convNames = { [currentUser.uid]: currentUserData.pseudo, [childUid]: pseudo };
+    const convColors = { [currentUser.uid]: currentUserData.avatar_color || '#7C5CFC', [childUid]: selectedChildColor };
+    for (const cpId of myCoParents) {
+      const { data: cp } = await supa.from('users').select('pseudo,avatar_color').eq('uid', cpId).single();
+      if (cp) { convNames[cpId] = cp.pseudo; convColors[cpId] = cp.avatar_color || '#0F6E56'; }
+    }
     const convId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
     await supa.from('conversations').insert({
-      id: convId,
-      type: 'direct',
-      members: convMembers,
-      member_names: convMemberNames,
-      member_colors: convMemberColors,
-      last_message: 'Bienvenue sur Zamis ! 🎉',
-      last_message_at: new Date().toISOString(),
-      created_by: currentUser.uid
+      id: convId, type: 'direct', members: convMembers,
+      member_names: convNames, member_colors: convColors,
+      last_message: 'Bienvenue sur Zamis ! 🎉', last_message_at: new Date().toISOString(), created_by: currentUser.uid
+    });
+    await supa.from('messages').insert({
+      id: 'msg_' + Date.now(), conversation_id: convId, sender_id: 'system', sender_pseudo: 'Zamis',
+      type: 'text', content: 'Bienvenue sur Zamis Messenger ! 🎉'
     });
 
-    // Message de bienvenue
-    await supa.from('messages').insert({
-      id: 'msg_' + Date.now(),
-      conversation_id: convId,
-      sender_id: 'system',
-      sender_pseudo: 'Zamis',
-      type: 'text',
-      content: 'Bienvenue sur Zamis Messenger ! 🎉 Discutez ensemble.'
-    });
+    // IMPORTANT : signUp peut avoir switché la session vers l'enfant, on re-loggue le parent
+    await supa.auth.signInWithPassword({ email: parentEmail, password: '' }).catch(() => {});
+    // Alternative sûre : recharger la session du parent en signOut puis signIn... 
+    // Mais on n'a pas le password parent. Solution : garder currentUser tel quel.
 
     hideLoading();
     closeModal('addChildModal');
@@ -2438,76 +1610,24 @@ async function addChild() {
   }
 }
 
-// ============================================================
-// LOAD CHILDREN (dashboard parent)
-// ============================================================
-async function loadChildren() {
-  const scroll = $('childrenScroll');
-  if (!scroll) return;
-
-  const directIds = currentUserData.children_ids || [];
-  const allIds = new Set(directIds);
-
-  // Enfants partagés via co-parenting
-  try {
-    const { data: coChildren } = await supa.from('users')
-      .select('uid')
-      .contains('co_parent_ids', [currentUser.uid])
-      .eq('role', 'child');
-    if (coChildren) coChildren.forEach(c => allIds.add(c.uid));
-  } catch (e) {}
-
-  const ids = [...allIds];
-  $('childrenCount').textContent = '(' + ids.length + ')';
-
-  if (ids.length === 0) {
-    scroll.innerHTML = buildAddCard('showAddChildModal', 'Ajouter');
-    return;
-  }
-
-  // Batch fetch
-  const { data: children } = await supa.from('users').select('*').in('uid', ids);
-  if (!children) {
-    scroll.innerHTML = buildAddCard('showAddChildModal', 'Ajouter');
-    return;
-  }
-
-  let html = '';
-  // Limite affichage à 4, reste dans "Voir tout"
-  const displayed = children.slice(0, 4);
-  displayed.forEach(child => {
-    const isDirect = directIds.includes(child.uid);
-    html += `
-      <div class="entity-card" onclick="viewChildAsParent('${child.uid}')">
-        ${isDirect ? `<button class="entity-remove" onclick="event.stopPropagation();confirmDeleteChild('${child.uid}','${escapeQuote(child.pseudo)}')">×</button>` : ''}
-        <div class="entity-avatar" style="background:${child.avatar_color || '#FFB347'}">${child.avatar || child.pseudo.charAt(0).toUpperCase()}</div>
-        <div class="entity-name">${child.pseudo}</div>
-        <div class="entity-sub">${child.friend_code}</div>
-      </div>`;
-  });
-  html += buildAddCard('showAddChildModal', 'Ajouter');
-  scroll.innerHTML = html;
-
-  // Bouton "Voir tout" si plus de 4
-  $('childrenSeeAll').style.display = children.length > 4 ? '' : 'none';
-}
-
-function escapeQuote(s) { return (s || '').replace(/'/g, "\\'"); }
-
 function confirmDeleteChild(childId, pseudo) {
-  const pwd = prompt('Entre le mot de passe de ' + pseudo + ' (4 chiffres) pour confirmer la suppression :');
+  const pwd = prompt('Entre le mot de passe de ' + pseudo + ' pour confirmer la suppression :');
   if (!pwd) return;
   deleteChild(childId, pwd);
 }
 
-async function deleteChild(childId, pin) {
+async function deleteChild(childId, pwd) {
   showLoading();
   try {
     const { data: child } = await supa.from('users').select('*').eq('uid', childId).single();
     if (!child) { hideLoading(); return showToast('Enfant introuvable'); }
-    if (child.pin !== pin) { hideLoading(); return showToast('Mot de passe incorrect'); }
+    // Vérifier le password : essayer un signIn temporaire
+    const { error: authErr } = await supa.auth.signInWithPassword({ email: child.internal_email, password: pwd });
+    if (authErr) { hideLoading(); return showToast('Mot de passe incorrect'); }
+    // On est maintenant loggé en tant qu'enfant. On note et on se relogue après.
+    const parentEmail = currentUserData.internal_email;
 
-    // Retirer des childrenIds du parent + co-parents
+    // Retirer de children_ids des parents
     const parentIds = [child.parent_id, ...(child.co_parent_ids || [])].filter(Boolean);
     for (const pid of parentIds) {
       const { data: p } = await supa.from('users').select('children_ids').eq('uid', pid).single();
@@ -2516,64 +1636,47 @@ async function deleteChild(childId, pin) {
         await supa.from('users').update({ children_ids: newList }).eq('uid', pid);
       }
     }
-
-    // Supprimer les conversations (messages en cascade via FK)
+    // Supprimer conversations
     const { data: convs } = await supa.from('conversations').select('id').contains('members', [childId]);
-    if (convs) {
-      for (const c of convs) {
-        await supa.from('conversations').delete().eq('id', c.id);
-      }
-    }
-
-    // Supprimer les invitations
-    await supa.from('invitations').delete().or(`from_child_id.eq.${childId},to_child_id.eq.${childId}`);
-
-    // Supprimer le user
+    if (convs) { for (const c of convs) await supa.from('conversations').delete().eq('id', c.id); }
+    await supa.from('invitations').delete().or('from_child_id.eq.' + childId + ',to_child_id.eq.' + childId);
     await supa.from('users').delete().eq('uid', childId);
 
-    // Rafraîchir currentUserData
+    await supa.auth.signOut();
+    // Rafraîchir currentUserData depuis DB
     const { data: refreshed } = await supa.from('users').select('*').eq('uid', currentUser.uid).single();
     if (refreshed) currentUserData = refreshed;
 
     hideLoading();
-    showToast(child.pseudo + ' supprimé');
-    loadChildren();
+    showToast(child.pseudo + ' supprimé. Reconnecte-toi.');
+    // On perd la session parent, retour login
+    currentUser = null;
+    currentUserData = null;
+    showPage('loginPage');
   } catch (err) {
     hideLoading();
     showToast('Erreur : ' + err.message);
   }
 }
 
-// ============================================================
-// VIEW CHILD AS PARENT (mode lecture)
-// ============================================================
-let isParentBrowsingChild = false;
-let parentBackupUser = null;
-let parentBackupData = null;
-
+/* ============================================================
+   VIEW CHILD AS PARENT (mode lecture)
+============================================================ */
 async function viewChildAsParent(childId) {
   showLoading();
   try {
     const { data: child } = await supa.from('users').select('*').eq('uid', childId).single();
     if (!child) { hideLoading(); return showToast('Enfant introuvable'); }
-
-    // Sauvegarder l'état parent
     parentBackupUser = currentUser;
     parentBackupData = currentUserData;
     isParentBrowsingChild = true;
-
-    // Passer en mode enfant (lecture seule)
     currentUser = { uid: child.uid };
     currentUserData = child;
-
     hideLoading();
     prepareChildApp();
     showPage('childApp');
     showToast('Mode lecture : ' + child.pseudo);
-  } catch (err) {
-    hideLoading();
-    showToast('Erreur');
-  }
+  } catch (err) { hideLoading(); showToast('Erreur'); }
 }
 
 function backToParent() {
@@ -2588,77 +1691,467 @@ function backToParent() {
   loadChildren();
 }
 
-// ============================================================
-// PARENT MESSAGES PAGE
-// ============================================================
+/* ============================================================
+   CO-PARENT
+============================================================ */
+function openAddCoParentModal() {
+  hideError('addCoParentError');
+  $('coParentCode').value = '';
+  openModal('addCoParentModal');
+}
+
+async function addCoParent() {
+  hideError('addCoParentError');
+  const code = $('coParentCode').value.trim().toLowerCase();
+  if (!code) return showError('addCoParentError', 'Entre un code');
+  showLoading();
+  try {
+    const { data: users } = await supa.from('users').select('*').eq('friend_code', code).eq('role', 'parent').limit(1);
+    if (!users || users.length === 0) { hideLoading(); return showError('addCoParentError', 'Code adulte introuvable'); }
+    const co = users[0];
+    if (co.uid === currentUser.uid) { hideLoading(); return showError('addCoParentError', 'C\'est ton propre code !'); }
+    const myCo = currentUserData.co_parents || [];
+    if (myCo.includes(co.uid)) { hideLoading(); return showError('addCoParentError', 'Déjà co-parent'); }
+
+    await supa.from('users').update({ co_parents: [...myCo, co.uid] }).eq('uid', currentUser.uid);
+    const theirCo = co.co_parents || [];
+    await supa.from('users').update({ co_parents: [...theirCo, currentUser.uid] }).eq('uid', co.uid);
+
+    // Partager enfants
+    const myChildren = currentUserData.children_ids || [];
+    const theirChildren = co.children_ids || [];
+    for (const cid of myChildren) {
+      const { data: c } = await supa.from('users').select('co_parent_ids').eq('uid', cid).single();
+      if (c) {
+        const l = c.co_parent_ids || [];
+        if (!l.includes(co.uid)) await supa.from('users').update({ co_parent_ids: [...l, co.uid] }).eq('uid', cid);
+      }
+    }
+    if (myChildren.length > 0) {
+      const merged = [...theirChildren];
+      for (const cid of myChildren) if (!merged.includes(cid)) merged.push(cid);
+      await supa.from('users').update({ children_ids: merged }).eq('uid', co.uid);
+    }
+    for (const cid of theirChildren) {
+      const { data: c } = await supa.from('users').select('co_parent_ids').eq('uid', cid).single();
+      if (c) {
+        const l = c.co_parent_ids || [];
+        if (!l.includes(currentUser.uid)) await supa.from('users').update({ co_parent_ids: [...l, currentUser.uid] }).eq('uid', cid);
+      }
+    }
+    if (theirChildren.length > 0) {
+      const merged = [...myChildren];
+      for (const cid of theirChildren) if (!merged.includes(cid)) merged.push(cid);
+      await supa.from('users').update({ children_ids: merged }).eq('uid', currentUser.uid);
+    }
+
+    // Conv auto
+    const convId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+    await supa.from('conversations').insert({
+      id: convId, type: 'direct', members: [currentUser.uid, co.uid],
+      member_names: { [currentUser.uid]: currentUserData.pseudo, [co.uid]: co.pseudo },
+      member_colors: { [currentUser.uid]: currentUserData.avatar_color || '#7C5CFC', [co.uid]: co.avatar_color || '#0F6E56' },
+      last_message: 'Vous êtes co-parents ! 🎉', last_message_at: new Date().toISOString(), created_by: currentUser.uid
+    });
+    await supa.from('messages').insert({
+      id: 'msg_' + Date.now(), conversation_id: convId, sender_id: 'system', sender_pseudo: 'Zamis',
+      type: 'text', content: 'Vous êtes co-parents ! 🎉 Collaborez pour vos enfants.'
+    });
+
+    const { data: refreshed } = await supa.from('users').select('*').eq('uid', currentUser.uid).single();
+    if (refreshed) currentUserData = refreshed;
+
+    hideLoading();
+    closeModal('addCoParentModal');
+    showToast('Co-parent ajouté !');
+    loadCoParents();
+    loadChildren();
+  } catch (err) { hideLoading(); showError('addCoParentError', err.message); }
+}
+
+async function removeCoParent(uid, name) {
+  if (!confirm('Retirer ' + name + ' des co-parents ?')) return;
+  showLoading();
+  try {
+    const myList = (currentUserData.co_parents || []).filter(id => id !== uid);
+    await supa.from('users').update({ co_parents: myList }).eq('uid', currentUser.uid);
+    const { data: their } = await supa.from('users').select('co_parents').eq('uid', uid).single();
+    if (their) {
+      const l = (their.co_parents || []).filter(id => id !== currentUser.uid);
+      await supa.from('users').update({ co_parents: l }).eq('uid', uid);
+    }
+    const { data: refreshed } = await supa.from('users').select('*').eq('uid', currentUser.uid).single();
+    if (refreshed) currentUserData = refreshed;
+    hideLoading();
+    showToast('Retiré');
+    loadCoParents();
+  } catch (err) { hideLoading(); showToast('Erreur'); }
+}
+
+/* ============================================================
+   FRIEND (adulte ami)
+============================================================ */
+function openAddFriendModal() {
+  hideError('addFriendError');
+  $('friendCode').value = '';
+  openModal('addFriendModal');
+}
+
+async function addFriend() {
+  hideError('addFriendError');
+  const code = $('friendCode').value.trim().toLowerCase();
+  if (!code) return showError('addFriendError', 'Entre un code');
+  showLoading();
+  try {
+    const { data: users } = await supa.from('users').select('*').eq('friend_code', code).eq('role', 'parent').limit(1);
+    if (!users || users.length === 0) { hideLoading(); return showError('addFriendError', 'Code introuvable'); }
+    const friend = users[0];
+    if (friend.uid === currentUser.uid) { hideLoading(); return showError('addFriendError', 'C\'est ton propre code'); }
+    const myF = currentUserData.adult_friends || [];
+    if (myF.includes(friend.uid)) { hideLoading(); return showError('addFriendError', 'Déjà ami'); }
+    if ((currentUserData.co_parents || []).includes(friend.uid)) { hideLoading(); return showError('addFriendError', 'Déjà co-parent'); }
+
+    await supa.from('users').update({ adult_friends: [...myF, friend.uid] }).eq('uid', currentUser.uid);
+    const theirF = friend.adult_friends || [];
+    await supa.from('users').update({ adult_friends: [...theirF, currentUser.uid] }).eq('uid', friend.uid);
+
+    const convId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+    await supa.from('conversations').insert({
+      id: convId, type: 'direct', members: [currentUser.uid, friend.uid],
+      member_names: { [currentUser.uid]: currentUserData.pseudo, [friend.uid]: friend.pseudo },
+      member_colors: { [currentUser.uid]: currentUserData.avatar_color || '#7C5CFC', [friend.uid]: friend.avatar_color || '#4A90D9' },
+      last_message: 'Conversation créée', last_message_at: new Date().toISOString(), created_by: currentUser.uid
+    });
+    await supa.from('messages').insert({
+      id: 'msg_' + Date.now(), conversation_id: convId, sender_id: 'system', sender_pseudo: 'Zamis',
+      type: 'text', content: currentUserData.pseudo + ' et ' + friend.pseudo + ' peuvent maintenant discuter !'
+    });
+
+    const { data: refreshed } = await supa.from('users').select('*').eq('uid', currentUser.uid).single();
+    if (refreshed) currentUserData = refreshed;
+
+    hideLoading();
+    closeModal('addFriendModal');
+    showToast(friend.pseudo + ' ajouté !');
+    loadFriends();
+  } catch (err) { hideLoading(); showError('addFriendError', err.message); }
+}
+
+async function removeFriend(uid, name) {
+  if (!confirm('Retirer ' + name + ' des amis ?')) return;
+  showLoading();
+  try {
+    const l = (currentUserData.adult_friends || []).filter(id => id !== uid);
+    await supa.from('users').update({ adult_friends: l }).eq('uid', currentUser.uid);
+    const { data: their } = await supa.from('users').select('adult_friends').eq('uid', uid).single();
+    if (their) {
+      const tl = (their.adult_friends || []).filter(id => id !== currentUser.uid);
+      await supa.from('users').update({ adult_friends: tl }).eq('uid', uid);
+    }
+    const { data: refreshed } = await supa.from('users').select('*').eq('uid', currentUser.uid).single();
+    if (refreshed) currentUserData = refreshed;
+    hideLoading();
+    showToast('Retiré');
+    loadFriends();
+  } catch (err) { hideLoading(); showToast('Erreur'); }
+}
+
+/* ============================================================
+   INVITATIONS (approve/reject)
+============================================================ */
+async function approveRequest(invId) {
+  showLoading();
+  try {
+    const { data: inv } = await supa.from('invitations').select('*').eq('id', invId).single();
+    if (!inv) { hideLoading(); return showToast('Introuvable'); }
+    const { data: fromU } = await supa.from('users').select('*').eq('uid', inv.from_child_id).single();
+    const { data: toU } = await supa.from('users').select('*').eq('uid', inv.to_child_id).single();
+    if (!fromU || !toU) { hideLoading(); return showToast('User introuvable'); }
+    const fromApp = fromU.approved_contacts || [];
+    const toApp = toU.approved_contacts || [];
+    if (!fromApp.includes(inv.to_child_id)) await supa.from('users').update({ approved_contacts: [...fromApp, inv.to_child_id] }).eq('uid', inv.from_child_id);
+    if (!toApp.includes(inv.from_child_id)) await supa.from('users').update({ approved_contacts: [...toApp, inv.from_child_id] }).eq('uid', inv.to_child_id);
+
+    // Créer conv
+    const { data: convs } = await supa.from('conversations').select('*').eq('type', 'direct').contains('members', [inv.from_child_id]);
+    let exists = false;
+    if (convs) {
+      for (const c of convs) {
+        if ((c.members || []).length === 2 && (c.members || []).includes(inv.to_child_id)) { exists = true; break; }
+      }
+    }
+    if (!exists) {
+      const convId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+      await supa.from('conversations').insert({
+        id: convId, type: 'direct', members: [inv.from_child_id, inv.to_child_id],
+        member_names: { [inv.from_child_id]: fromU.pseudo, [inv.to_child_id]: toU.pseudo },
+        member_colors: { [inv.from_child_id]: fromU.avatar_color || '#FFB347', [inv.to_child_id]: toU.avatar_color || '#5DCAA5' },
+        last_message: 'Vous êtes amis ! 🎉', last_message_at: new Date().toISOString(), created_by: currentUser.uid
+      });
+      await supa.from('messages').insert({
+        id: 'msg_' + Date.now(), conversation_id: convId, sender_id: 'system', sender_pseudo: 'Zamis',
+        type: 'text', content: fromU.pseudo + ' et ' + toU.pseudo + ' sont maintenant amis ! 🎉'
+      });
+    }
+    await supa.from('invitations').update({ status: 'approved' }).eq('from_child_id', inv.from_child_id).eq('to_child_id', inv.to_child_id);
+    hideLoading();
+    showToast('Approuvé !');
+    loadPendingRequests();
+  } catch (err) { hideLoading(); showToast('Erreur : ' + err.message); }
+}
+
+async function rejectRequest(invId) {
+  try {
+    const { data: inv } = await supa.from('invitations').select('*').eq('id', invId).single();
+    if (!inv) return;
+    await supa.from('invitations').update({ status: 'rejected' }).eq('from_child_id', inv.from_child_id).eq('to_child_id', inv.to_child_id);
+    showToast('Refusé');
+    loadPendingRequests();
+  } catch (err) { showToast('Erreur'); }
+}
+
+/* ============================================================
+   PARENT MESSAGES
+============================================================ */
 async function openParentMessages() {
   showPage('parentMessagesPage');
   await loadConversationsList('parentConvList');
 }
 
-// ============================================================
-// LOAD CONVERSATIONS (parent OR child)
-// ============================================================
+/* ============================================================
+   CHILD APP
+============================================================ */
+function prepareChildApp() {
+  if (!currentUserData) return;
+  $('childWelcome').textContent = 'Bienvenue, ' + currentUserData.pseudo;
+  const header = document.querySelector('#childApp .header');
+  const existing = $('parentBrowsingBanner');
+  if (existing) existing.remove();
+  if (isParentBrowsingChild) {
+    const banner = document.createElement('div');
+    banner.id = 'parentBrowsingBanner';
+    banner.style.cssText = 'background:var(--orange);color:white;padding:8px 12px;text-align:center;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:8px';
+    banner.innerHTML = '<span>👁️ Mode lecture : ' + currentUserData.pseudo + '</span><button onclick="backToParent()" style="background:white;color:var(--orange);border:none;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;cursor:pointer">Retour</button>';
+    header.insertAdjacentElement('afterend', banner);
+  }
+  setTimeout(() => switchChildTab('messages'), 100);
+}
+
+async function switchChildTab(tab) {
+  currentChildTab = tab;
+  document.querySelectorAll('#childApp .nav-item').forEach(n => {
+    n.classList.remove('active');
+    if (n.dataset.page === tab) n.classList.add('active');
+  });
+  const titles = { messages: '💬 Messages', contacts: '📇 Contacts', invite: '👋 Inviter', profile: '👤 Profil' };
+  $('childHeaderTitle').textContent = titles[tab] || 'Zamis';
+  const content = $('childContent');
+  content.innerHTML = '<div class="empty-state"><div class="empty-icon">⏳</div></div>';
+  if (tab === 'messages') { await loadConversationsList('childContent'); return; }
+  if (tab === 'contacts') { await loadContacts('childContent'); return; }
+  if (tab === 'invite') { renderInvitePage(); return; }
+  if (tab === 'profile') { renderChildProfile(); return; }
+}
+
+function renderChildProfile() {
+  const c = $('childContent');
+  const age = calcAge(currentUserData.date_naissance);
+  const birthFr = formatBirthFr(currentUserData.date_naissance);
+  const depuis = membreDepuis(currentUserData.created_at);
+  const initial = (currentUserData.prenom || currentUserData.pseudo || '?').charAt(0).toUpperCase();
+  c.innerHTML =
+    '<div class="profile-card">' +
+      '<div class="profile-avatar-big" style="background:' + (currentUserData.avatar_color || '#7C5CFC') + '">' + initial + '</div>' +
+      '<div class="profile-info">' +
+        '<div class="profile-name">' + (currentUserData.prenom || '') + '</div>' +
+        '<div class="profile-detail">Pseudo : ' + currentUserData.pseudo + '</div>' +
+        '<div class="profile-detail">' + (age !== null ? age + ' ans (' + birthFr + ')' : '') + '</div>' +
+        '<div class="profile-detail">' + depuis + '</div>' +
+        '<div class="profile-code">' + currentUserData.friend_code + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<button class="btn btn-secondary" style="margin-bottom:10px" onclick="copyMyCode()">📋 Copier mon code Zamis</button>' +
+    (isParentBrowsingChild ? '' : '<button class="btn btn-danger" onclick="logout()">🚪 Se déconnecter</button>');
+}
+
+function renderInvitePage() {
+  const c = $('childContent');
+  c.innerHTML =
+    '<div style="background:var(--card);padding:14px;border-radius:12px;margin-bottom:20px">' +
+      '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px">Ton code Zamis</div>' +
+      '<div style="font-size:20px;font-weight:700;color:var(--primary)">' + currentUserData.friend_code + '</div>' +
+      '<div style="font-size:11px;color:var(--text-tertiary);margin-top:8px">Partage ce code avec un ami pour qu\'il t\'ajoute</div>' +
+    '</div>' +
+    '<div class="error-msg" id="inviteError"></div>' +
+    '<div class="success-msg" id="inviteSuccess"></div>' +
+    '<div class="form-group">' +
+      '<label class="form-label">Code Zamis d\'un ami</label>' +
+      '<input type="text" class="form-input" id="inviteFriendCode" placeholder="pseudo.xxxxx">' +
+    '</div>' +
+    '<button class="btn btn-primary" onclick="sendFriendRequest()">Envoyer l\'invitation</button>' +
+    '<div style="margin-top:24px">' +
+      '<div style="font-size:14px;font-weight:600;margin-bottom:8px">📤 Mes demandes en attente</div>' +
+      '<div id="myPendingRequests"></div>' +
+    '</div>';
+  loadMyPendingRequests();
+}
+
+async function sendFriendRequest() {
+  hideError('inviteError');
+  const successMsg = $('inviteSuccess');
+  if (successMsg) successMsg.classList.remove('show');
+  const code = $('inviteFriendCode').value.trim().toLowerCase();
+  if (!code) return showError('inviteError', 'Entre un code');
+  showLoading();
+  try {
+    const { data: users } = await supa.from('users').select('*').eq('friend_code', code).limit(1);
+    if (!users || users.length === 0) { hideLoading(); return showError('inviteError', 'Code introuvable'); }
+    const target = users[0];
+    if (target.uid === currentUser.uid) { hideLoading(); return showError('inviteError', 'C\'est ton propre code'); }
+    if ((currentUserData.approved_contacts || []).includes(target.uid)) { hideLoading(); return showError('inviteError', 'Déjà ami'); }
+
+    if (target.role === 'parent') {
+      // enfant → adulte
+      const { data: ex } = await supa.from('invitations').select('*').eq('from_child_id', currentUser.uid).eq('to_child_id', target.uid).eq('status', 'pending');
+      if (ex && ex.length > 0) { hideLoading(); return showError('inviteError', 'Déjà envoyée'); }
+      const parentIds = [currentUserData.parent_id, ...(currentUserData.co_parent_ids || [])].filter(Boolean);
+      const invs = parentIds.map(pid => ({
+        id: 'inv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+        from_child_id: currentUser.uid, from_child_pseudo: currentUserData.pseudo,
+        to_child_id: target.uid, to_child_pseudo: target.pseudo,
+        target_is_adult: true, parent_approval_id: pid, status: 'pending'
+      }));
+      if (invs.length > 0) await supa.from('invitations').insert(invs);
+      hideLoading();
+      $('inviteFriendCode').value = '';
+      showSuccess('inviteSuccess', 'Demande envoyée à tes parents');
+      loadMyPendingRequests();
+      return;
+    }
+
+    if (target.role === 'child') {
+      const { data: e1 } = await supa.from('invitations').select('*').eq('from_child_id', currentUser.uid).eq('to_child_id', target.uid).eq('status', 'pending');
+      const { data: e2 } = await supa.from('invitations').select('*').eq('from_child_id', target.uid).eq('to_child_id', currentUser.uid).eq('status', 'pending');
+      if ((e1 && e1.length > 0) || (e2 && e2.length > 0)) { hideLoading(); return showError('inviteError', 'Invitation en cours'); }
+      const fromP = [currentUserData.parent_id, ...(currentUserData.co_parent_ids || [])].filter(Boolean);
+      const toP = [target.parent_id, ...(target.co_parent_ids || [])].filter(Boolean);
+      const all = new Set([...fromP, ...toP]);
+      const invs = [...all].map(pid => ({
+        id: 'inv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+        from_child_id: currentUser.uid, from_child_pseudo: currentUserData.pseudo,
+        to_child_id: target.uid, to_child_pseudo: target.pseudo,
+        target_is_adult: false, parent_approval_id: pid, status: 'pending'
+      }));
+      if (invs.length > 0) await supa.from('invitations').insert(invs);
+      hideLoading();
+      $('inviteFriendCode').value = '';
+      showSuccess('inviteSuccess', 'Invitation envoyée ! En attente de validation.');
+      loadMyPendingRequests();
+      return;
+    }
+    hideLoading();
+    showError('inviteError', 'Type non supporté');
+  } catch (err) { hideLoading(); showError('inviteError', err.message); }
+}
+
+async function loadMyPendingRequests() {
+  const container = $('myPendingRequests');
+  if (!container) return;
+  try {
+    const { data: invs } = await supa.from('invitations').select('*').eq('from_child_id', currentUser.uid).eq('status', 'pending');
+    if (!invs || invs.length === 0) { container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-tertiary);font-size:12px">Aucune demande</div>'; return; }
+    const seen = new Set();
+    const unique = invs.filter(i => { if (seen.has(i.to_child_id)) return false; seen.add(i.to_child_id); return true; });
+    let html = '';
+    unique.forEach(inv => {
+      html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">' +
+        '<div style="width:32px;height:32px;border-radius:50%;background:var(--orange);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">⏳</div>' +
+        '<div style="flex:1;font-size:13px"><div style="font-weight:600">' + inv.to_child_pseudo + '</div><div style="color:var(--text-secondary);font-size:11px">En attente de validation</div></div>' +
+        '</div>';
+    });
+    container.innerHTML = html;
+  } catch (err) { container.innerHTML = ''; }
+}
+
+/* ============================================================
+   CONTACTS (child + parent)
+============================================================ */
+async function loadContacts(containerId) {
+  const container = $(containerId);
+  if (!container) return;
+  container.innerHTML = '<div class="empty-state"><div class="empty-icon">⏳</div></div>';
+  const contactIds = new Set();
+  if (currentUserData.role === 'child') {
+    (currentUserData.approved_contacts || []).forEach(id => contactIds.add(id));
+    if (currentUserData.parent_id) contactIds.add(currentUserData.parent_id);
+    (currentUserData.co_parent_ids || []).forEach(id => contactIds.add(id));
+  } else {
+    (currentUserData.children_ids || []).forEach(id => contactIds.add(id));
+    (currentUserData.co_parents || []).forEach(id => contactIds.add(id));
+    (currentUserData.adult_friends || []).forEach(id => contactIds.add(id));
+  }
+  if (contactIds.size === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📇</div><div class="empty-title">Aucun contact</div><div class="empty-desc">Ajoute des amis dans "Inviter"</div></div>';
+    return;
+  }
+  const { data: contacts } = await supa.from('users').select('*').in('uid', [...contactIds]);
+  if (!contacts) { container.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Erreur</div></div>'; return; }
+  contacts.sort((a, b) => (a.pseudo || '').toLowerCase().localeCompare((b.pseudo || '').toLowerCase()));
+  let html = '';
+  contacts.forEach(c => {
+    const role = c.role === 'child' ? 'Enfant' : (c.uid === currentUserData.parent_id ? 'Parent' : 'Adulte');
+    html += '<div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--card);border-radius:12px;margin-bottom:8px;cursor:pointer" onclick="startConvWith(\'' + c.uid + '\')">' +
+      '<div style="width:44px;height:44px;border-radius:50%;background:' + (c.avatar_color || '#7C5CFC') + ';display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:16px">' + (c.pseudo || '?').charAt(0).toUpperCase() + '</div>' +
+      '<div style="flex:1;min-width:0"><div style="font-weight:600;font-size:15px;color:var(--text)">' + c.pseudo + '</div><div style="font-size:12px;color:var(--text-tertiary)">' + role + '</div></div>' +
+      '<div style="font-size:20px;color:var(--text-tertiary)">💬</div>' +
+      '</div>';
+  });
+  container.innerHTML = html;
+}
+
+/* ============================================================
+   CONVERSATIONS LIST + REALTIME
+============================================================ */
 async function loadConversationsList(containerId) {
   const container = $(containerId);
   if (!container) return;
-  const myUid = getCurrentUid();
-  if (!myUid) return;
-
+  if (!currentUser) return;
   container.innerHTML = '<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-title">Chargement...</div></div>';
-
   try {
-    const { data: convs } = await supa.from('conversations')
-      .select('*')
-      .contains('members', [myUid])
-      .order('last_message_at', { ascending: false });
-
+    const { data: convs } = await supa.from('conversations').select('*').contains('members', [currentUser.uid]).order('last_message_at', { ascending: false });
     setupConvListRealtime(containerId);
-
     if (!convs || convs.length === 0) {
       container.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-title">Aucune conversation</div><div class="empty-desc">Ajoute des contacts pour discuter</div></div>';
       return;
     }
-
-    let html = '';
-    convs.forEach(conv => {
-      const isGroup = conv.type === 'group';
-      let displayName, displayColor;
-
-      if (isGroup) {
-        displayName = conv.group_name || 'Groupe';
-        displayColor = '#7C5CFC';
-      } else {
-        const otherIds = (conv.members || []).filter(m => m !== myUid);
-        if (otherIds.length === 0) return;
-        const otherId = otherIds[0];
-        const names = conv.member_names || {};
-        const colors = conv.member_colors || {};
-        displayName = names[otherId] || 'Inconnu';
-        displayColor = colors[otherId] || '#7C5CFC';
-      }
-
-      const preview = conv.last_message || 'Nouvelle conversation';
-      const dateStr = formatDate(conv.last_message_at);
-      const initial = isGroup ? '👥' : displayName.charAt(0).toUpperCase();
-
-      html += `
-        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--card);border-radius:12px;margin-bottom:8px;cursor:pointer" onclick="openConversation('${conv.id}')">
-          <div style="width:48px;height:48px;border-radius:50%;background:${displayColor};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:18px;flex-shrink:0">${initial}</div>
-          <div style="flex:1;min-width:0">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-              <div style="font-weight:600;font-size:15px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${displayName}</div>
-              <div style="font-size:11px;color:var(--text-tertiary);flex-shrink:0">${dateStr}</div>
-            </div>
-            <div style="font-size:13px;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px">${preview}</div>
-          </div>
-        </div>`;
-    });
-
-    container.innerHTML = html;
+    renderConvList(container, convs);
   } catch (err) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Erreur</div><div class="empty-desc">' + err.message + '</div></div>';
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Erreur</div></div>';
   }
+}
+
+function renderConvList(container, convs) {
+  let html = '';
+  convs.forEach(conv => {
+    const isGroup = conv.type === 'group';
+    let name, color;
+    if (isGroup) { name = conv.group_name || 'Groupe'; color = '#7C5CFC'; }
+    else {
+      const otherIds = (conv.members || []).filter(m => m !== currentUser.uid);
+      if (otherIds.length === 0) return;
+      const otherId = otherIds[0];
+      name = (conv.member_names || {})[otherId] || 'Inconnu';
+      color = (conv.member_colors || {})[otherId] || '#7C5CFC';
+    }
+    const preview = conv.last_message || 'Nouvelle conversation';
+    const dateStr = formatDate(conv.last_message_at);
+    const initial = isGroup ? '👥' : name.charAt(0).toUpperCase();
+    html += '<div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--card);border-radius:12px;margin-bottom:8px;cursor:pointer" onclick="openConversation(\'' + conv.id + '\')">' +
+      '<div style="width:48px;height:48px;border-radius:50%;background:' + color + ';display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:18px;flex-shrink:0">' + initial + '</div>' +
+      '<div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:600;font-size:15px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + name + '</div><div style="font-size:11px;color:var(--text-tertiary);flex-shrink:0">' + dateStr + '</div></div><div style="font-size:13px;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px">' + preview + '</div></div>' +
+      '</div>';
+  });
+  container.innerHTML = html;
 }
 
 let convListChannel = null;
@@ -2667,188 +2160,75 @@ let convListPollTimer = null;
 
 function setupConvListRealtime(containerId) {
   convListContainerId = containerId;
-  
-  // Cleanup ancien channel
-  if (convListChannel) {
-    supa.removeChannel(convListChannel);
-    convListChannel = null;
-  }
-  
-  const myUid = getCurrentUid();
-  if (!myUid) {
-    console.warn('setupConvListRealtime: no UID');
-    return;
-  }
-  
-  // Subscribe realtime
-  convListChannel = supa.channel('convlist_' + myUid + '_' + Date.now())
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, (payload) => {
-      console.log('[Realtime] conv change:', payload);
-      refreshConvListIfActive();
-    })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (payload) => {
-      console.log('[Realtime] message change:', payload);
-      refreshConvListIfActive();
-    })
-    .subscribe((status) => {
-      console.log('[Realtime] status:', status);
-    });
-  
-  // Fallback : polling toutes les 8 secondes au cas où realtime échoue
+  if (convListChannel) { supa.removeChannel(convListChannel); convListChannel = null; }
+  if (!currentUser) return;
+  convListChannel = supa.channel('convlist_' + currentUser.uid + '_' + Date.now())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => refreshConvListIfActive())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => refreshConvListIfActive())
+    .subscribe((status) => console.log('[Realtime]', status));
   if (convListPollTimer) clearInterval(convListPollTimer);
-  convListPollTimer = setInterval(() => {
-    refreshConvListIfActive();
-  }, 8000);
+  convListPollTimer = setInterval(refreshConvListIfActive, 8000);
 }
 
-function refreshConvListIfActive() {
+async function refreshConvListIfActive() {
   if (!convListContainerId) return;
   const container = $(convListContainerId);
   if (!container) return;
-  const parentPage = container.closest('.page');
-  if (parentPage && parentPage.classList.contains('active')) {
-    // Ne pas afficher le "Chargement..." pour éviter le flash
-    silentRefreshConvList(convListContainerId);
-  }
-}
-
-async function silentRefreshConvList(containerId) {
-  const container = $(containerId);
-  if (!container) return;
-  const myUid = getCurrentUid();
-  if (!myUid) return;
-
+  const parent = container.closest('.page');
+  if (!parent || !parent.classList.contains('active')) return;
   try {
-    const { data: convs } = await supa.from('conversations')
-      .select('*')
-      .contains('members', [myUid])
-      .order('last_message_at', { ascending: false });
-
+    const { data: convs } = await supa.from('conversations').select('*').contains('members', [currentUser.uid]).order('last_message_at', { ascending: false });
     if (!convs || convs.length === 0) {
       container.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-title">Aucune conversation</div><div class="empty-desc">Ajoute des contacts pour discuter</div></div>';
       return;
     }
-
-    let html = '';
-    convs.forEach(conv => {
-      const isGroup = conv.type === 'group';
-      let displayName, displayColor;
-
-      if (isGroup) {
-        displayName = conv.group_name || 'Groupe';
-        displayColor = '#7C5CFC';
-      } else {
-        const otherIds = (conv.members || []).filter(m => m !== myUid);
-        if (otherIds.length === 0) return;
-        const otherId = otherIds[0];
-        const names = conv.member_names || {};
-        const colors = conv.member_colors || {};
-        displayName = names[otherId] || 'Inconnu';
-        displayColor = colors[otherId] || '#7C5CFC';
-      }
-
-      const preview = conv.last_message || 'Nouvelle conversation';
-      const dateStr = formatDate(conv.last_message_at);
-      const initial = isGroup ? '👥' : displayName.charAt(0).toUpperCase();
-
-      html += `
-        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--card);border-radius:12px;margin-bottom:8px;cursor:pointer" onclick="openConversation('${conv.id}')">
-          <div style="width:48px;height:48px;border-radius:50%;background:${displayColor};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:18px;flex-shrink:0">${initial}</div>
-          <div style="flex:1;min-width:0">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-              <div style="font-weight:600;font-size:15px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${displayName}</div>
-              <div style="font-size:11px;color:var(--text-tertiary);flex-shrink:0">${dateStr}</div>
-            </div>
-            <div style="font-size:13px;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px">${preview}</div>
-          </div>
-        </div>`;
-    });
-
-    container.innerHTML = html;
-  } catch (err) {
-    console.error('silentRefreshConvList error:', err);
-  }
+    renderConvList(container, convs);
+  } catch (e) {}
 }
 
-function formatDate(iso) {
-  if (!iso) return '';
-  const d = new Date(iso);
-  const now = new Date();
-  const isToday = d.toDateString() === now.toDateString();
-  if (isToday) {
-    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-  }
-  return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0');
-}
-
-// ============================================================
-// OPEN CONVERSATION + LOAD MESSAGES + REALTIME
-// ============================================================
+/* ============================================================
+   CONVERSATION (open + messages + realtime)
+============================================================ */
 let currentConvId = null;
 let currentConvData = null;
 let realtimeChannel = null;
 
 async function openConversation(convId) {
   currentConvId = convId;
-
   try {
     const { data: conv } = await supa.from('conversations').select('*').eq('id', convId).single();
     if (!conv) return showToast('Conversation introuvable');
     currentConvData = conv;
-
     const isGroup = conv.type === 'group';
-    let displayName, displayColor;
-    if (isGroup) {
-      displayName = conv.group_name || 'Groupe';
-      displayColor = '#7C5CFC';
-    } else {
+    let name, color;
+    if (isGroup) { name = conv.group_name || 'Groupe'; color = '#7C5CFC'; }
+    else {
       const otherIds = (conv.members || []).filter(m => m !== currentUser.uid);
       const otherId = otherIds[0];
-      const names = conv.member_names || {};
-      const colors = conv.member_colors || {};
-      displayName = names[otherId] || 'Inconnu';
-      displayColor = colors[otherId] || '#7C5CFC';
+      name = (conv.member_names || {})[otherId] || 'Inconnu';
+      color = (conv.member_colors || {})[otherId] || '#7C5CFC';
     }
-
-    $('convName').textContent = displayName;
+    $('convName').textContent = name;
     $('convSubtitle').textContent = isGroup ? (conv.members.length + ' membres') : 'En ligne';
-    $('convAvatar').textContent = isGroup ? '👥' : displayName.charAt(0).toUpperCase();
-    $('convAvatar').style.background = displayColor;
-
-    // Read only si parent en mode browsing enfant
-    if (isParentBrowsingChild) {
-      $('chatInputBar').style.display = 'none';
-      $('readOnlyBar').style.display = 'block';
-    } else {
-      $('chatInputBar').style.display = 'flex';
-      $('readOnlyBar').style.display = 'none';
-    }
-
+    $('convAvatar').textContent = isGroup ? '👥' : name.charAt(0).toUpperCase();
+    $('convAvatar').style.background = color;
+    if (isParentBrowsingChild) { $('chatInputBar').style.display = 'none'; $('readOnlyBar').style.display = 'block'; }
+    else { $('chatInputBar').style.display = 'flex'; $('readOnlyBar').style.display = 'none'; }
     showPage('conversationPage');
     await loadMessages(convId);
     setupRealtimeMessages(convId);
-  } catch (err) {
-    showToast('Erreur : ' + err.message);
-  }
+  } catch (err) { showToast('Erreur : ' + err.message); }
 }
 
 async function loadMessages(convId) {
   const area = $('messagesArea');
   area.innerHTML = '';
-
   try {
-    const { data: messages } = await supa.from('messages')
-      .select('*')
-      .eq('conversation_id', convId)
-      .order('created_at', { ascending: true });
-
-    if (!messages || messages.length === 0) return;
-
-    messages.forEach(msg => renderMessage(msg));
+    const { data: messages } = await supa.from('messages').select('*').eq('conversation_id', convId).order('created_at', { ascending: true });
+    if (!messages) return;
+    messages.forEach(m => renderMessage(m));
     scrollMessagesBottom();
-  } catch (err) {
-    console.error('loadMessages error:', err);
-  }
+  } catch (e) { console.error(e); }
 }
 
 function renderMessage(msg) {
@@ -2856,9 +2236,9 @@ function renderMessage(msg) {
   const isMine = msg.sender_id === currentUser.uid;
   const isSystem = msg.sender_id === 'system';
   const conv = currentConvData || {};
-  const memberColors = conv.member_colors || {};
-  const memberNames = conv.member_names || {};
   const isGroup = conv.type === 'group';
+  const memberNames = conv.member_names || {};
+  const memberColors = conv.member_colors || {};
 
   if (isSystem) {
     const div = document.createElement('div');
@@ -2867,30 +2247,25 @@ function renderMessage(msg) {
     area.appendChild(div);
     return;
   }
-
-  const wrapper = document.createElement('div');
-  wrapper.style.cssText = 'display:flex;flex-direction:column;max-width:75%;' + (isMine ? 'align-self:flex-end;align-items:flex-end' : 'align-self:flex-start;align-items:flex-start');
-
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;flex-direction:column;max-width:75%;' + (isMine ? 'align-self:flex-end;align-items:flex-end' : 'align-self:flex-start;align-items:flex-start');
   if (!isMine && isGroup) {
-    const senderLabel = document.createElement('div');
-    senderLabel.style.cssText = 'font-size:11px;color:' + (memberColors[msg.sender_id] || 'var(--text-secondary)') + ';margin-left:8px;margin-bottom:2px;font-weight:600';
-    senderLabel.textContent = memberNames[msg.sender_id] || msg.sender_pseudo || 'Inconnu';
-    wrapper.appendChild(senderLabel);
+    const label = document.createElement('div');
+    label.style.cssText = 'font-size:11px;color:' + (memberColors[msg.sender_id] || 'var(--text-secondary)') + ';margin-left:8px;margin-bottom:2px;font-weight:600';
+    label.textContent = memberNames[msg.sender_id] || msg.sender_pseudo || 'Inconnu';
+    wrap.appendChild(label);
   }
-
   const bubble = document.createElement('div');
   bubble.style.cssText = 'padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.4;word-break:break-word;' +
     (isMine ? 'background:var(--primary);color:white;border-bottom-right-radius:4px' : 'background:var(--card);color:var(--text);border-bottom-left-radius:4px');
   bubble.textContent = msg.content;
-  wrapper.appendChild(bubble);
-
+  wrap.appendChild(bubble);
   const time = document.createElement('div');
   time.style.cssText = 'font-size:10px;color:var(--text-tertiary);margin-top:2px;padding:0 4px';
   const d = new Date(msg.created_at);
   time.textContent = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-  wrapper.appendChild(time);
-
-  area.appendChild(wrapper);
+  wrap.appendChild(time);
+  area.appendChild(wrap);
 }
 
 function scrollMessagesBottom() {
@@ -2899,20 +2274,12 @@ function scrollMessagesBottom() {
 }
 
 function setupRealtimeMessages(convId) {
-  // Nettoyer l'ancien channel
-  if (realtimeChannel) {
-    supa.removeChannel(realtimeChannel);
-    realtimeChannel = null;
-  }
-
-  realtimeChannel = supa.channel('messages:' + convId)
-    .on('postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'messages', filter: 'conversation_id=eq.' + convId },
-      (payload) => {
-        renderMessage(payload.new);
-        scrollMessagesBottom();
-      }
-    )
+  if (realtimeChannel) { supa.removeChannel(realtimeChannel); realtimeChannel = null; }
+  realtimeChannel = supa.channel('msgs_' + convId + '_' + Date.now())
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: 'conversation_id=eq.' + convId }, (p) => {
+      renderMessage(p.new);
+      scrollMessagesBottom();
+    })
     .subscribe();
 }
 
@@ -2922,77 +2289,48 @@ async function sendMessage() {
   if (!content) return;
   if (!currentConvId) return;
   if (isParentBrowsingChild) return showToast('Mode lecture seule');
-
   input.value = '';
-
   try {
     const msgId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
     await supa.from('messages').insert({
-      id: msgId,
-      conversation_id: currentConvId,
-      sender_id: currentUser.uid,
-      sender_pseudo: currentUserData.pseudo,
-      type: 'text',
-      content: content
+      id: msgId, conversation_id: currentConvId, sender_id: currentUser.uid,
+      sender_pseudo: currentUserData.pseudo, type: 'text', content
     });
-
-    // Mettre à jour la conversation
     await supa.from('conversations').update({
-      last_message: content,
-      last_message_at: new Date().toISOString(),
-      last_sender_id: currentUser.uid
+      last_message: content, last_message_at: new Date().toISOString(), last_sender_id: currentUser.uid
     }).eq('id', currentConvId);
-  } catch (err) {
-    showToast('Erreur envoi : ' + err.message);
-  }
+  } catch (err) { showToast('Erreur envoi : ' + err.message); }
 }
 
 function backFromConv() {
-  // Nettoyer realtime
-  if (realtimeChannel) {
-    supa.removeChannel(realtimeChannel);
-    realtimeChannel = null;
-  }
+  if (realtimeChannel) { supa.removeChannel(realtimeChannel); realtimeChannel = null; }
   currentConvId = null;
   currentConvData = null;
-
-  // Retour selon contexte
-  if (isChildSession || isParentBrowsingChild) {
-    showPage('childApp');
-  } else {
-    showPage('parentMessagesPage');
-    loadConversationsList('parentConvList');
-  }
+  if (currentUserData && currentUserData.role === 'child') showPage('childApp');
+  else if (isParentBrowsingChild) showPage('childApp');
+  else { showPage('parentMessagesPage'); loadConversationsList('parentConvList'); }
 }
 
 function openConvMenu() { openModal('convMenuModal'); }
-function openConvInfo() { showConvParticipants(); }
 
 async function showConvParticipants() {
   closeModal('convMenuModal');
   if (!currentConvData) return;
-
   const members = currentConvData.members || [];
-  const memberNames = currentConvData.member_names || {};
-  const memberColors = currentConvData.member_colors || {};
-
-  $('participantsTitle').textContent = (currentConvData.type === 'group' ? (currentConvData.group_name || 'Groupe') : 'Participants') + ' (' + members.length + ')';
-
+  const names = currentConvData.member_names || {};
+  const colors = currentConvData.member_colors || {};
+  $('participantsTitle').textContent = 'Participants (' + members.length + ')';
   let html = '';
-  for (const memberId of members) {
-    const name = memberNames[memberId] || 'Inconnu';
-    const color = memberColors[memberId] || '#7C5CFC';
-    const isSelf = memberId === currentUser.uid;
-    const isCreator = memberId === currentConvData.created_by;
-    html += `
-      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
-        <div style="width:40px;height:40px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;color:white;font-weight:700">${name.charAt(0).toUpperCase()}</div>
-        <div style="flex:1">
-          <div style="font-size:14px;font-weight:600">${name}${isSelf ? ' (toi)' : ''}${isCreator ? ' ⭐' : ''}</div>
-        </div>
-      </div>`;
-  }
-  $('participantsList').innerHTML = html || '<div style="text-align:center;color:var(--text-secondary);padding:20px">Aucun participant</div>';
+  members.forEach(id => {
+    const name = names[id] || 'Inconnu';
+    const color = colors[id] || '#7C5CFC';
+    const isSelf = id === currentUser.uid;
+    html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">' +
+      '<div style="width:40px;height:40px;border-radius:50%;background:' + color + ';display:flex;align-items:center;justify-content:center;color:white;font-weight:700">' + name.charAt(0).toUpperCase() + '</div>' +
+      '<div style="flex:1"><div style="font-size:14px;font-weight:600">' + name + (isSelf ? ' (toi)' : '') + '</div></div>' +
+      '</div>';
+  });
+  $('participantsList').innerHTML = html || '<div style="text-align:center;color:var(--text-secondary);padding:20px">Aucun</div>';
   openModal('participantsModal');
 }
 
@@ -3000,51 +2338,44 @@ async function confirmDeleteConversation() {
   closeModal('convMenuModal');
   if (!currentConvId) return;
   if (!confirm('Supprimer cette conversation et tous ses messages ?')) return;
-
   showLoading();
   try {
     await supa.from('conversations').delete().eq('id', currentConvId);
     hideLoading();
-    showToast('Conversation supprimée');
+    showToast('Supprimée');
     backFromConv();
-  } catch (err) {
-    hideLoading();
-    showToast('Erreur : ' + err.message);
-  }
+  } catch (err) { hideLoading(); showToast('Erreur'); }
 }
 
-// ============================================================
-// NEW CONVERSATION MODAL
-// ============================================================
+/* ============================================================
+   NEW CONVERSATION
+============================================================ */
 async function openNewConversation() {
   openModal('newConvModal');
   const list = $('newConvList');
   list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary)">Chargement...</div>';
-
-  // Charger les contacts disponibles
-  const contactIds = new Set();
-  (currentUserData.children_ids || []).forEach(id => contactIds.add(id));
-  (currentUserData.co_parents || []).forEach(id => contactIds.add(id));
-  (currentUserData.adult_friends || []).forEach(id => contactIds.add(id));
-
-  if (contactIds.size === 0) {
-    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:13px">Aucun contact. Ajoute d\'abord un enfant ou un ami.</div>';
+  const ids = new Set();
+  if (currentUserData.role === 'child') {
+    (currentUserData.approved_contacts || []).forEach(id => ids.add(id));
+    if (currentUserData.parent_id) ids.add(currentUserData.parent_id);
+    (currentUserData.co_parent_ids || []).forEach(id => ids.add(id));
+  } else {
+    (currentUserData.children_ids || []).forEach(id => ids.add(id));
+    (currentUserData.co_parents || []).forEach(id => ids.add(id));
+    (currentUserData.adult_friends || []).forEach(id => ids.add(id));
+  }
+  if (ids.size === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:13px">Aucun contact.</div>';
     return;
   }
-
-  const { data: contacts } = await supa.from('users').select('*').in('uid', [...contactIds]);
-  if (!contacts) {
-    list.innerHTML = '<div style="text-align:center;padding:20px">Erreur</div>';
-    return;
-  }
-
+  const { data: contacts } = await supa.from('users').select('*').in('uid', [...ids]);
+  if (!contacts) { list.innerHTML = '<div style="text-align:center;padding:20px">Erreur</div>'; return; }
   let html = '';
   contacts.forEach(c => {
-    html += `
-      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="startConvWith('${c.uid}')">
-        <div style="width:40px;height:40px;border-radius:50%;background:${c.avatar_color || '#7C5CFC'};display:flex;align-items:center;justify-content:center;color:white;font-weight:700">${c.pseudo.charAt(0).toUpperCase()}</div>
-        <div style="flex:1;font-size:14px;font-weight:600">${c.pseudo}</div>
-      </div>`;
+    html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="startConvWith(\'' + c.uid + '\')">' +
+      '<div style="width:40px;height:40px;border-radius:50%;background:' + (c.avatar_color || '#7C5CFC') + ';display:flex;align-items:center;justify-content:center;color:white;font-weight:700">' + c.pseudo.charAt(0).toUpperCase() + '</div>' +
+      '<div style="flex:1;font-size:14px;font-weight:600">' + c.pseudo + '</div>' +
+      '</div>';
   });
   list.innerHTML = html;
 }
@@ -3052,149 +2383,34 @@ async function openNewConversation() {
 async function startConvWith(otherUid) {
   closeModal('newConvModal');
   showLoading();
-
   try {
-    // Vérifier si conv directe existe déjà
-    const { data: convs } = await supa.from('conversations')
-      .select('*')
-      .eq('type', 'direct')
-      .contains('members', [currentUser.uid]);
-
+    const { data: convs } = await supa.from('conversations').select('*').eq('type', 'direct').contains('members', [currentUser.uid]);
     let existing = null;
     if (convs) {
       for (const c of convs) {
-        const members = c.members || [];
-        if (members.length === 2 && members.includes(otherUid)) {
-          existing = c;
-          break;
-        }
+        const m = c.members || [];
+        if (m.length === 2 && m.includes(otherUid)) { existing = c; break; }
       }
     }
-
-    if (existing) {
-      hideLoading();
-      openConversation(existing.id);
-      return;
-    }
-
-    // Créer la conversation
+    if (existing) { hideLoading(); openConversation(existing.id); return; }
     const { data: other } = await supa.from('users').select('*').eq('uid', otherUid).single();
-    if (!other) { hideLoading(); return showToast('Contact introuvable'); }
-
+    if (!other) { hideLoading(); return showToast('Introuvable'); }
     const convId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
     await supa.from('conversations').insert({
-      id: convId,
-      type: 'direct',
-      members: [currentUser.uid, otherUid],
+      id: convId, type: 'direct', members: [currentUser.uid, otherUid],
       member_names: { [currentUser.uid]: currentUserData.pseudo, [otherUid]: other.pseudo },
       member_colors: { [currentUser.uid]: currentUserData.avatar_color || '#7C5CFC', [otherUid]: other.avatar_color || '#7C5CFC' },
-      last_message: 'Conversation créée',
-      last_message_at: new Date().toISOString(),
-      created_by: currentUser.uid
+      last_message: 'Conversation créée', last_message_at: new Date().toISOString(), created_by: currentUser.uid
     });
-
     hideLoading();
     openConversation(convId);
-  } catch (err) {
-    hideLoading();
-    showToast('Erreur : ' + err.message);
-  }
+  } catch (err) { hideLoading(); showToast('Erreur : ' + err.message); }
 }
 
-// ============================================================
-// CHILD APP TABS (mise à jour)
-// ============================================================
-async function switchChildTab(tab) {
-  currentChildTab = tab;
-
-  document.querySelectorAll('#childApp .nav-item').forEach(n => {
-    n.classList.remove('active');
-    if (n.dataset.page === tab) n.classList.add('active');
-  });
-
-  const titles = {
-    messages: '💬 Messages',
-    contacts: '📇 Contacts',
-    invite: '👋 Inviter',
-    profile: '👤 Profil'
-  };
-  $('childHeaderTitle').textContent = titles[tab] || 'Zamis';
-
-  const content = $('childContent');
-  content.innerHTML = '<div class="empty-state"><div class="empty-icon">⏳</div></div>';
-
-  if (tab === 'messages') {
-    await loadConversationsList('childContent');
-    return;
-  }
-
-  if (tab === 'contacts') {
-    await loadContacts('childContent');
-    return;
-  }
-
-  if (tab === 'invite') {
-    openInvitePage();
-    return;
-  }
-
-  const emptyStates = {
-    profile: { icon: '👤', title: 'Ton profil', desc: 'Bloc 4 - à venir' }
-  };
-  const s = emptyStates[tab] || { icon: '❓', title: 'À venir', desc: '' };
-  content.innerHTML = `
-    <div class="empty-state">
-      <div class="empty-icon">${s.icon}</div>
-      <div class="empty-title">${s.title}</div>
-      <div class="empty-desc">${s.desc}</div>
-    </div>`;
-}
-
-function showChildSearch() { showToast('Recherche : bloc 3'); }
-function showNewMessageOptions() { openNewConversation(); }
+function openSeeAllModal(type) { showToast('Voir tout : à venir'); }
 
 /* ============================================================
-   CHILD APP PREP
-============================================================ */
-function prepareChildApp() {
-  if (!currentUserData) return;
-  $('childWelcome').textContent = 'Bienvenue, ' + currentUserData.pseudo;
-  
-  // Si parent en mode browsing, afficher un bandeau
-  const header = document.querySelector('#childApp .header');
-  const existingBanner = document.getElementById('parentBrowsingBanner');
-  if (existingBanner) existingBanner.remove();
-  
-  if (isParentBrowsingChild) {
-    const banner = document.createElement('div');
-    banner.id = 'parentBrowsingBanner';
-    banner.style.cssText = 'background:var(--orange);color:white;padding:8px 12px;text-align:center;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:8px';
-    banner.innerHTML = '<span>👁️ Mode lecture : ' + currentUserData.pseudo + '</span><button onclick="backToParent()" style="background:white;color:var(--orange);border:none;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;cursor:pointer">Retour</button>';
-    header.insertAdjacentElement('afterend', banner);
-  }
-  
-  // Attendre que le DOM soit prêt puis charger
-  setTimeout(() => { switchChildTab('messages'); }, 100);
-}
-
-/* ============================================================
-   LOGOUT
-============================================================ */
-async function logout() {
-  if (isChildSession) {
-    localStorage.removeItem('zamis-child-code');
-    localStorage.removeItem('zamis-child-pin');
-    isChildSession = false;
-  } else {
-    await supa.auth.signOut();
-  }
-  currentUser = null;
-  currentUserData = null;
-  showPage('loginChoice');
-}
-
-/* ============================================================
-   SERVICE WORKER + UPDATE POPUP
+   SW + UPDATE
 ============================================================ */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -3203,18 +2419,13 @@ if ('serviceWorker' in navigator) {
         console.log('SW registered');
         setInterval(() => reg.update().catch(() => {}), 60000);
         reg.addEventListener('updatefound', () => {
-          const newWorker = reg.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                $('updatePopup').classList.add('show');
-              }
-            });
-          }
+          const nw = reg.installing;
+          if (nw) nw.addEventListener('statechange', () => {
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) $('updatePopup').classList.add('show');
+          });
         });
       })
-      .catch(err => console.error('SW register failed:', err));
-    
+      .catch(err => console.error('SW:', err));
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (refreshing) return;
@@ -3223,19 +2434,13 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
-
 function applyUpdate() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistration().then(reg => {
-      if (reg && reg.waiting) {
-        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-      } else {
-        window.location.reload();
-      }
+      if (reg && reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      else window.location.reload();
     });
-  } else {
-    window.location.reload();
-  }
+  } else window.location.reload();
 }
 
 /* ============================================================
