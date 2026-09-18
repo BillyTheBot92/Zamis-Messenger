@@ -690,7 +690,7 @@ body {
   </div>
   <div class="splash-title">Zamis Messenger</div>
   <div class="splash-hint">Appuyer sur le Z pour continuer</div>
-  <div class="splash-version">v2.6.0</div>
+  <div class="splash-version">v2.6.1</div>
 </div>
 
 <!-- ============================================================
@@ -814,7 +814,7 @@ body {
       <div class="header-title">🔐 Espace Adulte</div>
       <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
     </div>
-    <span class="header-version">v2.6.0</span>
+    <span class="header-version">v2.6.1</span>
   </div>
   <div class="dashboard-content">
     <div class="section">
@@ -1194,7 +1194,7 @@ body {
 /* ============================================================
    CONFIG + ÉTAT GLOBAL
 ============================================================ */
-const ZAMIS_VERSION = '2.6.0';
+const ZAMIS_VERSION = '2.6.1';
 const SUPABASE_URL = 'https://qsrfghnfqbrvoyefdbtd.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_c4lO9VvCGqn6WvrPjP37lg_-eLlw60s';
 const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1790,6 +1790,8 @@ function setupParentRealtime() {
   if (!currentUser) return;
   parentRealtimeChannel = supa.channel('parent_' + currentUser.uid + '_' + Date.now())
     .on('postgres_changes', { event: '*', schema: 'public', table: 'invitations', filter: 'parent_approval_id=eq.' + currentUser.uid }, () => loadPendingRequests())
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => updateUnreadBadge())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => updateUnreadBadge())
     .subscribe();
 }
 
@@ -2790,9 +2792,21 @@ function renderConvList(container, convs) {
     const preview = conv.last_message || 'Nouvelle conversation';
     const dateStr = formatDate(conv.last_message_at);
     const initial = isGroup ? '👥' : name.charAt(0).toUpperCase();
+
+    // Calcul non lu
+    const lastReadBy = conv.last_read_by || {};
+    const myLastRead = lastReadBy[currentUser.uid] || '1970-01-01T00:00:00Z';
+    const lastMsgAt = conv.last_message_at || '1970-01-01T00:00:00Z';
+    const lastSender = conv.last_sender_id || '';
+    const isUnread = lastSender !== currentUser.uid && lastSender !== 'system' && new Date(lastMsgAt) > new Date(myLastRead);
+    const unreadDot = isUnread ? '<div style="width:10px;height:10px;background:var(--primary);border-radius:50%;flex-shrink:0"></div>' : '';
+    const boldStyle = isUnread ? 'font-weight:700;color:var(--text)' : 'font-weight:400;color:var(--text-secondary)';
+    const nameWeight = isUnread ? 'font-weight:700' : 'font-weight:600';
+
     html += '<div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--card);border-radius:12px;margin-bottom:8px;cursor:pointer" onclick="openConversation(\'' + conv.id + '\')">' +
       '<div style="width:48px;height:48px;border-radius:50%;background:' + color + ';display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:18px;flex-shrink:0">' + initial + '</div>' +
-      '<div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:600;font-size:15px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + name + '</div><div style="font-size:11px;color:var(--text-tertiary);flex-shrink:0">' + dateStr + '</div></div><div style="font-size:13px;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px">' + preview + '</div></div>' +
+      '<div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="' + nameWeight + ';font-size:15px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + name + '</div><div style="font-size:11px;color:var(--text-tertiary);flex-shrink:0">' + dateStr + '</div></div><div style="font-size:13px;' + boldStyle + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px">' + preview + '</div></div>' +
+      unreadDot +
       '</div>';
   });
   container.innerHTML = html;
@@ -2807,11 +2821,11 @@ function setupConvListRealtime(containerId) {
   if (convListChannel) { supa.removeChannel(convListChannel); convListChannel = null; }
   if (!currentUser) return;
   convListChannel = supa.channel('convlist_' + currentUser.uid + '_' + Date.now())
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => refreshConvListIfActive())
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => refreshConvListIfActive())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => { refreshConvListIfActive(); updateUnreadBadge(); })
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => { refreshConvListIfActive(); updateUnreadBadge(); })
     .subscribe((status) => console.log('[Realtime]', status));
   if (convListPollTimer) clearInterval(convListPollTimer);
-  convListPollTimer = setInterval(refreshConvListIfActive, 8000);
+  convListPollTimer = setInterval(() => { refreshConvListIfActive(); updateUnreadBadge(); }, 8000);
 }
 
 async function refreshConvListIfActive() {
