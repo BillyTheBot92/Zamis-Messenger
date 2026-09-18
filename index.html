@@ -671,7 +671,7 @@ body {
   </div>
   <div class="splash-title">Zamis Messenger</div>
   <div class="splash-hint">Appuyer sur le Z pour continuer</div>
-  <div class="splash-version">v2.2.0</div>
+  <div class="splash-version">v2.3.0</div>
 </div>
 
 <!-- ============================================================
@@ -795,7 +795,7 @@ body {
       <div class="header-title">🔐 Espace Adulte</div>
       <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
     </div>
-    <span class="header-version">v2.2.0</span>
+    <span class="header-version">v2.3.0</span>
   </div>
   <div class="dashboard-content">
     <div class="section">
@@ -932,6 +932,7 @@ body {
       <div class="header-title" id="convName" style="font-size:16px">Conversation</div>
       <div class="header-subtitle" id="convSubtitle">En ligne</div>
     </div>
+    <button class="header-action" onclick="openAddMembersModal()" title="Ajouter des membres">👥+</button>
     <button class="header-action" onclick="openConvMenu()">⋮</button>
   </div>
   <div id="messagesArea" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px;background:var(--bg)"></div>
@@ -987,6 +988,36 @@ body {
 </div>
 
 <!-- ============================================================
+     ADD MEMBERS TO CONVERSATION
+============================================================ -->
+<div class="modal-overlay" id="addMembersModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('addMembersModal')">×</button>
+    <div class="modal-title">👥 Ajouter des membres</div>
+    <div class="error-msg" id="addMembersError"></div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px" id="addMembersHint">Sélectionne les contacts à ajouter</div>
+    <div id="addMembersList" style="max-height:50vh;overflow-y:auto"></div>
+    <button class="btn btn-primary" style="margin-top:12px" onclick="confirmAddMembers()">Ajouter (<span id="addMembersCount">0</span>)</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     RENAME GROUP
+============================================================ -->
+<div class="modal-overlay" id="renameGroupModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('renameGroupModal')">×</button>
+    <div class="modal-title">✏️ Renommer le groupe</div>
+    <div class="error-msg" id="renameGroupError"></div>
+    <div class="form-group">
+      <label class="form-label">Nom du groupe</label>
+      <input type="text" class="form-input" id="renameGroupInput" placeholder="Ex: Les copains">
+    </div>
+    <button class="btn btn-primary" onclick="confirmRenameGroup()">Valider</button>
+  </div>
+</div>
+
+<!-- ============================================================
      CONV MENU / PARTICIPANTS / NEW CONV
 ============================================================ -->
 <div class="modal-overlay" id="convMenuModal">
@@ -994,7 +1025,10 @@ body {
     <button class="modal-close" onclick="closeModal('convMenuModal')">×</button>
     <div class="modal-title">Options</div>
     <button class="btn btn-secondary" style="margin-bottom:10px" onclick="showConvParticipants()">👥 Participants</button>
-    <button class="btn btn-danger" onclick="confirmDeleteConversation()">🗑️ Supprimer la conversation</button>
+    <button class="btn btn-secondary" style="margin-bottom:10px" onclick="openRenameGroup()" id="convMenuRename" style="display:none">✏️ Renommer le groupe</button>
+    <button class="btn btn-secondary" style="margin-bottom:10px" onclick="openAddMembersModal()">👥+ Ajouter des membres</button>
+    <button class="btn btn-danger" style="margin-bottom:10px" onclick="confirmLeaveGroup()" id="convMenuLeave" style="display:none">🚪 Quitter le groupe</button>
+    <button class="btn btn-danger" onclick="confirmDeleteConversation()" id="convMenuDelete">🗑️ Supprimer la conversation</button>
   </div>
 </div>
 <div class="modal-overlay" id="participantsModal">
@@ -1063,7 +1097,7 @@ body {
 /* ============================================================
    CONFIG + ÉTAT GLOBAL
 ============================================================ */
-const ZAMIS_VERSION = '2.2.0';
+const ZAMIS_VERSION = '2.3.0';
 const SUPABASE_URL = 'https://qsrfghnfqbrvoyefdbtd.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_c4lO9VvCGqn6WvrPjP37lg_-eLlw60s';
 const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -2311,7 +2345,225 @@ function backFromConv() {
   else { showPage('parentMessagesPage'); loadConversationsList('parentConvList'); }
 }
 
-function openConvMenu() { openModal('convMenuModal'); }
+function openConvMenu() {
+  // Adapter le menu selon type conv
+  const isGroup = currentConvData && currentConvData.type === 'group';
+  const renameBtn = $('convMenuRename');
+  const leaveBtn = $('convMenuLeave');
+  const deleteBtn = $('convMenuDelete');
+  if (renameBtn) renameBtn.style.display = isGroup ? '' : 'none';
+  if (leaveBtn) leaveBtn.style.display = isGroup ? '' : 'none';
+  if (deleteBtn) deleteBtn.style.display = isGroup ? 'none' : '';
+  openModal('convMenuModal');
+}
+
+/* ============================================================
+   GROUPS - Ajouter membres (transforme direct → groupe si besoin)
+============================================================ */
+let selectedNewMembers = new Set();
+
+async function openAddMembersModal() {
+  closeModal('convMenuModal');
+  if (!currentConvData) return;
+  selectedNewMembers = new Set();
+  hideError('addMembersError');
+  
+  const list = $('addMembersList');
+  list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary)">Chargement...</div>';
+  updateAddMembersCount();
+  openModal('addMembersModal');
+
+  // Récupérer les contacts disponibles (moins ceux déjà dans la conv)
+  const ids = new Set();
+  if (currentUserData.role === 'child') {
+    (currentUserData.approved_contacts || []).forEach(id => ids.add(id));
+    if (currentUserData.parent_id) ids.add(currentUserData.parent_id);
+    (currentUserData.co_parent_ids || []).forEach(id => ids.add(id));
+  } else {
+    (currentUserData.children_ids || []).forEach(id => ids.add(id));
+    (currentUserData.co_parents || []).forEach(id => ids.add(id));
+    (currentUserData.adult_friends || []).forEach(id => ids.add(id));
+  }
+  // Retirer les membres déjà dans la conv
+  (currentConvData.members || []).forEach(id => ids.delete(id));
+
+  if (ids.size === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:13px">Aucun contact à ajouter</div>';
+    return;
+  }
+
+  const { data: contacts } = await supa.from('users').select('*').in('uid', [...ids]);
+  if (!contacts || contacts.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:20px">Aucun contact</div>';
+    return;
+  }
+  contacts.sort((a, b) => (a.pseudo || '').toLowerCase().localeCompare((b.pseudo || '').toLowerCase()));
+
+  let html = '';
+  contacts.forEach(c => {
+    html += '<div class="member-row" data-uid="' + c.uid + '" onclick="toggleMember(\'' + c.uid + '\', this)" style="display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px solid var(--border);cursor:pointer">' +
+      '<div style="width:40px;height:40px;border-radius:50%;background:' + (c.avatar_color || '#7C5CFC') + ';display:flex;align-items:center;justify-content:center;color:white;font-weight:700">' + c.pseudo.charAt(0).toUpperCase() + '</div>' +
+      '<div style="flex:1"><div style="font-weight:600">' + c.pseudo + '</div><div style="font-size:11px;color:var(--text-tertiary)">' + (c.role === 'child' ? 'Enfant' : 'Adulte') + '</div></div>' +
+      '<div class="member-check" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;color:white;font-size:14px"></div>' +
+      '</div>';
+  });
+  list.innerHTML = html;
+}
+
+function toggleMember(uid, row) {
+  const check = row.querySelector('.member-check');
+  if (selectedNewMembers.has(uid)) {
+    selectedNewMembers.delete(uid);
+    check.style.background = '';
+    check.style.borderColor = 'var(--border)';
+    check.textContent = '';
+  } else {
+    selectedNewMembers.add(uid);
+    check.style.background = 'var(--primary)';
+    check.style.borderColor = 'var(--primary)';
+    check.textContent = '✓';
+  }
+  updateAddMembersCount();
+}
+
+function updateAddMembersCount() {
+  const el = $('addMembersCount');
+  if (el) el.textContent = selectedNewMembers.size;
+}
+
+async function confirmAddMembers() {
+  hideError('addMembersError');
+  if (selectedNewMembers.size === 0) return showError('addMembersError', 'Sélectionne au moins 1 contact');
+  if (!currentConvData) return;
+
+  showLoading();
+  try {
+    const existingMembers = currentConvData.members || [];
+    const newMembers = [...selectedNewMembers];
+    const allMembers = [...existingMembers, ...newMembers];
+
+    // Récupérer noms/couleurs des nouveaux membres
+    const { data: newUsers } = await supa.from('users').select('uid,pseudo,avatar_color').in('uid', newMembers);
+    const newNames = { ...(currentConvData.member_names || {}) };
+    const newColors = { ...(currentConvData.member_colors || {}) };
+    if (newUsers) newUsers.forEach(u => {
+      newNames[u.uid] = u.pseudo;
+      newColors[u.uid] = u.avatar_color || '#7C5CFC';
+    });
+
+    // Passer en groupe si direct
+    const wasDirect = currentConvData.type === 'direct';
+    let updateData = {
+      members: allMembers,
+      member_names: newNames,
+      member_colors: newColors
+    };
+
+    if (wasDirect) {
+      // Générer un nom auto = concaténation prénoms
+      const names = allMembers.map(id => newNames[id]).filter(Boolean);
+      const groupName = names.slice(0, 3).join(', ') + (names.length > 3 ? ' +' + (names.length - 3) : '');
+      updateData.type = 'group';
+      updateData.group_name = groupName;
+      updateData.admins = [currentUser.uid];
+    }
+
+    await supa.from('conversations').update(updateData).eq('id', currentConvId);
+
+    // Message système
+    const addedNames = newUsers ? newUsers.map(u => u.pseudo).join(', ') : 'nouveaux membres';
+    await supa.from('messages').insert({
+      id: 'msg_' + Date.now(), conversation_id: currentConvId, sender_id: 'system', sender_pseudo: 'Zamis',
+      type: 'text', content: currentUserData.pseudo + ' a ajouté ' + addedNames + (wasDirect ? ' — la conversation devient un groupe' : '')
+    });
+
+    hideLoading();
+    closeModal('addMembersModal');
+    showToast('Membres ajoutés !');
+    // Recharger la conv
+    openConversation(currentConvId);
+  } catch (err) {
+    hideLoading();
+    showError('addMembersError', err.message);
+  }
+}
+
+/* ============================================================
+   GROUPS - Renommer
+============================================================ */
+function openRenameGroup() {
+  closeModal('convMenuModal');
+  if (!currentConvData || currentConvData.type !== 'group') return;
+  hideError('renameGroupError');
+  $('renameGroupInput').value = currentConvData.group_name || '';
+  openModal('renameGroupModal');
+}
+
+async function confirmRenameGroup() {
+  hideError('renameGroupError');
+  const name = $('renameGroupInput').value.trim();
+  if (!name) return showError('renameGroupError', 'Entre un nom');
+  if (name.length > 30) return showError('renameGroupError', 'Nom trop long (max 30)');
+
+  showLoading();
+  try {
+    await supa.from('conversations').update({ group_name: name }).eq('id', currentConvId);
+    await supa.from('messages').insert({
+      id: 'msg_' + Date.now(), conversation_id: currentConvId, sender_id: 'system', sender_pseudo: 'Zamis',
+      type: 'text', content: currentUserData.pseudo + ' a renommé le groupe : "' + name + '"'
+    });
+    hideLoading();
+    closeModal('renameGroupModal');
+    showToast('Groupe renommé');
+    openConversation(currentConvId);
+  } catch (err) {
+    hideLoading();
+    showError('renameGroupError', err.message);
+  }
+}
+
+/* ============================================================
+   GROUPS - Quitter
+============================================================ */
+async function confirmLeaveGroup() {
+  closeModal('convMenuModal');
+  if (!currentConvData || currentConvData.type !== 'group') return;
+  if (!confirm('Quitter ce groupe ? Tu ne recevras plus les messages.')) return;
+
+  showLoading();
+  try {
+    const newMembers = (currentConvData.members || []).filter(id => id !== currentUser.uid);
+    const newNames = { ...(currentConvData.member_names || {}) };
+    delete newNames[currentUser.uid];
+    const newColors = { ...(currentConvData.member_colors || {}) };
+    delete newColors[currentUser.uid];
+    const newAdmins = (currentConvData.admins || []).filter(id => id !== currentUser.uid);
+
+    if (newMembers.length === 0) {
+      // Plus personne, supprimer la conv
+      await supa.from('conversations').delete().eq('id', currentConvId);
+    } else {
+      await supa.from('conversations').update({
+        members: newMembers,
+        member_names: newNames,
+        member_colors: newColors,
+        admins: newAdmins
+      }).eq('id', currentConvId);
+      await supa.from('messages').insert({
+        id: 'msg_' + Date.now(), conversation_id: currentConvId, sender_id: 'system', sender_pseudo: 'Zamis',
+        type: 'text', content: currentUserData.pseudo + ' a quitté le groupe'
+      });
+    }
+    hideLoading();
+    showToast('Tu as quitté le groupe');
+    backFromConv();
+  } catch (err) {
+    hideLoading();
+    showToast('Erreur : ' + err.message);
+  }
+}
+
+function openConvMenuOld() { openModal('convMenuModal'); }
 
 async function showConvParticipants() {
   closeModal('convMenuModal');
