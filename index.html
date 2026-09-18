@@ -593,6 +593,25 @@ body {
 }
 .color-dot.selected { border-color: var(--text); }
 
+.emoji-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--card);
+  border: 2px solid var(--border);
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s;
+}
+.emoji-btn.selected {
+  border-color: var(--primary);
+  background: rgba(124,92,252,0.15);
+}
+.emoji-btn:active { transform: scale(0.92); }
+
 /* ===== UPDATE POPUP ===== */
 #updatePopup {
   position: fixed;
@@ -671,7 +690,7 @@ body {
   </div>
   <div class="splash-title">Zamis Messenger</div>
   <div class="splash-hint">Appuyer sur le Z pour continuer</div>
-  <div class="splash-version">v2.3.0</div>
+  <div class="splash-version">v2.5.0</div>
 </div>
 
 <!-- ============================================================
@@ -795,7 +814,7 @@ body {
       <div class="header-title">🔐 Espace Adulte</div>
       <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
     </div>
-    <span class="header-version">v2.3.0</span>
+    <span class="header-version">v2.5.0</span>
   </div>
   <div class="dashboard-content">
     <div class="section">
@@ -814,7 +833,7 @@ body {
     </div>
     <div class="section">
       <div class="section-header">
-        <div class="section-title">💬 Mes amis <span class="section-count" id="friendsCount"></span></div>
+        <div class="section-title">💬 Mes contacts <span class="section-count" id="friendsCount"></span></div>
         <button class="section-see-all" id="friendsSeeAll" onclick="openSeeAllModal('friends')" style="display:none">Voir tout</button>
       </div>
       <div class="card-scroll" id="friendsScroll"></div>
@@ -988,6 +1007,83 @@ body {
 </div>
 
 <!-- ============================================================
+     EDIT PROFILE MODAL
+============================================================ -->
+<div class="modal-overlay" id="editProfileModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('editProfileModal')">×</button>
+    <div class="modal-title">✏️ Modifier mon profil</div>
+    <div class="error-msg" id="editProfileError"></div>
+    <div class="form-group">
+      <label class="form-label">Pseudo (3-15 car., sans espace)</label>
+      <input type="text" class="form-input" id="editPseudo" placeholder="Ton pseudo">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Avatar (emoji)</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+        <button type="button" class="emoji-btn" data-emoji="😊" onclick="selectEmoji(this)">😊</button>
+        <button type="button" class="emoji-btn" data-emoji="🦁" onclick="selectEmoji(this)">🦁</button>
+        <button type="button" class="emoji-btn" data-emoji="🐼" onclick="selectEmoji(this)">🐼</button>
+        <button type="button" class="emoji-btn" data-emoji="🦊" onclick="selectEmoji(this)">🦊</button>
+        <button type="button" class="emoji-btn" data-emoji="🐻" onclick="selectEmoji(this)">🐻</button>
+        <button type="button" class="emoji-btn" data-emoji="🐰" onclick="selectEmoji(this)">🐰</button>
+        <button type="button" class="emoji-btn" data-emoji="🦄" onclick="selectEmoji(this)">🦄</button>
+        <button type="button" class="emoji-btn" data-emoji="🐸" onclick="selectEmoji(this)">🐸</button>
+        <button type="button" class="emoji-btn" data-emoji="🐵" onclick="selectEmoji(this)">🐵</button>
+        <button type="button" class="emoji-btn" data-emoji="🚀" onclick="selectEmoji(this)">🚀</button>
+        <button type="button" class="emoji-btn" data-emoji="⚽" onclick="selectEmoji(this)">⚽</button>
+        <button type="button" class="emoji-btn" data-emoji="🎨" onclick="selectEmoji(this)">🎨</button>
+        <button type="button" class="emoji-btn" data-emoji="🎮" onclick="selectEmoji(this)">🎮</button>
+        <button type="button" class="emoji-btn" data-emoji="🎸" onclick="selectEmoji(this)">🎸</button>
+        <button type="button" class="emoji-btn" data-emoji="🌟" onclick="selectEmoji(this)">🌟</button>
+        <button type="button" class="emoji-btn" data-emoji="🍕" onclick="selectEmoji(this)">🍕</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Couleur du thème</label>
+      <div class="color-picker" id="editColorPicker">
+        <div class="color-dot" style="background:#7C5CFC" data-color="#7C5CFC"></div>
+        <div class="color-dot" style="background:#0F6E56" data-color="#0F6E56"></div>
+        <div class="color-dot" style="background:#FF6B9D" data-color="#FF6B9D"></div>
+        <div class="color-dot" style="background:#FFB347" data-color="#FFB347"></div>
+        <div class="color-dot" style="background:#4A90D9" data-color="#4A90D9"></div>
+        <div class="color-dot" style="background:#4ECB71" data-color="#4ECB71"></div>
+        <div class="color-dot" style="background:#FF8C42" data-color="#FF8C42"></div>
+        <div class="color-dot" style="background:#E94EBE" data-color="#E94EBE"></div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="saveProfile()">Enregistrer</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     DELETE ACCOUNT MODAL
+============================================================ -->
+<div class="modal-overlay" id="deleteAccountModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('deleteAccountModal')">×</button>
+    <div class="modal-title" style="color:var(--red)">⚠️ Supprimer mon compte</div>
+    <div class="error-msg" id="deleteAccountError"></div>
+    <div style="background:rgba(255,76,106,0.1);border:1px solid var(--red);padding:12px;border-radius:12px;margin-bottom:16px;font-size:13px;color:var(--text)">
+      <strong>Attention :</strong> cette action est <strong>définitive</strong>.<br><br>
+      Tout sera supprimé :<br>
+      • Ton compte et tes données<br>
+      • Les comptes de tes enfants<br>
+      • Toutes tes conversations et messages<br>
+      • Toutes tes invitations et contacts
+    </div>
+    <div class="form-group">
+      <label class="form-label">Confirme avec ton mot de passe</label>
+      <div class="password-wrapper">
+        <input type="password" class="form-input" id="deleteAccountPwd" placeholder="Mot de passe">
+        <button class="password-toggle" onclick="togglePwd('deleteAccountPwd', this)" type="button">🙈</button>
+      </div>
+    </div>
+    <button class="btn btn-danger" onclick="confirmDeleteAccount()">Supprimer définitivement</button>
+  </div>
+</div>
+
+<!-- ============================================================
      ADD MEMBERS TO CONVERSATION
 ============================================================ -->
 <div class="modal-overlay" id="addMembersModal">
@@ -1066,9 +1162,9 @@ body {
 <div class="modal-overlay" id="addFriendModal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('addFriendModal')">×</button>
-    <div class="modal-title">💬 Ajouter un ami</div>
+    <div class="modal-title">💬 Ajouter un contact</div>
     <div class="error-msg" id="addFriendError"></div>
-    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">Entre le code Zamis d'un autre adulte pour discuter.</div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">Entre le code Zamis d'un adulte ou d'un enfant. Pour un enfant, ses parents devront valider la demande.</div>
     <div class="form-group">
       <label class="form-label">Code Zamis</label>
       <input type="text" class="form-input" id="friendCode" placeholder="pseudo.xxxxx">
@@ -1097,7 +1193,7 @@ body {
 /* ============================================================
    CONFIG + ÉTAT GLOBAL
 ============================================================ */
-const ZAMIS_VERSION = '2.3.0';
+const ZAMIS_VERSION = '2.5.0';
 const SUPABASE_URL = 'https://qsrfghnfqbrvoyefdbtd.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_c4lO9VvCGqn6WvrPjP37lg_-eLlw60s';
 const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1468,14 +1564,20 @@ async function loadPendingRequests() {
     const { data: invs } = await supa.from('invitations').select('*').eq('parent_approval_id', currentUser.uid).eq('status', 'pending');
     if (!invs || invs.length === 0) { container.innerHTML = '<div class="pending-empty">Aucune demande en attente</div>'; return; }
     let html = '';
-    invs.forEach(inv => {
+    for (const inv of invs) {
+      // Détecter si from est un adulte ou un enfant
+      const { data: fromU } = await supa.from('users').select('role').eq('uid', inv.from_child_id).single();
+      const isFromAdult = fromU && fromU.role === 'parent';
+      const label = isFromAdult
+        ? '🔒 Adulte : ' + inv.from_child_pseudo + ' veut discuter avec ' + inv.to_child_pseudo
+        : inv.from_child_pseudo + ' veut ajouter ' + inv.to_child_pseudo;
       html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">' +
-        '<div style="width:36px;height:36px;border-radius:50%;background:var(--orange);color:white;display:flex;align-items:center;justify-content:center;font-weight:700">' + (inv.from_child_pseudo || '?').charAt(0).toUpperCase() + '</div>' +
-        '<div style="flex:1;font-size:13px"><div style="font-weight:600">' + inv.from_child_pseudo + '</div><div style="color:var(--text-secondary);font-size:12px">veut ajouter ' + inv.to_child_pseudo + '</div></div>' +
+        '<div style="width:36px;height:36px;border-radius:50%;background:' + (isFromAdult ? 'var(--blue)' : 'var(--orange)') + ';color:white;display:flex;align-items:center;justify-content:center;font-weight:700">' + (inv.from_child_pseudo || '?').charAt(0).toUpperCase() + '</div>' +
+        '<div style="flex:1;font-size:13px"><div style="font-weight:600">' + inv.from_child_pseudo + '</div><div style="color:var(--text-secondary);font-size:12px">' + label + '</div></div>' +
         '<button style="background:var(--green);color:white;border:none;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer" onclick="approveRequest(\'' + inv.id + '\')">✓</button>' +
         '<button style="background:var(--red);color:white;border:none;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer" onclick="rejectRequest(\'' + inv.id + '\')">✕</button>' +
         '</div>';
-    });
+    }
     container.innerHTML = html;
   } catch (e) { container.innerHTML = '<div class="pending-empty">Erreur</div>'; }
 }
@@ -1503,24 +1605,220 @@ function renderParentProfile() {
   const age = calcAge(currentUserData.date_naissance);
   const birthFr = formatBirthFr(currentUserData.date_naissance);
   const depuis = membreDepuis(currentUserData.created_at);
-  const initial = (currentUserData.prenom || currentUserData.pseudo || '?').charAt(0).toUpperCase();
+  const initial = currentUserData.avatar || (currentUserData.prenom || currentUserData.pseudo || '?').charAt(0).toUpperCase();
   c.innerHTML =
     '<div class="profile-card">' +
       '<div class="profile-avatar-big" style="background:' + (currentUserData.avatar_color || '#7C5CFC') + '">' + initial + '</div>' +
       '<div class="profile-info">' +
         '<div class="profile-name">' + (currentUserData.prenom || '') + ' ' + (currentUserData.nom || '') + '</div>' +
+        '<div class="profile-detail">Pseudo : ' + currentUserData.pseudo + '</div>' +
         '<div class="profile-detail">' + (age !== null ? age + ' ans (' + birthFr + ')' : '') + '</div>' +
         '<div class="profile-detail">' + depuis + '</div>' +
         '<div class="profile-code">' + currentUserData.friend_code + '</div>' +
       '</div>' +
     '</div>' +
+    '<button class="btn btn-secondary" style="margin-bottom:10px" onclick="openEditProfile()">✏️ Modifier mon profil</button>' +
     '<button class="btn btn-secondary" style="margin-bottom:10px" onclick="copyMyCode()">📋 Copier mon code Zamis</button>' +
-    '<button class="btn btn-danger" onclick="logout()">🚪 Se déconnecter</button>';
+    '<button class="btn btn-danger" onclick="openDeleteAccount()">🗑️ Supprimer mon compte</button>';
 }
 
 function copyMyCode() {
   if (!currentUserData) return;
   navigator.clipboard.writeText(currentUserData.friend_code).then(() => showToast('Code copié !'));
+}
+
+/* ============================================================
+   EDIT PROFILE (parent + enfant)
+============================================================ */
+let selectedProfileEmoji = null;
+let selectedProfileColor = null;
+
+function openEditProfile() {
+  hideError('editProfileError');
+  $('editPseudo').value = currentUserData.pseudo || '';
+  selectedProfileEmoji = currentUserData.avatar || '😊';
+  selectedProfileColor = currentUserData.avatar_color || '#7C5CFC';
+  document.querySelectorAll('.emoji-btn').forEach(b => {
+    b.classList.toggle('selected', b.dataset.emoji === selectedProfileEmoji);
+  });
+  document.querySelectorAll('#editColorPicker .color-dot').forEach(d => {
+    d.classList.toggle('selected', d.dataset.color === selectedProfileColor);
+  });
+  openModal('editProfileModal');
+}
+
+function selectEmoji(btn) {
+  document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedProfileEmoji = btn.dataset.emoji;
+}
+
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('color-dot') && e.target.parentElement.id === 'editColorPicker') {
+    document.querySelectorAll('#editColorPicker .color-dot').forEach(d => d.classList.remove('selected'));
+    e.target.classList.add('selected');
+    selectedProfileColor = e.target.dataset.color;
+  }
+});
+
+async function saveProfile() {
+  hideError('editProfileError');
+  const newPseudo = $('editPseudo').value.trim();
+  const pErr = validatePseudo(newPseudo);
+  if (pErr) return showError('editProfileError', pErr);
+
+  showLoading();
+  try {
+    // Vérifier unicité pseudo si changé
+    if (newPseudo !== currentUserData.pseudo) {
+      const { data: existing } = await supa.from('users').select('uid').eq('pseudo', newPseudo).limit(1);
+      if (existing && existing.length > 0) {
+        hideLoading();
+        return showError('editProfileError', 'Pseudo déjà pris');
+      }
+    }
+
+    await supa.from('users').update({
+      pseudo: newPseudo,
+      avatar: selectedProfileEmoji,
+      avatar_color: selectedProfileColor
+    }).eq('uid', currentUser.uid);
+
+    // Refresh currentUserData
+    const { data: refreshed } = await supa.from('users').select('*').eq('uid', currentUser.uid).single();
+    if (refreshed) currentUserData = refreshed;
+
+    // Mettre à jour les convs où le user apparaît (member_names + member_colors)
+    const { data: convs } = await supa.from('conversations').select('*').contains('members', [currentUser.uid]);
+    if (convs) {
+      for (const c of convs) {
+        const names = { ...(c.member_names || {}) };
+        const colors = { ...(c.member_colors || {}) };
+        names[currentUser.uid] = newPseudo;
+        colors[currentUser.uid] = selectedProfileColor;
+        await supa.from('conversations').update({ member_names: names, member_colors: colors }).eq('id', c.id);
+      }
+    }
+
+    hideLoading();
+    closeModal('editProfileModal');
+    showToast('Profil mis à jour !');
+    if (currentUserData.role === 'parent') renderParentProfile();
+    else renderChildProfile();
+  } catch (err) {
+    hideLoading();
+    showError('editProfileError', err.message);
+  }
+}
+
+/* ============================================================
+   DELETE ACCOUNT (parent)
+============================================================ */
+function openDeleteAccount() {
+  hideError('deleteAccountError');
+  $('deleteAccountPwd').value = '';
+  openModal('deleteAccountModal');
+}
+
+async function confirmDeleteAccount() {
+  hideError('deleteAccountError');
+  const pwd = $('deleteAccountPwd').value;
+  if (!pwd) return showError('deleteAccountError', 'Entre ton mot de passe');
+  if (!confirm('DERNIER AVERTISSEMENT : ton compte et TOUT sera supprimé. Continuer ?')) return;
+
+  showLoading();
+  try {
+    // Vérifier password via un signIn temporaire (déjà loggé, mais on re-vérifie)
+    const { error: authErr } = await supa.auth.signInWithPassword({
+      email: currentUserData.internal_email, password: pwd
+    });
+    if (authErr) { hideLoading(); return showError('deleteAccountError', 'Mot de passe incorrect'); }
+
+    const myUid = currentUser.uid;
+
+    // Récupérer tous les enfants dont je suis parent direct (pas co-parent)
+    const { data: myChildren } = await supa.from('users').select('uid,internal_email').eq('parent_id', myUid).eq('role', 'child');
+
+    // Retirer moi des co-parent_ids des enfants où je suis co-parent
+    const { data: coParentChildren } = await supa.from('users').select('uid,co_parent_ids').contains('co_parent_ids', [myUid]).eq('role', 'child');
+    if (coParentChildren) {
+      for (const c of coParentChildren) {
+        const newList = (c.co_parent_ids || []).filter(id => id !== myUid);
+        await supa.from('users').update({ co_parent_ids: newList }).eq('uid', c.uid);
+      }
+    }
+
+    // Retirer moi des co_parents des autres adultes
+    const { data: myCoParents } = await supa.from('users').select('uid,co_parents').contains('co_parents', [myUid]);
+    if (myCoParents) {
+      for (const p of myCoParents) {
+        const newList = (p.co_parents || []).filter(id => id !== myUid);
+        await supa.from('users').update({ co_parents: newList }).eq('uid', p.uid);
+      }
+    }
+    // Idem adult_friends
+    const { data: myFriends } = await supa.from('users').select('uid,adult_friends').contains('adult_friends', [myUid]);
+    if (myFriends) {
+      for (const p of myFriends) {
+        const newList = (p.adult_friends || []).filter(id => id !== myUid);
+        await supa.from('users').update({ adult_friends: newList }).eq('uid', p.uid);
+      }
+    }
+    // Idem approved_contacts
+    const { data: myApproved } = await supa.from('users').select('uid,approved_contacts').contains('approved_contacts', [myUid]);
+    if (myApproved) {
+      for (const p of myApproved) {
+        const newList = (p.approved_contacts || []).filter(id => id !== myUid);
+        await supa.from('users').update({ approved_contacts: newList }).eq('uid', p.uid);
+      }
+    }
+
+    // Supprimer conversations où je suis (cascade supprime messages)
+    const { data: myConvs } = await supa.from('conversations').select('id,members,type').contains('members', [myUid]);
+    if (myConvs) {
+      for (const c of myConvs) {
+        // Si groupe et d'autres membres, retirer juste moi
+        const remaining = (c.members || []).filter(id => id !== myUid);
+        if (c.type === 'group' && remaining.length > 0) {
+          await supa.from('conversations').update({ members: remaining }).eq('id', c.id);
+        } else {
+          await supa.from('conversations').delete().eq('id', c.id);
+        }
+      }
+    }
+
+    // Supprimer mes invitations
+    await supa.from('invitations').delete().eq('parent_approval_id', myUid);
+
+    // Supprimer les enfants (leurs convs et invitations + auth)
+    if (myChildren) {
+      for (const child of myChildren) {
+        // Convs de l'enfant
+        const { data: cConvs } = await supa.from('conversations').select('id').contains('members', [child.uid]);
+        if (cConvs) for (const cc of cConvs) await supa.from('conversations').delete().eq('id', cc.id);
+        // Invitations
+        await supa.from('invitations').delete().or('from_child_id.eq.' + child.uid + ',to_child_id.eq.' + child.uid);
+        // Row user
+        await supa.from('users').delete().eq('uid', child.uid);
+      }
+    }
+
+    // Supprimer mon user row
+    await supa.from('users').delete().eq('uid', myUid);
+
+    // Supprimer auth user (on ne peut pas depuis anon key, mais signOut vide la session)
+    await supa.auth.signOut();
+
+    currentUser = null;
+    currentUserData = null;
+    hideLoading();
+    closeModal('deleteAccountModal');
+    showToast('Compte supprimé. Au revoir.');
+    setTimeout(() => { showPage('homePage'); }, 800);
+  } catch (err) {
+    hideLoading();
+    showError('deleteAccountError', err.message);
+  }
 }
 
 /* ============================================================
@@ -1837,37 +2135,71 @@ async function addFriend() {
   if (!code) return showError('addFriendError', 'Entre un code');
   showLoading();
   try {
-    const { data: users } = await supa.from('users').select('*').eq('friend_code', code).eq('role', 'parent').limit(1);
+    const { data: users } = await supa.from('users').select('*').eq('friend_code', code).limit(1);
     if (!users || users.length === 0) { hideLoading(); return showError('addFriendError', 'Code introuvable'); }
-    const friend = users[0];
-    if (friend.uid === currentUser.uid) { hideLoading(); return showError('addFriendError', 'C\'est ton propre code'); }
+    const target = users[0];
+    if (target.uid === currentUser.uid) { hideLoading(); return showError('addFriendError', 'C\'est ton propre code'); }
     const myF = currentUserData.adult_friends || [];
-    if (myF.includes(friend.uid)) { hideLoading(); return showError('addFriendError', 'Déjà ami'); }
-    if ((currentUserData.co_parents || []).includes(friend.uid)) { hideLoading(); return showError('addFriendError', 'Déjà co-parent'); }
+    if (myF.includes(target.uid)) { hideLoading(); return showError('addFriendError', 'Déjà dans tes contacts'); }
+    if ((currentUserData.co_parents || []).includes(target.uid)) { hideLoading(); return showError('addFriendError', 'Déjà co-parent'); }
 
-    await supa.from('users').update({ adult_friends: [...myF, friend.uid] }).eq('uid', currentUser.uid);
-    const theirF = friend.adult_friends || [];
-    await supa.from('users').update({ adult_friends: [...theirF, currentUser.uid] }).eq('uid', friend.uid);
+    // ===== SI TARGET = ADULTE : ajout direct =====
+    if (target.role === 'parent') {
+      await supa.from('users').update({ adult_friends: [...myF, target.uid] }).eq('uid', currentUser.uid);
+      const theirF = target.adult_friends || [];
+      await supa.from('users').update({ adult_friends: [...theirF, currentUser.uid] }).eq('uid', target.uid);
 
-    const convId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
-    await supa.from('conversations').insert({
-      id: convId, type: 'direct', members: [currentUser.uid, friend.uid],
-      member_names: { [currentUser.uid]: currentUserData.pseudo, [friend.uid]: friend.pseudo },
-      member_colors: { [currentUser.uid]: currentUserData.avatar_color || '#7C5CFC', [friend.uid]: friend.avatar_color || '#4A90D9' },
-      last_message: 'Conversation créée', last_message_at: new Date().toISOString(), created_by: currentUser.uid
-    });
-    await supa.from('messages').insert({
-      id: 'msg_' + Date.now(), conversation_id: convId, sender_id: 'system', sender_pseudo: 'Zamis',
-      type: 'text', content: currentUserData.pseudo + ' et ' + friend.pseudo + ' peuvent maintenant discuter !'
-    });
+      const convId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+      await supa.from('conversations').insert({
+        id: convId, type: 'direct', members: [currentUser.uid, target.uid],
+        member_names: { [currentUser.uid]: currentUserData.pseudo, [target.uid]: target.pseudo },
+        member_colors: { [currentUser.uid]: currentUserData.avatar_color || '#7C5CFC', [target.uid]: target.avatar_color || '#4A90D9' },
+        last_message: 'Conversation créée', last_message_at: new Date().toISOString(), created_by: currentUser.uid
+      });
+      await supa.from('messages').insert({
+        id: 'msg_' + Date.now(), conversation_id: convId, sender_id: 'system', sender_pseudo: 'Zamis',
+        type: 'text', content: currentUserData.pseudo + ' et ' + target.pseudo + ' peuvent maintenant discuter !'
+      });
 
-    const { data: refreshed } = await supa.from('users').select('*').eq('uid', currentUser.uid).single();
-    if (refreshed) currentUserData = refreshed;
+      const { data: refreshed } = await supa.from('users').select('*').eq('uid', currentUser.uid).single();
+      if (refreshed) currentUserData = refreshed;
+
+      hideLoading();
+      closeModal('addFriendModal');
+      showToast(target.pseudo + ' ajouté !');
+      loadFriends();
+      return;
+    }
+
+    // ===== SI TARGET = ENFANT : envoyer invitation aux parents de l'enfant =====
+    if (target.role === 'child') {
+      const parentIds = [target.parent_id, ...(target.co_parent_ids || [])].filter(Boolean);
+      if (parentIds.length === 0) {
+        hideLoading();
+        return showError('addFriendError', 'Cet enfant n\'a pas de parent référent');
+      }
+      // Vérifier invitations déjà en cours (adulte → enfant : on utilise from_child_id pour l'adulte et to_child_id pour l'enfant)
+      const { data: existing } = await supa.from('invitations').select('*')
+        .eq('from_child_id', currentUser.uid).eq('to_child_id', target.uid).eq('status', 'pending');
+      if (existing && existing.length > 0) {
+        hideLoading();
+        return showError('addFriendError', 'Invitation déjà envoyée');
+      }
+      const invs = parentIds.map(pid => ({
+        id: 'inv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+        from_child_id: currentUser.uid, from_child_pseudo: currentUserData.pseudo,
+        to_child_id: target.uid, to_child_pseudo: target.pseudo,
+        target_is_adult: false, parent_approval_id: pid, status: 'pending'
+      }));
+      if (invs.length > 0) await supa.from('invitations').insert(invs);
+      hideLoading();
+      closeModal('addFriendModal');
+      showToast('Invitation envoyée aux parents de ' + target.pseudo);
+      return;
+    }
 
     hideLoading();
-    closeModal('addFriendModal');
-    showToast(friend.pseudo + ' ajouté !');
-    loadFriends();
+    showError('addFriendError', 'Type inconnu');
   } catch (err) { hideLoading(); showError('addFriendError', err.message); }
 }
 
@@ -1901,12 +2233,54 @@ async function approveRequest(invId) {
     const { data: fromU } = await supa.from('users').select('*').eq('uid', inv.from_child_id).single();
     const { data: toU } = await supa.from('users').select('*').eq('uid', inv.to_child_id).single();
     if (!fromU || !toU) { hideLoading(); return showToast('User introuvable'); }
+
+    // Cas 1 : adulte (fromU) → enfant (toU)
+    if (fromU.role === 'parent' && toU.role === 'child') {
+      // Ajout dans adult_friends de l'adulte + approved_contacts de l'enfant
+      const adultFriends = fromU.adult_friends || [];
+      if (!adultFriends.includes(toU.uid)) {
+        await supa.from('users').update({ adult_friends: [...adultFriends, toU.uid] }).eq('uid', fromU.uid);
+      }
+      const childApproved = toU.approved_contacts || [];
+      if (!childApproved.includes(fromU.uid)) {
+        await supa.from('users').update({ approved_contacts: [...childApproved, fromU.uid] }).eq('uid', toU.uid);
+      }
+
+      // Conv
+      const { data: convs } = await supa.from('conversations').select('*').eq('type', 'direct').contains('members', [fromU.uid]);
+      let exists = false;
+      if (convs) {
+        for (const c of convs) {
+          if ((c.members || []).length === 2 && (c.members || []).includes(toU.uid)) { exists = true; break; }
+        }
+      }
+      if (!exists) {
+        const convId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+        await supa.from('conversations').insert({
+          id: convId, type: 'direct', members: [fromU.uid, toU.uid],
+          member_names: { [fromU.uid]: fromU.pseudo, [toU.uid]: toU.pseudo },
+          member_colors: { [fromU.uid]: fromU.avatar_color || '#7C5CFC', [toU.uid]: toU.avatar_color || '#FFB347' },
+          last_message: 'Contact validé ! 🎉', last_message_at: new Date().toISOString(), created_by: currentUser.uid
+        });
+        await supa.from('messages').insert({
+          id: 'msg_' + Date.now(), conversation_id: convId, sender_id: 'system', sender_pseudo: 'Zamis',
+          type: 'text', content: fromU.pseudo + ' et ' + toU.pseudo + ' peuvent maintenant discuter (validé par un parent).'
+        });
+      }
+      await supa.from('invitations').update({ status: 'approved' }).eq('from_child_id', fromU.uid).eq('to_child_id', toU.uid);
+      hideLoading();
+      showToast('Approuvé !');
+      loadPendingRequests();
+      loadFriends();
+      return;
+    }
+
+    // Cas 2 : enfant → enfant OU enfant → adulte (comportement existant)
     const fromApp = fromU.approved_contacts || [];
     const toApp = toU.approved_contacts || [];
     if (!fromApp.includes(inv.to_child_id)) await supa.from('users').update({ approved_contacts: [...fromApp, inv.to_child_id] }).eq('uid', inv.from_child_id);
     if (!toApp.includes(inv.from_child_id)) await supa.from('users').update({ approved_contacts: [...toApp, inv.from_child_id] }).eq('uid', inv.to_child_id);
 
-    // Créer conv
     const { data: convs } = await supa.from('conversations').select('*').eq('type', 'direct').contains('members', [inv.from_child_id]);
     let exists = false;
     if (convs) {
@@ -1992,7 +2366,7 @@ function renderChildProfile() {
   const age = calcAge(currentUserData.date_naissance);
   const birthFr = formatBirthFr(currentUserData.date_naissance);
   const depuis = membreDepuis(currentUserData.created_at);
-  const initial = (currentUserData.prenom || currentUserData.pseudo || '?').charAt(0).toUpperCase();
+  const initial = currentUserData.avatar || (currentUserData.prenom || currentUserData.pseudo || '?').charAt(0).toUpperCase();
   c.innerHTML =
     '<div class="profile-card">' +
       '<div class="profile-avatar-big" style="background:' + (currentUserData.avatar_color || '#7C5CFC') + '">' + initial + '</div>' +
@@ -2004,8 +2378,8 @@ function renderChildProfile() {
         '<div class="profile-code">' + currentUserData.friend_code + '</div>' +
       '</div>' +
     '</div>' +
-    '<button class="btn btn-secondary" style="margin-bottom:10px" onclick="copyMyCode()">📋 Copier mon code Zamis</button>' +
-    (isParentBrowsingChild ? '' : '<button class="btn btn-danger" onclick="logout()">🚪 Se déconnecter</button>');
+    (isParentBrowsingChild ? '' : '<button class="btn btn-secondary" style="margin-bottom:10px" onclick="openEditProfile()">✏️ Modifier mon profil</button>') +
+    '<button class="btn btn-secondary" onclick="copyMyCode()">📋 Copier mon code Zamis</button>';
 }
 
 function renderInvitePage() {
