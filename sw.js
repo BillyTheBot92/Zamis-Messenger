@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zamis-v2.6.1';
+const CACHE_NAME = 'zamis-v2.6.2';
 const ASSETS = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
