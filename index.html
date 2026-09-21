@@ -702,7 +702,7 @@ body {
   </div>
   <div class="splash-title">Zamis Messenger</div>
   <div class="splash-hint">Appuyer sur le Z pour continuer</div>
-  <div class="splash-version">v2.6.2</div>
+  <div class="splash-version">v2.6.3</div>
 </div>
 
 <!-- ============================================================
@@ -826,7 +826,7 @@ body {
       <div class="header-title">🔐 Espace Adulte</div>
       <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
     </div>
-    <span class="header-version">v2.6.2</span>
+    <span class="header-version">v2.6.3</span>
   </div>
   <div class="dashboard-content">
     <div class="section">
@@ -1206,7 +1206,7 @@ body {
 /* ============================================================
    CONFIG + ÉTAT GLOBAL
 ============================================================ */
-const ZAMIS_VERSION = '2.6.2';
+const ZAMIS_VERSION = '2.6.3';
 const SUPABASE_URL = 'https://qsrfghnfqbrvoyefdbtd.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_c4lO9VvCGqn6WvrPjP37lg_-eLlw60s';
 const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1396,18 +1396,44 @@ async function dismissSplash() {
 
 async function checkAutoLogin() {
   try {
+    // 1. Check Supabase Auth session (parent)
     const { data: { session } } = await supa.auth.getSession();
     if (session && session.user) {
       const { data: userData } = await supa.from('users').select('*').eq('uid', session.user.id).single();
-      if (userData) {
+      if (userData && userData.role === 'parent') {
         currentUser = { uid: session.user.id };
         currentUserData = userData;
-        splashTarget = (userData.role === 'parent') ? 'parentDashboard' : 'childApp';
+        splashTarget = 'parentDashboard';
         splashReady = true;
         return;
       }
     }
-  } catch (e) { console.log('Auto-login skip:', e.message); }
+  } catch (e) { console.log('Auto-login parent skip:', e.message); }
+
+  try {
+    // 2. Check localStorage (enfant auth custom)
+    const code = localStorage.getItem('zamis-child-code');
+    const pwd = localStorage.getItem('zamis-child-pwd');
+    if (code && pwd) {
+      const { data: users } = await supa.from('users')
+        .select('*')
+        .eq('friend_code', code)
+        .eq('role', 'child')
+        .limit(1);
+      if (users && users.length > 0 && users[0].password === pwd) {
+        currentUser = { uid: users[0].uid };
+        currentUserData = users[0];
+        splashTarget = 'childApp';
+        splashReady = true;
+        return;
+      } else {
+        // Données invalides, nettoyer
+        localStorage.removeItem('zamis-child-code');
+        localStorage.removeItem('zamis-child-pwd');
+      }
+    }
+  } catch (e) { console.log('Auto-login child skip:', e.message); }
+
   splashTarget = 'homePage';
   splashReady = true;
 }
@@ -1490,6 +1516,25 @@ async function loginUser() {
       return showError('loginError', 'Code Zamis introuvable');
     }
     const userData = users[0];
+
+    // ===== ENFANT : auth custom (password dans table users) =====
+    if (userData.role === 'child') {
+      if (userData.password !== pwd) {
+        hideLoading();
+        return showError('loginError', 'Code ou mot de passe incorrect');
+      }
+      currentUser = { uid: userData.uid };
+      currentUserData = userData;
+      // Sauvegarder pour auto-login
+      localStorage.setItem('zamis-child-code', code);
+      localStorage.setItem('zamis-child-pwd', pwd);
+      hideLoading();
+      prepareChildApp();
+      showPage('childApp');
+      return;
+    }
+
+    // ===== PARENT : Supabase Auth =====
     if (!userData.internal_email) {
       hideLoading();
       return showError('loginError', 'Compte incompatible');
@@ -1507,8 +1552,8 @@ async function loginUser() {
     currentUserData = userData;
 
     hideLoading();
-    if (userData.role === 'parent') { prepareParentDashboard(); showPage('parentDashboard'); }
-    else { prepareChildApp(); showPage('childApp'); }
+    prepareParentDashboard();
+    showPage('parentDashboard');
   } catch (err) {
     hideLoading();
     showError('loginError', err.message);
@@ -1674,6 +1719,10 @@ function isBlocked(uid) {
 }
 async function logout() {
   if (!confirm('Se déconnecter ?')) return;
+  // Nettoyer auto-login enfant
+  localStorage.removeItem('zamis-child-code');
+  localStorage.removeItem('zamis-child-pwd');
+  // Nettoyer Supabase Auth (parent)
   try { await supa.auth.signOut(); } catch (e) {}
   currentUser = null;
   currentUserData = null;
@@ -2121,23 +2170,15 @@ async function addChild() {
     const { data: existing } = await supa.from('users').select('uid').eq('pseudo', pseudo).limit(1);
     if (existing && existing.length > 0) { hideLoading(); return showError('addChildError', 'Pseudo déjà pris'); }
 
-    const email = generateInternalEmail(pseudo);
     const friendCode = generateFriendCode(pseudo);
     const myCoParents = currentUserData.co_parents || [];
 
-    // IMPORTANT: on doit rester loggé en tant que parent
-    // Utiliser signUp crée le compte mais garde la session parent inchangée
-    // en récupérant l'uid du user créé sans switcher de session
-    const parentEmail = currentUserData.internal_email;
-    
-    // Créer le compte enfant via signUp (ça peut auto-loguer l'enfant)
-    const { data: authData, error: authErr } = await supa.auth.signUp({ email, password: pwd });
-    if (authErr) { hideLoading(); return showError('addChildError', authErr.message); }
-    const childUid = authData.user.id;
+    // Générer un UID unique pour l'enfant (pas de Supabase Auth, auth custom)
+    const childUid = 'child_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
 
-    // Insérer dans users
+    // Insérer dans users (password stocké pour auth custom)
     const { error: insertErr } = await supa.from('users').insert({
-      uid: childUid, pseudo, prenom, date_naissance: birth, internal_email: email, friend_code: friendCode,
+      uid: childUid, pseudo, prenom, date_naissance: birth, password: pwd, friend_code: friendCode,
       role: 'child', avatar: '😊', avatar_color: selectedChildColor, parent_id: currentUser.uid,
       co_parent_ids: myCoParents,
       children_ids: [], co_parents: [], adult_friends: [], approved_contacts: [], blocked_users: []
@@ -2175,9 +2216,6 @@ async function addChild() {
       id: 'msg_' + Date.now(), conversation_id: convId, sender_id: 'system', sender_pseudo: 'Zamis',
       type: 'text', content: 'Bienvenue sur Zamis Messenger ! 🎉'
     });
-
-    // IMPORTANT : signUp peut avoir switché la session vers l'enfant, on re-loggue le parent
-    await supa.auth.signInWithPassword({ email: parentEmail, password: '' }).catch(() => {});
     // Alternative sûre : recharger la session du parent en signOut puis signIn... 
     // Mais on n'a pas le password parent. Solution : garder currentUser tel quel.
 
@@ -2202,11 +2240,8 @@ async function deleteChild(childId, pwd) {
   try {
     const { data: child } = await supa.from('users').select('*').eq('uid', childId).single();
     if (!child) { hideLoading(); return showToast('Enfant introuvable'); }
-    // Vérifier le password : essayer un signIn temporaire
-    const { error: authErr } = await supa.auth.signInWithPassword({ email: child.internal_email, password: pwd });
-    if (authErr) { hideLoading(); return showToast('Mot de passe incorrect'); }
-    // On est maintenant loggé en tant qu'enfant. On note et on se relogue après.
-    const parentEmail = currentUserData.internal_email;
+    // Vérifier password depuis table (auth custom)
+    if (child.password !== pwd) { hideLoading(); return showToast('Mot de passe incorrect'); }
 
     // Retirer de children_ids des parents
     const parentIds = [child.parent_id, ...(child.co_parent_ids || [])].filter(Boolean);
@@ -2219,21 +2254,19 @@ async function deleteChild(childId, pwd) {
     }
     // Supprimer conversations
     const { data: convs } = await supa.from('conversations').select('id').contains('members', [childId]);
-    if (convs) { for (const c of convs) await supa.from('conversations').delete().eq('id', c.id); }
+    if (convs) for (const c of convs) await supa.from('conversations').delete().eq('id', c.id);
+    // Invitations
     await supa.from('invitations').delete().or('from_child_id.eq.' + childId + ',to_child_id.eq.' + childId);
+    // User row
     await supa.from('users').delete().eq('uid', childId);
 
-    await supa.auth.signOut();
-    // Rafraîchir currentUserData depuis DB
+    // Refresh parent
     const { data: refreshed } = await supa.from('users').select('*').eq('uid', currentUser.uid).single();
     if (refreshed) currentUserData = refreshed;
 
     hideLoading();
-    showToast(child.pseudo + ' supprimé. Reconnecte-toi.');
-    // On perd la session parent, retour login
-    currentUser = null;
-    currentUserData = null;
-    showPage('loginPage');
+    showToast(child.pseudo + ' supprimé');
+    loadChildren();
   } catch (err) {
     hideLoading();
     showToast('Erreur : ' + err.message);
