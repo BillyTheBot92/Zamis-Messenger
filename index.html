@@ -702,7 +702,7 @@ body {
   </div>
   <div class="splash-title">Zamis Messenger</div>
   <div class="splash-hint">Appuyer sur le Z pour continuer</div>
-  <div class="splash-version">v2.6.3</div>
+  <div class="splash-version">v2.6.4</div>
 </div>
 
 <!-- ============================================================
@@ -826,7 +826,7 @@ body {
       <div class="header-title">🔐 Espace Adulte</div>
       <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
     </div>
-    <span class="header-version">v2.6.3</span>
+    <span class="header-version">v2.6.4</span>
   </div>
   <div class="dashboard-content">
     <div class="section">
@@ -1007,12 +1007,12 @@ body {
     <div class="form-group">
       <label class="form-label">Couleur avatar</label>
       <div class="color-picker" id="childColorPicker">
-        <div class="color-dot selected" style="background:#FFB347" data-color="#FFB347"></div>
-        <div class="color-dot" style="background:#FF6B9D" data-color="#FF6B9D"></div>
-        <div class="color-dot" style="background:#7C5CFC" data-color="#7C5CFC"></div>
-        <div class="color-dot" style="background:#4ECB71" data-color="#4ECB71"></div>
-        <div class="color-dot" style="background:#4A90D9" data-color="#4A90D9"></div>
-        <div class="color-dot" style="background:#FF8C42" data-color="#FF8C42"></div>
+        <div class="color-dot selected" style="background:#FFB347" data-color="#FFB347" onclick="selectChildColor(this)"></div>
+        <div class="color-dot" style="background:#FF6B9D" data-color="#FF6B9D" onclick="selectChildColor(this)"></div>
+        <div class="color-dot" style="background:#7C5CFC" data-color="#7C5CFC" onclick="selectChildColor(this)"></div>
+        <div class="color-dot" style="background:#4ECB71" data-color="#4ECB71" onclick="selectChildColor(this)"></div>
+        <div class="color-dot" style="background:#4A90D9" data-color="#4A90D9" onclick="selectChildColor(this)"></div>
+        <div class="color-dot" style="background:#FF8C42" data-color="#FF8C42" onclick="selectChildColor(this)"></div>
       </div>
     </div>
     <button class="btn btn-primary" onclick="addChild()">Créer le compte enfant</button>
@@ -1055,14 +1055,14 @@ body {
     <div class="form-group">
       <label class="form-label">Couleur du thème</label>
       <div class="color-picker" id="editColorPicker">
-        <div class="color-dot" style="background:#7C5CFC" data-color="#7C5CFC"></div>
-        <div class="color-dot" style="background:#0F6E56" data-color="#0F6E56"></div>
-        <div class="color-dot" style="background:#FF6B9D" data-color="#FF6B9D"></div>
-        <div class="color-dot" style="background:#FFB347" data-color="#FFB347"></div>
-        <div class="color-dot" style="background:#4A90D9" data-color="#4A90D9"></div>
-        <div class="color-dot" style="background:#4ECB71" data-color="#4ECB71"></div>
-        <div class="color-dot" style="background:#FF8C42" data-color="#FF8C42"></div>
-        <div class="color-dot" style="background:#E94EBE" data-color="#E94EBE"></div>
+        <div class="color-dot" style="background:#7C5CFC" data-color="#7C5CFC" onclick="selectProfileColor(this)"></div>
+        <div class="color-dot" style="background:#0F6E56" data-color="#0F6E56" onclick="selectProfileColor(this)"></div>
+        <div class="color-dot" style="background:#FF6B9D" data-color="#FF6B9D" onclick="selectProfileColor(this)"></div>
+        <div class="color-dot" style="background:#FFB347" data-color="#FFB347" onclick="selectProfileColor(this)"></div>
+        <div class="color-dot" style="background:#4A90D9" data-color="#4A90D9" onclick="selectProfileColor(this)"></div>
+        <div class="color-dot" style="background:#4ECB71" data-color="#4ECB71" onclick="selectProfileColor(this)"></div>
+        <div class="color-dot" style="background:#FF8C42" data-color="#FF8C42" onclick="selectProfileColor(this)"></div>
+        <div class="color-dot" style="background:#E94EBE" data-color="#E94EBE" onclick="selectProfileColor(this)"></div>
       </div>
     </div>
     <button class="btn btn-primary" onclick="saveProfile()">Enregistrer</button>
@@ -1206,7 +1206,7 @@ body {
 /* ============================================================
    CONFIG + ÉTAT GLOBAL
 ============================================================ */
-const ZAMIS_VERSION = '2.6.3';
+const ZAMIS_VERSION = '2.6.4';
 const SUPABASE_URL = 'https://qsrfghnfqbrvoyefdbtd.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_c4lO9VvCGqn6WvrPjP37lg_-eLlw60s';
 const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1918,13 +1918,11 @@ function selectEmoji(btn) {
   selectedProfileEmoji = btn.dataset.emoji;
 }
 
-document.addEventListener('click', e => {
-  if (e.target.classList.contains('color-dot') && e.target.parentElement.id === 'editColorPicker') {
-    document.querySelectorAll('#editColorPicker .color-dot').forEach(d => d.classList.remove('selected'));
-    e.target.classList.add('selected');
-    selectedProfileColor = e.target.dataset.color;
-  }
-});
+function selectProfileColor(el) {
+  document.querySelectorAll('#editColorPicker .color-dot').forEach(d => d.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedProfileColor = el.dataset.color;
+}
 
 async function saveProfile() {
   hideError('editProfileError');
@@ -2140,13 +2138,11 @@ function showAddChildModal() {
   openModal('addChildModal');
 }
 
-document.addEventListener('click', e => {
-  if (e.target.classList.contains('color-dot') && e.target.parentElement.id === 'childColorPicker') {
-    document.querySelectorAll('#childColorPicker .color-dot').forEach(d => d.classList.remove('selected'));
-    e.target.classList.add('selected');
-    selectedChildColor = e.target.dataset.color;
-  }
-});
+function selectChildColor(el) {
+  document.querySelectorAll('#childColorPicker .color-dot').forEach(d => d.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedChildColor = el.dataset.color;
+}
 
 async function addChild() {
   hideError('addChildError');
