@@ -5,8 +5,8 @@
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#7C5CFC",
-  "background_color": "#FF6B9D",
+  "theme_color": "#0F0F1E",
+  "background_color": "#0F0F1E",
   "icons": [
     {
       "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%237C5CFC'/><text x='256' y='340' text-anchor='middle' font-size='280' font-weight='bold' fill='white'>Z</text></svg>",

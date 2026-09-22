@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#7C5CFC">
+<meta name="theme-color" content="#0F0F1E">
 <title>Zamis Messenger</title>
 <link rel="manifest" href="./manifest.json">
 <style>
@@ -30,8 +30,18 @@
   --gradient-parent: linear-gradient(135deg, #0F6E56 0%, #14A67F 100%);
   --gradient-child: linear-gradient(135deg, #7C5CFC 0%, #A17CFC 100%);
 }
+html[data-theme="light"] {
+  --bg: #F3F3F8;
+  --bg-2: #FFFFFF;
+  --card: #FFFFFF;
+  --border: #DDDDE8;
+  --text: #1A1A2E;
+  --text-secondary: #55556E;
+  --text-tertiary: #8A8AA2;
+}
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html {
+  background: var(--bg);
   height: 100%;
   height: -webkit-fill-available;
 }
@@ -132,27 +142,18 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
 }
 
 /* ===== STATUS + HEADER ===== */
-.statusbar {
-  background: var(--bg-2);
-  padding: 8px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-.statusbar-brand { font-weight: 700; color: var(--text); }
 
 .header {
   padding: 16px;
+  padding-top: calc(16px + env(safe-area-inset-top));
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   color: white;
 }
-.header-parent { background: var(--gradient-parent); }
-.header-child { background: var(--gradient-child); }
+.header-parent { background: var(--user-header, var(--gradient-parent)); }
+.header-child { background: var(--user-header, var(--gradient-child)); }
 .header-neutral { background: var(--gradient-splash); }
 .header-title { font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
 .header-subtitle { font-size: 13px; opacity: 0.85; margin-top: 2px; }
@@ -324,6 +325,7 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
 /* ===== HOME (accueil après splash) ===== */
 .home-choice {
   padding: 32px 20px;
+  padding-top: calc(32px + env(safe-area-inset-top));
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -712,17 +714,13 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
   </div>
   <div class="splash-title">Zamis Messenger</div>
   <div class="splash-hint">Appuyer sur le Z pour continuer</div>
-  <div class="splash-version">v2.7.0</div>
+  <div class="splash-version">v2.8.0</div>
 </div>
 
 <!-- ============================================================
      HOME (accueil : Créer / Se connecter)
 ============================================================ -->
 <div class="page" id="homePage">
-  <div class="statusbar">
-    <span class="statusbar-brand">Zamis</span>
-    <span id="statusbar-date"></span>
-  </div>
   <div class="home-choice">
     <div class="home-logo">Z</div>
     <div class="home-title">Bienvenue sur Zamis</div>
@@ -736,10 +734,6 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
      REGISTER
 ============================================================ -->
 <div class="page" id="registerPage">
-  <div class="statusbar">
-    <span class="statusbar-brand">Zamis</span>
-    <span id="statusbar-date2"></span>
-  </div>
   <div class="header header-neutral">
     <button class="header-back" onclick="showPage('homePage')">←</button>
     <div style="flex:1">
@@ -791,10 +785,6 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
      LOGIN
 ============================================================ -->
 <div class="page" id="loginPage">
-  <div class="statusbar">
-    <span class="statusbar-brand">Zamis</span>
-    <span id="statusbar-date3"></span>
-  </div>
   <div class="header header-neutral">
     <button class="header-back" onclick="showPage('homePage')">←</button>
     <div style="flex:1">
@@ -827,16 +817,12 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
      PARENT DASHBOARD
 ============================================================ -->
 <div class="page" id="parentDashboard">
-  <div class="statusbar">
-    <span class="statusbar-brand">Zamis</span>
-    <span id="statusbar-date4"></span>
-  </div>
   <div class="header header-parent">
     <div style="flex:1">
       <div class="header-title">🔐 Espace Adulte</div>
       <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
     </div>
-    <span class="header-version">v2.7.0</span>
+    <span class="header-version">v2.8.0</span>
   </div>
   <div class="dashboard-content">
     <div class="section">
@@ -894,10 +880,6 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
      PARENT PROFILE
 ============================================================ -->
 <div class="page" id="parentProfilePage">
-  <div class="statusbar">
-    <span class="statusbar-brand">Zamis</span>
-    <span id="statusbar-date5"></span>
-  </div>
   <div class="header header-parent">
     <button class="header-back" onclick="showPage('parentDashboard')">←</button>
     <div style="flex:1">
@@ -911,10 +893,6 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
      CHILD APP
 ============================================================ -->
 <div class="page" id="childApp">
-  <div class="statusbar">
-    <span class="statusbar-brand">Zamis</span>
-    <span id="statusbar-date6"></span>
-  </div>
   <div class="header header-child">
     <div style="flex:1">
       <div class="header-title" id="childHeaderTitle">💬 Messages</div>
@@ -943,10 +921,6 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
      MESSAGERIE PARENT (liste conv)
 ============================================================ -->
 <div class="page" id="parentMessagesPage">
-  <div class="statusbar">
-    <span class="statusbar-brand">Zamis</span>
-    <span id="statusbar-date7"></span>
-  </div>
   <div class="header header-parent">
     <button class="header-back" onclick="showPage('parentDashboard')">←</button>
     <div style="flex:1">
@@ -962,10 +936,6 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
      CONVERSATION
 ============================================================ -->
 <div class="page" id="conversationPage">
-  <div class="statusbar">
-    <span class="statusbar-brand">Zamis</span>
-    <span id="statusbar-date8"></span>
-  </div>
   <div class="header header-parent" id="convHeader">
     <button class="header-back" onclick="backFromConv()">←</button>
     <div class="entity-avatar" id="convAvatar" style="width:40px;height:40px;font-size:18px;background:var(--primary)">Z</div>
@@ -1226,7 +1196,7 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
 /* ============================================================
    CONFIG + ÉTAT GLOBAL
 ============================================================ */
-const ZAMIS_VERSION = '2.7.0';
+const ZAMIS_VERSION = '2.8.0';
 const SUPABASE_URL = 'https://qsrfghnfqbrvoyefdbtd.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_c4lO9VvCGqn6WvrPjP37lg_-eLlw60s';
 const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1328,15 +1298,52 @@ window.addEventListener('popstate', function(e) {
     try { history.pushState({}, ''); } catch(err) {}
   }
 });
-function updateStatusBarDate() {
-  const now = new Date();
-  const jours = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-  const j = jours[now.getDay()];
-  const d = String(now.getDate()).padStart(2, '0');
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const dateStr = j + ' ' + d + '/' + m;
-  document.querySelectorAll('[id^="statusbar-date"]').forEach(el => { el.textContent = dateStr; });
+/* ============================================================
+   THÈME : couleur header (pastille) + mode clair/sombre
+============================================================ */
+function mixHex(hex, target, ratio) {
+  const h = (hex || '#7C5CFC').replace('#', '');
+  const t = target.replace('#', '');
+  const out = [0, 2, 4].map(i => {
+    const a = parseInt(h.substr(i, 2), 16), b = parseInt(t.substr(i, 2), 16);
+    return Math.round(a + (b - a) * ratio).toString(16).padStart(2, '0');
+  });
+  return '#' + out.join('');
 }
+function applyUserTheme() {
+  const root = document.documentElement;
+  const color = currentUserData && currentUserData.avatar_color;
+  if (color) {
+    root.style.setProperty('--user-header', 'linear-gradient(135deg, ' + color + ' 0%, ' + mixHex(color, '#FFFFFF', 0.28) + ' 100%)');
+  } else {
+    root.style.removeProperty('--user-header');
+  }
+  updateThemeColorMeta();
+}
+function updateThemeColorMeta() {
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (!meta) return;
+  const color = currentUserData && currentUserData.avatar_color;
+  meta.setAttribute('content', color || getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#0F0F1E');
+}
+function applyThemeMode() {
+  let mode = 'dark';
+  try { mode = localStorage.getItem('zamis-theme') || 'dark'; } catch (e) {}
+  document.documentElement.setAttribute('data-theme', mode);
+  updateThemeColorMeta();
+}
+function toggleThemeMode() {
+  const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  try { localStorage.setItem('zamis-theme', next); } catch (e) {}
+  applyThemeMode();
+  if (currentUserData && currentUserData.role === 'parent' && !isParentBrowsingChild) renderParentProfile();
+  else renderChildProfile();
+}
+function themeToggleButton() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  return '<button class="btn btn-secondary" style="margin-bottom:10px" onclick="toggleThemeMode()">' + (isLight ? '🌙 Passer en mode sombre' : '☀️ Passer en mode clair') + '</button>';
+}
+
 function escapeQuote(s) { return (s || '').replace(/'/g, "\\'"); }
 function calcAge(birthStr) {
   if (!birthStr) return null;
@@ -1501,7 +1508,7 @@ async function registerUser() {
     const uid = authData.user.id;
     const { error: insertErr } = await supa.from('users').insert({
       uid, pseudo, nom, prenom, date_naissance: birth, internal_email: email, friend_code: friendCode,
-      role: 'parent', avatar: '😊', avatar_color: '#7C5CFC',
+      role: 'parent', avatar: '😊', avatar_color: '#0F6E56',
       children_ids: [], co_parents: [], co_parent_ids: [], adult_friends: [], approved_contacts: [], blocked_users: []
     });
     if (insertErr) { hideLoading(); return showError('registerError', 'DB: ' + insertErr.message); }
@@ -1735,6 +1742,7 @@ async function logout() {
   currentUser = null;
   currentUserData = null;
   isParentBrowsingChild = false;
+  applyUserTheme();
   showPage('homePage');
 }
 
@@ -1747,6 +1755,7 @@ function buildAddCard(fn, label) {
 
 function prepareParentDashboard() {
   if (!currentUserData) return;
+  applyUserTheme();
   $('parentWelcome').textContent = 'Bienvenue, ' + currentUserData.pseudo;
   loadChildren();
   loadCoParents();
@@ -1892,6 +1901,7 @@ function renderParentProfile() {
     '</div>' +
     '<button class="btn btn-secondary" style="margin-bottom:10px" onclick="openEditProfile()">✏️ Modifier mon profil</button>' +
     '<button class="btn btn-secondary" style="margin-bottom:10px" onclick="copyMyCode()">📋 Copier mon code Zamis</button>' +
+    themeToggleButton() +
     '<button class="btn btn-danger" onclick="openDeleteAccount()">🗑️ Supprimer mon compte</button>';
 }
 
@@ -1974,6 +1984,7 @@ async function saveProfile() {
     hideLoading();
     closeModal('editProfileModal');
     showToast('Profil mis à jour !');
+    applyUserTheme();
     if (currentUserData.role === 'parent') renderParentProfile();
     else renderChildProfile();
   } catch (err) {
@@ -2119,6 +2130,7 @@ async function confirmDeleteAccount() {
 
     currentUser = null;
     currentUserData = null;
+    applyUserTheme();
     hideLoading();
     closeModal('deleteAccountModal');
     showToast('Compte supprimé. Au revoir.');
@@ -2617,6 +2629,7 @@ async function openParentMessages() {
 ============================================================ */
 function prepareChildApp() {
   if (!currentUserData) return;
+  applyUserTheme();
   $('childWelcome').textContent = 'Bienvenue, ' + currentUserData.pseudo;
   const header = document.querySelector('#childApp .header');
   const existing = $('parentBrowsingBanner');
@@ -2666,6 +2679,7 @@ function renderChildProfile() {
     '</div>' +
     (isParentBrowsingChild ? '' : '<button class="btn btn-secondary" style="margin-bottom:10px" onclick="openEditProfile()">✏️ Modifier mon profil</button>') +
     '<button class="btn btn-secondary" style="margin-bottom:10px" onclick="copyMyCode()">📋 Copier mon code Zamis</button>' +
+    (isParentBrowsingChild ? '' : themeToggleButton()) +
     (isParentBrowsingChild ? '' : '<button class="btn btn-danger" onclick="logout()">🚪 Se déconnecter</button>');
 }
 
@@ -3431,8 +3445,7 @@ function applyUpdate() {
 /* ============================================================
    INIT
 ============================================================ */
-updateStatusBarDate();
-setInterval(updateStatusBarDate, 60000);
+applyThemeMode();
 checkAutoLogin();
 </script>
 </body>
