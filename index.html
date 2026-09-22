@@ -49,7 +49,11 @@ body {
   position: relative;
   display: flex;
   flex-direction: column;
+  -webkit-user-select: none;
+  user-select: none;
 }
+/* Autoriser sélection uniquement dans les inputs et les bulles de message */
+input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
 .page {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -206,22 +210,28 @@ body {
 }
 .nav-item.active { color: var(--primary); }
 .nav-icon { font-size: 22px; }
-.nav-badge {
+.icon-wrap { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+.msg-count {
   position: absolute;
-  top: 4px;
-  right: 24%;
+  top: -8px;
+  right: -14px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
   background: var(--red);
   color: white;
-  font-size: 10px;
-  font-weight: 700;
-  min-width: 16px;
-  height: 16px;
-  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  border: 2px solid var(--bg-2);
   display: none;
   align-items: center;
   justify-content: center;
-  padding: 0 5px;
+  box-sizing: border-box;
 }
+.msg-count.show { display: inline-flex; }
+.nav-item.has-unread { color: var(--red); font-weight: 700; }
 
 /* ===== FORMS ===== */
 .form-container {
@@ -702,7 +712,7 @@ body {
   </div>
   <div class="splash-title">Zamis Messenger</div>
   <div class="splash-hint">Appuyer sur le Z pour continuer</div>
-  <div class="splash-version">v2.6.4</div>
+  <div class="splash-version">v2.7.0</div>
 </div>
 
 <!-- ============================================================
@@ -826,7 +836,7 @@ body {
       <div class="header-title">🔐 Espace Adulte</div>
       <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
     </div>
-    <span class="header-version">v2.6.4</span>
+    <span class="header-version">v2.7.0</span>
   </div>
   <div class="dashboard-content">
     <div class="section">
@@ -863,10 +873,9 @@ body {
         <div class="section-title">⚡ Actions rapides</div>
       </div>
       <div class="quick-actions">
-        <div class="quick-action" onclick="openParentMessages()" style="position:relative">
-          <div class="quick-action-icon">💬</div>
+        <div class="quick-action" onclick="openParentMessages()" id="parentMsgAction">
+          <div class="quick-action-icon icon-wrap">💬<span class="msg-count" data-unread></span></div>
           <div>Messagerie</div>
-          <span id="parentMsgBadge" style="position:absolute;top:6px;right:12px;background:var(--red);color:white;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 5px"></span>
         </div>
         <div class="quick-action" onclick="openParentProfile()">
           <div class="quick-action-icon">👤</div>
@@ -916,7 +925,7 @@ body {
   <div class="dashboard-content" id="childContent"></div>
   <div class="bottomnav">
     <button class="nav-item active" data-page="messages" onclick="switchChildTab('messages')">
-      <span class="nav-icon">💬</span><span>Messages</span>
+      <span class="nav-icon icon-wrap">💬<span class="msg-count" data-unread></span></span><span>Messages</span>
     </button>
     <button class="nav-item" data-page="contacts" onclick="switchChildTab('contacts')">
       <span class="nav-icon">📇</span><span>Contacts</span>
@@ -1097,6 +1106,17 @@ body {
 </div>
 
 <!-- ============================================================
+     SEE ALL
+============================================================ -->
+<div class="modal-overlay" id="seeAllModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('seeAllModal')">×</button>
+    <div class="modal-title" id="seeAllTitle">Tous</div>
+    <div id="seeAllList" style="max-height:65vh;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- ============================================================
      ADD MEMBERS TO CONVERSATION
 ============================================================ -->
 <div class="modal-overlay" id="addMembersModal">
@@ -1206,7 +1226,7 @@ body {
 /* ============================================================
    CONFIG + ÉTAT GLOBAL
 ============================================================ */
-const ZAMIS_VERSION = '2.6.4';
+const ZAMIS_VERSION = '2.7.0';
 const SUPABASE_URL = 'https://qsrfghnfqbrvoyefdbtd.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_c4lO9VvCGqn6WvrPjP37lg_-eLlw60s';
 const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1578,25 +1598,13 @@ async function updateUnreadBadge() {
         total++;
       }
     }
-    // Mettre à jour les badges visibles
-    document.querySelectorAll('.nav-badge').forEach(b => {
-      if (total > 0) {
-        b.textContent = total > 99 ? '99+' : total;
-        b.style.display = 'flex';
-      } else {
-        b.style.display = 'none';
-      }
+    // Compteurs ancrés sur les icônes Messages (enfant + parent)
+    document.querySelectorAll('.msg-count[data-unread]').forEach(b => {
+      b.textContent = total > 99 ? '99+' : String(total);
+      b.classList.toggle('show', total > 0);
     });
-    // Badge sur le bouton Messagerie du dashboard parent
-    const msgBadge = $('parentMsgBadge');
-    if (msgBadge) {
-      if (total > 0) {
-        msgBadge.textContent = total;
-        msgBadge.style.display = 'flex';
-      } else {
-        msgBadge.style.display = 'none';
-      }
-    }
+    const navMsg = document.querySelector('#childApp .nav-item[data-page="messages"]');
+    if (navMsg) navMsg.classList.toggle('has-unread', total > 0);
   } catch (e) { console.error('updateUnreadBadge:', e); }
 }
 
@@ -2957,6 +2965,7 @@ function renderMessage(msg) {
     wrap.appendChild(label);
   }
   const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
   bubble.style.cssText = 'padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.4;word-break:break-word;' +
     (isMine ? 'background:var(--primary);color:white;border-bottom-right-radius:4px' : 'background:var(--card);color:var(--text);border-bottom-left-radius:4px');
   bubble.textContent = msg.content;
@@ -3342,7 +3351,48 @@ async function startConvWith(otherUid) {
   } catch (err) { hideLoading(); showToast('Erreur : ' + err.message); }
 }
 
-function openSeeAllModal(type) { showToast('Voir tout : à venir'); }
+async function openSeeAllModal(type) {
+  const cfg = {
+    children: { title: '👶 Mes enfants', ids: null, remove: 'confirmDeleteChild', open: 'viewChildAsParent' },
+    coparents: { title: '🔑 Co-parents', ids: currentUserData.co_parents || [], remove: 'removeCoParent', open: 'startConvWith' },
+    friends: { title: '💬 Mes contacts', ids: currentUserData.adult_friends || [], remove: 'removeFriend', open: 'startConvWith' }
+  }[type];
+  if (!cfg) return;
+  $('seeAllTitle').textContent = cfg.title;
+  const list = $('seeAllList');
+  list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary)">Chargement...</div>';
+  openModal('seeAllModal');
+
+  let ids = cfg.ids;
+  const directIds = currentUserData.children_ids || [];
+  if (type === 'children') {
+    const set = new Set(directIds);
+    try {
+      const { data: co } = await supa.from('users').select('uid').contains('co_parent_ids', [currentUser.uid]).eq('role', 'child');
+      if (co) co.forEach(c => set.add(c.uid));
+    } catch (e) {}
+    ids = [...set];
+  }
+  if (!ids || ids.length === 0) { list.innerHTML = '<div class="pending-empty">Aucun</div>'; return; }
+
+  const { data: users } = await supa.from('users').select('*').in('uid', ids);
+  if (!users) { list.innerHTML = '<div class="pending-empty">Erreur</div>'; return; }
+  users.sort((a, b) => (a.pseudo || '').toLowerCase().localeCompare((b.pseudo || '').toLowerCase()));
+
+  let html = '';
+  users.forEach(u => {
+    const canRemove = type !== 'children' || directIds.includes(u.uid);
+    const sub = type === 'children' ? u.friend_code : (u.role === 'child' ? 'Enfant' : (u.prenom || 'Adulte'));
+    html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">' +
+      '<div onclick="closeModal(\'seeAllModal\');' + cfg.open + '(\'' + u.uid + '\')" style="display:flex;align-items:center;gap:12px;flex:1;cursor:pointer;min-width:0">' +
+        '<div style="width:44px;height:44px;border-radius:50%;background:' + (u.avatar_color || '#7C5CFC') + ';display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:20px;flex-shrink:0">' + (u.avatar || u.pseudo.charAt(0).toUpperCase()) + '</div>' +
+        '<div style="min-width:0"><div style="font-weight:600;font-size:15px">' + u.pseudo + '</div><div style="font-size:12px;color:var(--text-tertiary)">' + sub + '</div></div>' +
+      '</div>' +
+      (canRemove ? '<button style="background:var(--red);color:white;border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;flex-shrink:0" onclick="closeModal(\'seeAllModal\');' + cfg.remove + '(\'' + u.uid + '\',\'' + escapeQuote(u.pseudo) + '\')">×</button>' : '') +
+      '</div>';
+  });
+  list.innerHTML = html;
+}
 
 /* ============================================================
    SW + UPDATE
