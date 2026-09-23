@@ -714,7 +714,7 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
   </div>
   <div class="splash-title">Zamis Messenger</div>
   <div class="splash-hint">Appuyer sur le Z pour continuer</div>
-  <div class="splash-version">v2.8.0</div>
+  <div class="splash-version">v2.9.0</div>
 </div>
 
 <!-- ============================================================
@@ -822,7 +822,7 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
       <div class="header-title">🔐 Espace Adulte</div>
       <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
     </div>
-    <span class="header-version">v2.8.0</span>
+    <span class="header-version">v2.9.0</span>
   </div>
   <div class="dashboard-content">
     <div class="section">
@@ -1196,10 +1196,17 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
 /* ============================================================
    CONFIG + ÉTAT GLOBAL
 ============================================================ */
-const ZAMIS_VERSION = '2.8.0';
+const ZAMIS_VERSION = '2.9.0';
 const SUPABASE_URL = 'https://qsrfghnfqbrvoyefdbtd.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_c4lO9VvCGqn6WvrPjP37lg_-eLlw60s';
 const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// Client temporaire sans session persistée : création / vérification des comptes enfants
+// (la session du parent n'est jamais écrasée)
+function tempSupa() {
+  return window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: 'zamis-tmp-auth' }
+  });
+}
 
 console.log('Zamis v' + ZAMIS_VERSION + ' | Backend: Supabase');
 
@@ -1422,44 +1429,23 @@ async function dismissSplash() {
 }
 
 async function checkAutoLogin() {
+  // Nettoyage de l'ancien auto-login enfant (auth custom ≤ v2.8)
+  try { localStorage.removeItem('zamis-child-code'); localStorage.removeItem('zamis-child-pwd'); } catch (e) {}
   try {
-    // 1. Check Supabase Auth session (parent)
+    // Session Supabase Auth (parent OU enfant)
     const { data: { session } } = await supa.auth.getSession();
     if (session && session.user) {
       const { data: userData } = await supa.from('users').select('*').eq('uid', session.user.id).single();
-      if (userData && userData.role === 'parent') {
+      if (userData) {
         currentUser = { uid: session.user.id };
         currentUserData = userData;
-        splashTarget = 'parentDashboard';
+        splashTarget = userData.role === 'parent' ? 'parentDashboard' : 'childApp';
         splashReady = true;
         return;
       }
+      await supa.auth.signOut();
     }
-  } catch (e) { console.log('Auto-login parent skip:', e.message); }
-
-  try {
-    // 2. Check localStorage (enfant auth custom)
-    const code = localStorage.getItem('zamis-child-code');
-    const pwd = localStorage.getItem('zamis-child-pwd');
-    if (code && pwd) {
-      const { data: users } = await supa.from('users')
-        .select('*')
-        .eq('friend_code', code)
-        .eq('role', 'child')
-        .limit(1);
-      if (users && users.length > 0 && users[0].password === pwd) {
-        currentUser = { uid: users[0].uid };
-        currentUserData = users[0];
-        splashTarget = 'childApp';
-        splashReady = true;
-        return;
-      } else {
-        // Données invalides, nettoyer
-        localStorage.removeItem('zamis-child-code');
-        localStorage.removeItem('zamis-child-pwd');
-      }
-    }
-  } catch (e) { console.log('Auto-login child skip:', e.message); }
+  } catch (e) { console.log('Auto-login skip:', e.message); }
 
   splashTarget = 'homePage';
   splashReady = true;
@@ -1493,8 +1479,8 @@ async function registerUser() {
 
   showLoading();
   try {
-    const { data: existing } = await supa.from('users').select('uid').eq('pseudo', pseudo).limit(1);
-    if (existing && existing.length > 0) {
+    const { data: free } = await supa.rpc('pseudo_available', { p_pseudo: pseudo });
+    if (free === false) {
       hideLoading();
       return showError('registerError', 'Ce pseudo est déjà pris');
     }
@@ -1537,50 +1523,31 @@ async function loginUser() {
 
   showLoading();
   try {
-    const { data: users } = await supa.from('users').select('*').eq('friend_code', code).limit(1);
-    if (!users || users.length === 0) {
+    // Code Zamis → email interne (fonction sécurisée), puis Supabase Auth (parent ET enfant)
+    const { data: email, error: rpcErr } = await supa.rpc('get_login_email', { p_code: code });
+    if (rpcErr) throw rpcErr;
+    if (!email) {
       hideLoading();
       return showError('loginError', 'Code Zamis introuvable');
     }
-    const userData = users[0];
-
-    // ===== ENFANT : auth custom (password dans table users) =====
-    if (userData.role === 'child') {
-      if (userData.password !== pwd) {
-        hideLoading();
-        return showError('loginError', 'Code ou mot de passe incorrect');
-      }
-      currentUser = { uid: userData.uid };
-      currentUserData = userData;
-      // Sauvegarder pour auto-login
-      localStorage.setItem('zamis-child-code', code);
-      localStorage.setItem('zamis-child-pwd', pwd);
-      hideLoading();
-      prepareChildApp();
-      showPage('childApp');
-      return;
-    }
-
-    // ===== PARENT : Supabase Auth =====
-    if (!userData.internal_email) {
-      hideLoading();
-      return showError('loginError', 'Compte incompatible');
-    }
-
-    const { data: authData, error: authErr } = await supa.auth.signInWithPassword({
-      email: userData.internal_email, password: pwd
-    });
+    const { data: authData, error: authErr } = await supa.auth.signInWithPassword({ email, password: pwd });
     if (authErr) {
       hideLoading();
       return showError('loginError', 'Code ou mot de passe incorrect');
+    }
+    const { data: userData } = await supa.from('users').select('*').eq('uid', authData.user.id).single();
+    if (!userData) {
+      await supa.auth.signOut();
+      hideLoading();
+      return showError('loginError', 'Compte introuvable');
     }
 
     currentUser = { uid: authData.user.id };
     currentUserData = userData;
 
     hideLoading();
-    prepareParentDashboard();
-    showPage('parentDashboard');
+    if (userData.role === 'child') { prepareChildApp(); showPage('childApp'); }
+    else { prepareParentDashboard(); showPage('parentDashboard'); }
   } catch (err) {
     hideLoading();
     showError('loginError', err.message);
@@ -1637,24 +1604,12 @@ async function blockUser(uid, name) {
     // Ajouter à mes blocked_users
     const myBlocked = currentUserData.blocked_users || [];
     if (!myBlocked.includes(uid)) {
-      await supa.from('users').update({ blocked_users: [...myBlocked, uid] }).eq('uid', currentUser.uid);
+      const { error: bErr } = await supa.from('users').update({ blocked_users: [...myBlocked, uid] }).eq('uid', currentUser.uid);
+      if (bErr) throw bErr;
     }
-    // Retirer des contacts approuvés (bidirectionnel)
-    const myApproved = (currentUserData.approved_contacts || []).filter(id => id !== uid);
-    await supa.from('users').update({ approved_contacts: myApproved }).eq('uid', currentUser.uid);
-    const { data: theirData } = await supa.from('users').select('approved_contacts').eq('uid', uid).single();
-    if (theirData) {
-      const theirApproved = (theirData.approved_contacts || []).filter(id => id !== currentUser.uid);
-      await supa.from('users').update({ approved_contacts: theirApproved }).eq('uid', uid);
-    }
-    // Retirer des adult_friends (bidirectionnel)
-    const myFriends = (currentUserData.adult_friends || []).filter(id => id !== uid);
-    await supa.from('users').update({ adult_friends: myFriends }).eq('uid', currentUser.uid);
-    const { data: theirFriends } = await supa.from('users').select('adult_friends').eq('uid', uid).single();
-    if (theirFriends) {
-      const tl = (theirFriends.adult_friends || []).filter(id => id !== currentUser.uid);
-      await supa.from('users').update({ adult_friends: tl }).eq('uid', uid);
-    }
+    // Retirer contacts approuvés + adult_friends (bidirectionnel, côté serveur)
+    const { error: uErr } = await supa.rpc('unlink_contact', { p_target: uid });
+    if (uErr) throw uErr;
 
     // Notifier le parent si c'est un enfant qui bloque
     if (currentUserData.role === 'child' && currentUserData.parent_id) {
@@ -1711,7 +1666,7 @@ async function renderBlockedList() {
     c.innerHTML = html;
     return;
   }
-  const { data: users } = await supa.from('users').select('uid,pseudo,avatar_color').in('uid', blocked);
+  const { data: users } = await supa.rpc('get_public_profiles', { p_ids: blocked });
   if (!users) {
     html += '<div class="empty-state">Erreur</div>';
     c.innerHTML = html;
@@ -1734,10 +1689,7 @@ function isBlocked(uid) {
 }
 async function logout() {
   if (!confirm('Se déconnecter ?')) return;
-  // Nettoyer auto-login enfant
-  localStorage.removeItem('zamis-child-code');
-  localStorage.removeItem('zamis-child-pwd');
-  // Nettoyer Supabase Auth (parent)
+  // Fermer la session Supabase Auth (parent ou enfant)
   try { await supa.auth.signOut(); } catch (e) {}
   currentUser = null;
   currentUserData = null;
@@ -1952,8 +1904,8 @@ async function saveProfile() {
   try {
     // Vérifier unicité pseudo si changé
     if (newPseudo !== currentUserData.pseudo) {
-      const { data: existing } = await supa.from('users').select('uid').eq('pseudo', newPseudo).limit(1);
-      if (existing && existing.length > 0) {
+      const { data: free } = await supa.rpc('pseudo_available', { p_pseudo: newPseudo });
+      if (free === false) {
         hideLoading();
         return showError('editProfileError', 'Pseudo déjà pris');
       }
@@ -2043,90 +1995,12 @@ async function confirmDeleteAccount() {
       return;
     }
 
-    // ===== Traiter les enfants =====
-    if (myChildren) {
-      for (const child of myChildren) {
-        const hasCoParent = (child.co_parent_ids || []).length > 0;
-        const age = calcAge(child.date_naissance);
-        
-        if (hasCoParent) {
-          // Retirer moi comme parent_id, prendre le 1er co-parent
-          const newCoParentIds = (child.co_parent_ids || []).filter(id => id !== myUid);
-          const newParentId = newCoParentIds[0] || null;
-          const remainingCoParents = newCoParentIds.slice(1);
-          await supa.from('users').update({
-            parent_id: newParentId,
-            co_parent_ids: remainingCoParents
-          }).eq('uid', child.uid);
-        } else if (age !== null && age >= 18) {
-          // Majeur sans co-parent → auto-promotion en parent
-          await supa.from('users').update({
-            role: 'parent',
-            parent_id: null,
-            co_parent_ids: []
-          }).eq('uid', child.uid);
-        }
-      }
-    }
-
-    // Retirer moi des co_parent_ids des enfants où je suis co-parent (pas parent direct)
-    const { data: coParentChildren } = await supa.from('users').select('uid,co_parent_ids').contains('co_parent_ids', [myUid]).eq('role', 'child');
-    if (coParentChildren) {
-      for (const c of coParentChildren) {
-        const newList = (c.co_parent_ids || []).filter(id => id !== myUid);
-        await supa.from('users').update({ co_parent_ids: newList }).eq('uid', c.uid);
-      }
-    }
-
-    // Retirer moi des co_parents des autres adultes
-    const { data: myCoParents } = await supa.from('users').select('uid,co_parents').contains('co_parents', [myUid]);
-    if (myCoParents) {
-      for (const p of myCoParents) {
-        const newList = (p.co_parents || []).filter(id => id !== myUid);
-        await supa.from('users').update({ co_parents: newList }).eq('uid', p.uid);
-      }
-    }
-
-    // Retirer moi des adult_friends
-    const { data: myFriends } = await supa.from('users').select('uid,adult_friends').contains('adult_friends', [myUid]);
-    if (myFriends) {
-      for (const p of myFriends) {
-        const newList = (p.adult_friends || []).filter(id => id !== myUid);
-        await supa.from('users').update({ adult_friends: newList }).eq('uid', p.uid);
-      }
-    }
-
-    // Retirer moi des approved_contacts
-    const { data: myApproved } = await supa.from('users').select('uid,approved_contacts').contains('approved_contacts', [myUid]);
-    if (myApproved) {
-      for (const p of myApproved) {
-        const newList = (p.approved_contacts || []).filter(id => id !== myUid);
-        await supa.from('users').update({ approved_contacts: newList }).eq('uid', p.uid);
-      }
-    }
-
-    // Conversations où je suis
-    const { data: myConvs } = await supa.from('conversations').select('id,members,type').contains('members', [myUid]);
-    if (myConvs) {
-      for (const c of myConvs) {
-        const remaining = (c.members || []).filter(id => id !== myUid);
-        if (remaining.length > 0) {
-          // Retirer juste moi (pour direct 1-to-1, ça laisse l'autre seul mais la conv reste)
-          await supa.from('conversations').update({ members: remaining }).eq('id', c.id);
-        } else {
-          await supa.from('conversations').delete().eq('id', c.id);
-        }
-      }
-    }
-
-    // Supprimer mes invitations
-    await supa.from('invitations').delete().eq('parent_approval_id', myUid);
-
-    // Supprimer mon user row
-    await supa.from('users').delete().eq('uid', myUid);
+    // Enfants, liens, conversations, invitations, profil + compte Auth (côté serveur)
+    const { error: delErr } = await supa.rpc('delete_my_account');
+    if (delErr) { hideLoading(); return showError('deleteAccountError', delErr.message); }
 
     // Signout
-    await supa.auth.signOut();
+    try { await supa.auth.signOut(); } catch (e) {}
 
     currentUser = null;
     currentUserData = null;
@@ -2183,57 +2057,30 @@ async function addChild() {
 
   showLoading();
   try {
-    const { data: existing } = await supa.from('users').select('uid').eq('pseudo', pseudo).limit(1);
-    if (existing && existing.length > 0) { hideLoading(); return showError('addChildError', 'Pseudo déjà pris'); }
+    const { data: free } = await supa.rpc('pseudo_available', { p_pseudo: pseudo });
+    if (free === false) { hideLoading(); return showError('addChildError', 'Pseudo déjà pris'); }
 
     const friendCode = generateFriendCode(pseudo);
-    const myCoParents = currentUserData.co_parents || [];
+    const email = generateInternalEmail(pseudo);
 
-    // Générer un UID unique pour l'enfant (pas de Supabase Auth, auth custom)
-    const childUid = 'child_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
-
-    // Insérer dans users (password stocké pour auth custom)
-    const { error: insertErr } = await supa.from('users').insert({
-      uid: childUid, pseudo, prenom, date_naissance: birth, password: pwd, friend_code: friendCode,
-      role: 'child', avatar: '😊', avatar_color: selectedChildColor, parent_id: currentUser.uid,
-      co_parent_ids: myCoParents,
-      children_ids: [], co_parents: [], adult_friends: [], approved_contacts: [], blocked_users: []
-    });
-    if (insertErr) {
+    // Compte Supabase Auth de l'enfant via client temporaire (session parent intacte)
+    const tmp = tempSupa();
+    const { data: authData, error: authErr } = await tmp.auth.signUp({ email, password: pwd });
+    if (authErr || !authData || !authData.user) {
       hideLoading();
-      return showError('addChildError', 'DB: ' + insertErr.message);
+      return showError('addChildError', authErr ? authErr.message : 'Création du compte impossible');
     }
+    try { await tmp.auth.signOut({ scope: 'local' }); } catch (e) {}
 
-    // Ajouter aux childrenIds du parent
-    const newChildrenIds = [...(currentUserData.children_ids || []), childUid];
-    await supa.from('users').update({ children_ids: newChildrenIds }).eq('uid', currentUser.uid);
-    currentUserData.children_ids = newChildrenIds;
-
-    // Ajouter aux co-parents
-    for (const cpId of myCoParents) {
-      const { data: cp } = await supa.from('users').select('children_ids').eq('uid', cpId).single();
-      if (cp) {
-        const newList = [...(cp.children_ids || []), childUid];
-        await supa.from('users').update({ children_ids: newList }).eq('uid', cpId);
-      }
-    }
-
-    // Créer conversation parent ↔ enfant (1-to-1 uniquement)
-    const convMembers = [currentUser.uid, childUid];
-    const convNames = { [currentUser.uid]: currentUserData.pseudo, [childUid]: pseudo };
-    const convColors = { [currentUser.uid]: currentUserData.avatar_color || '#7C5CFC', [childUid]: selectedChildColor };
-    const convId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
-    await supa.from('conversations').insert({
-      id: convId, type: 'direct', members: convMembers,
-      member_names: convNames, member_colors: convColors,
-      last_message: 'Bienvenue sur Zamis ! 🎉', last_message_at: new Date().toISOString(), created_by: currentUser.uid
+    // Profil + liens parent/co-parents + conversation de bienvenue (côté serveur)
+    const { error: rpcErr } = await supa.rpc('create_child_profile', {
+      p_uid: authData.user.id, p_pseudo: pseudo, p_prenom: prenom, p_birth: birth,
+      p_email: email, p_code: friendCode, p_color: selectedChildColor
     });
-    await supa.from('messages').insert({
-      id: 'msg_' + Date.now(), conversation_id: convId, sender_id: 'system', sender_pseudo: 'Zamis',
-      type: 'text', content: 'Bienvenue sur Zamis Messenger ! 🎉'
-    });
-    // Alternative sûre : recharger la session du parent en signOut puis signIn... 
-    // Mais on n'a pas le password parent. Solution : garder currentUser tel quel.
+    if (rpcErr) { hideLoading(); return showError('addChildError', rpcErr.message); }
+
+    const { data: refreshed } = await supa.from('users').select('*').eq('uid', currentUser.uid).single();
+    if (refreshed) currentUserData = refreshed;
 
     hideLoading();
     closeModal('addChildModal');
@@ -2254,27 +2101,17 @@ function confirmDeleteChild(childId, pseudo) {
 async function deleteChild(childId, pwd) {
   showLoading();
   try {
-    const { data: child } = await supa.from('users').select('*').eq('uid', childId).single();
+    const { data: child } = await supa.from('users').select('uid,pseudo,internal_email').eq('uid', childId).single();
     if (!child) { hideLoading(); return showToast('Enfant introuvable'); }
-    // Vérifier password depuis table (auth custom)
-    if (child.password !== pwd) { hideLoading(); return showToast('Mot de passe incorrect'); }
+    // Vérifier le mot de passe de l'enfant via client temporaire (session parent intacte)
+    const tmp = tempSupa();
+    const { error: authErr } = await tmp.auth.signInWithPassword({ email: child.internal_email, password: pwd });
+    if (authErr) { hideLoading(); return showToast('Mot de passe incorrect'); }
+    try { await tmp.auth.signOut({ scope: 'local' }); } catch (e) {}
 
-    // Retirer de children_ids des parents
-    const parentIds = [child.parent_id, ...(child.co_parent_ids || [])].filter(Boolean);
-    for (const pid of parentIds) {
-      const { data: p } = await supa.from('users').select('children_ids').eq('uid', pid).single();
-      if (p) {
-        const newList = (p.children_ids || []).filter(id => id !== childId);
-        await supa.from('users').update({ children_ids: newList }).eq('uid', pid);
-      }
-    }
-    // Supprimer conversations
-    const { data: convs } = await supa.from('conversations').select('id').contains('members', [childId]);
-    if (convs) for (const c of convs) await supa.from('conversations').delete().eq('id', c.id);
-    // Invitations
-    await supa.from('invitations').delete().or('from_child_id.eq.' + childId + ',to_child_id.eq.' + childId);
-    // User row
-    await supa.from('users').delete().eq('uid', childId);
+    // Liens, conversations, invitations, profil + compte Auth (côté serveur)
+    const { error: delErr } = await supa.rpc('delete_child', { p_child: childId });
+    if (delErr) throw delErr;
 
     // Refresh parent
     const { data: refreshed } = await supa.from('users').select('*').eq('uid', currentUser.uid).single();
@@ -2336,57 +2173,16 @@ async function addCoParent() {
   if (!code) return showError('addCoParentError', 'Entre un code');
   showLoading();
   try {
-    const { data: users } = await supa.from('users').select('*').eq('friend_code', code).eq('role', 'parent').limit(1);
-    if (!users || users.length === 0) { hideLoading(); return showError('addCoParentError', 'Code adulte introuvable'); }
-    const co = users[0];
+    const { data: found } = await supa.rpc('find_user_by_code', { p_code: code });
+    const co = found && found[0];
+    if (!co || co.role !== 'parent') { hideLoading(); return showError('addCoParentError', 'Code adulte introuvable'); }
     if (co.uid === currentUser.uid) { hideLoading(); return showError('addCoParentError', 'C\'est ton propre code !'); }
     const myCo = currentUserData.co_parents || [];
     if (myCo.includes(co.uid)) { hideLoading(); return showError('addCoParentError', 'Déjà co-parent'); }
 
-    await supa.from('users').update({ co_parents: [...myCo, co.uid] }).eq('uid', currentUser.uid);
-    const theirCo = co.co_parents || [];
-    await supa.from('users').update({ co_parents: [...theirCo, currentUser.uid] }).eq('uid', co.uid);
-
-    // Partager enfants
-    const myChildren = currentUserData.children_ids || [];
-    const theirChildren = co.children_ids || [];
-    for (const cid of myChildren) {
-      const { data: c } = await supa.from('users').select('co_parent_ids').eq('uid', cid).single();
-      if (c) {
-        const l = c.co_parent_ids || [];
-        if (!l.includes(co.uid)) await supa.from('users').update({ co_parent_ids: [...l, co.uid] }).eq('uid', cid);
-      }
-    }
-    if (myChildren.length > 0) {
-      const merged = [...theirChildren];
-      for (const cid of myChildren) if (!merged.includes(cid)) merged.push(cid);
-      await supa.from('users').update({ children_ids: merged }).eq('uid', co.uid);
-    }
-    for (const cid of theirChildren) {
-      const { data: c } = await supa.from('users').select('co_parent_ids').eq('uid', cid).single();
-      if (c) {
-        const l = c.co_parent_ids || [];
-        if (!l.includes(currentUser.uid)) await supa.from('users').update({ co_parent_ids: [...l, currentUser.uid] }).eq('uid', cid);
-      }
-    }
-    if (theirChildren.length > 0) {
-      const merged = [...myChildren];
-      for (const cid of theirChildren) if (!merged.includes(cid)) merged.push(cid);
-      await supa.from('users').update({ children_ids: merged }).eq('uid', currentUser.uid);
-    }
-
-    // Conv auto
-    const convId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
-    await supa.from('conversations').insert({
-      id: convId, type: 'direct', members: [currentUser.uid, co.uid],
-      member_names: { [currentUser.uid]: currentUserData.pseudo, [co.uid]: co.pseudo },
-      member_colors: { [currentUser.uid]: currentUserData.avatar_color || '#7C5CFC', [co.uid]: co.avatar_color || '#0F6E56' },
-      last_message: 'Vous êtes co-parents ! 🎉', last_message_at: new Date().toISOString(), created_by: currentUser.uid
-    });
-    await supa.from('messages').insert({
-      id: 'msg_' + Date.now(), conversation_id: convId, sender_id: 'system', sender_pseudo: 'Zamis',
-      type: 'text', content: 'Vous êtes co-parents ! 🎉 Collaborez pour vos enfants.'
-    });
+    // Liens co-parents + partage des enfants + conversation (côté serveur)
+    const { error: linkErr } = await supa.rpc('link_coparent', { p_target: co.uid });
+    if (linkErr) throw linkErr;
 
     const { data: refreshed } = await supa.from('users').select('*').eq('uid', currentUser.uid).single();
     if (refreshed) currentUserData = refreshed;
@@ -2403,13 +2199,8 @@ async function removeCoParent(uid, name) {
   if (!confirm('Retirer ' + name + ' des co-parents ?')) return;
   showLoading();
   try {
-    const myList = (currentUserData.co_parents || []).filter(id => id !== uid);
-    await supa.from('users').update({ co_parents: myList }).eq('uid', currentUser.uid);
-    const { data: their } = await supa.from('users').select('co_parents').eq('uid', uid).single();
-    if (their) {
-      const l = (their.co_parents || []).filter(id => id !== currentUser.uid);
-      await supa.from('users').update({ co_parents: l }).eq('uid', uid);
-    }
+    const { error: rmErr } = await supa.rpc('unlink_coparent', { p_target: uid });
+    if (rmErr) throw rmErr;
     const { data: refreshed } = await supa.from('users').select('*').eq('uid', currentUser.uid).single();
     if (refreshed) currentUserData = refreshed;
     hideLoading();
@@ -2433,9 +2224,9 @@ async function addFriend() {
   if (!code) return showError('addFriendError', 'Entre un code');
   showLoading();
   try {
-    const { data: users } = await supa.from('users').select('*').eq('friend_code', code).limit(1);
-    if (!users || users.length === 0) { hideLoading(); return showError('addFriendError', 'Code introuvable'); }
-    const target = users[0];
+    const { data: found } = await supa.rpc('find_user_by_code', { p_code: code });
+    const target = found && found[0];
+    if (!target) { hideLoading(); return showError('addFriendError', 'Code introuvable'); }
     if (target.uid === currentUser.uid) { hideLoading(); return showError('addFriendError', 'C\'est ton propre code'); }
     const myF = currentUserData.adult_friends || [];
     if (myF.includes(target.uid)) { hideLoading(); return showError('addFriendError', 'Déjà dans tes contacts'); }
@@ -2443,21 +2234,9 @@ async function addFriend() {
 
     // ===== SI TARGET = ADULTE : ajout direct =====
     if (target.role === 'parent') {
-      await supa.from('users').update({ adult_friends: [...myF, target.uid] }).eq('uid', currentUser.uid);
-      const theirF = target.adult_friends || [];
-      await supa.from('users').update({ adult_friends: [...theirF, currentUser.uid] }).eq('uid', target.uid);
-
-      const convId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
-      await supa.from('conversations').insert({
-        id: convId, type: 'direct', members: [currentUser.uid, target.uid],
-        member_names: { [currentUser.uid]: currentUserData.pseudo, [target.uid]: target.pseudo },
-        member_colors: { [currentUser.uid]: currentUserData.avatar_color || '#7C5CFC', [target.uid]: target.avatar_color || '#4A90D9' },
-        last_message: 'Conversation créée', last_message_at: new Date().toISOString(), created_by: currentUser.uid
-      });
-      await supa.from('messages').insert({
-        id: 'msg_' + Date.now(), conversation_id: convId, sender_id: 'system', sender_pseudo: 'Zamis',
-        type: 'text', content: currentUserData.pseudo + ' et ' + target.pseudo + ' peuvent maintenant discuter !'
-      });
+      // Liens bidirectionnels + conversation (côté serveur)
+      const { error: linkErr } = await supa.rpc('link_adult_friend', { p_target: target.uid });
+      if (linkErr) throw linkErr;
 
       const { data: refreshed } = await supa.from('users').select('*').eq('uid', currentUser.uid).single();
       if (refreshed) currentUserData = refreshed;
@@ -2505,13 +2284,8 @@ async function removeFriend(uid, name) {
   if (!confirm('Retirer ' + name + ' des amis ?')) return;
   showLoading();
   try {
-    const l = (currentUserData.adult_friends || []).filter(id => id !== uid);
-    await supa.from('users').update({ adult_friends: l }).eq('uid', currentUser.uid);
-    const { data: their } = await supa.from('users').select('adult_friends').eq('uid', uid).single();
-    if (their) {
-      const tl = (their.adult_friends || []).filter(id => id !== currentUser.uid);
-      await supa.from('users').update({ adult_friends: tl }).eq('uid', uid);
-    }
+    const { error: rmErr } = await supa.rpc('unlink_contact', { p_target: uid });
+    if (rmErr) throw rmErr;
     const { data: refreshed } = await supa.from('users').select('*').eq('uid', currentUser.uid).single();
     if (refreshed) currentUserData = refreshed;
     hideLoading();
@@ -2526,91 +2300,22 @@ async function removeFriend(uid, name) {
 async function approveRequest(invId) {
   showLoading();
   try {
-    const { data: inv } = await supa.from('invitations').select('*').eq('id', invId).single();
-    if (!inv) { hideLoading(); return showToast('Introuvable'); }
-    const { data: fromU } = await supa.from('users').select('*').eq('uid', inv.from_child_id).single();
-    const { data: toU } = await supa.from('users').select('*').eq('uid', inv.to_child_id).single();
-    if (!fromU || !toU) { hideLoading(); return showToast('User introuvable'); }
-
-    // Cas 1 : adulte (fromU) → enfant (toU)
-    if (fromU.role === 'parent' && toU.role === 'child') {
-      // Ajout dans adult_friends de l'adulte + approved_contacts de l'enfant
-      const adultFriends = fromU.adult_friends || [];
-      if (!adultFriends.includes(toU.uid)) {
-        await supa.from('users').update({ adult_friends: [...adultFriends, toU.uid] }).eq('uid', fromU.uid);
-      }
-      const childApproved = toU.approved_contacts || [];
-      if (!childApproved.includes(fromU.uid)) {
-        await supa.from('users').update({ approved_contacts: [...childApproved, fromU.uid] }).eq('uid', toU.uid);
-      }
-
-      // Conv
-      const { data: convs } = await supa.from('conversations').select('*').eq('type', 'direct').contains('members', [fromU.uid]);
-      let exists = false;
-      if (convs) {
-        for (const c of convs) {
-          if ((c.members || []).length === 2 && (c.members || []).includes(toU.uid)) { exists = true; break; }
-        }
-      }
-      if (!exists) {
-        const convId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
-        await supa.from('conversations').insert({
-          id: convId, type: 'direct', members: [fromU.uid, toU.uid],
-          member_names: { [fromU.uid]: fromU.pseudo, [toU.uid]: toU.pseudo },
-          member_colors: { [fromU.uid]: fromU.avatar_color || '#7C5CFC', [toU.uid]: toU.avatar_color || '#FFB347' },
-          last_message: 'Contact validé ! 🎉', last_message_at: new Date().toISOString(), created_by: currentUser.uid
-        });
-        await supa.from('messages').insert({
-          id: 'msg_' + Date.now(), conversation_id: convId, sender_id: 'system', sender_pseudo: 'Zamis',
-          type: 'text', content: fromU.pseudo + ' et ' + toU.pseudo + ' peuvent maintenant discuter (validé par un parent).'
-        });
-      }
-      await supa.from('invitations').update({ status: 'approved' }).eq('from_child_id', fromU.uid).eq('to_child_id', toU.uid);
-      hideLoading();
-      showToast('Approuvé !');
-      loadPendingRequests();
-      loadFriends();
-      return;
-    }
-
-    // Cas 2 : enfant → enfant OU enfant → adulte (comportement existant)
-    const fromApp = fromU.approved_contacts || [];
-    const toApp = toU.approved_contacts || [];
-    if (!fromApp.includes(inv.to_child_id)) await supa.from('users').update({ approved_contacts: [...fromApp, inv.to_child_id] }).eq('uid', inv.from_child_id);
-    if (!toApp.includes(inv.from_child_id)) await supa.from('users').update({ approved_contacts: [...toApp, inv.from_child_id] }).eq('uid', inv.to_child_id);
-
-    const { data: convs } = await supa.from('conversations').select('*').eq('type', 'direct').contains('members', [inv.from_child_id]);
-    let exists = false;
-    if (convs) {
-      for (const c of convs) {
-        if ((c.members || []).length === 2 && (c.members || []).includes(inv.to_child_id)) { exists = true; break; }
-      }
-    }
-    if (!exists) {
-      const convId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
-      await supa.from('conversations').insert({
-        id: convId, type: 'direct', members: [inv.from_child_id, inv.to_child_id],
-        member_names: { [inv.from_child_id]: fromU.pseudo, [inv.to_child_id]: toU.pseudo },
-        member_colors: { [inv.from_child_id]: fromU.avatar_color || '#FFB347', [inv.to_child_id]: toU.avatar_color || '#5DCAA5' },
-        last_message: 'Vous êtes amis ! 🎉', last_message_at: new Date().toISOString(), created_by: currentUser.uid
-      });
-      await supa.from('messages').insert({
-        id: 'msg_' + Date.now(), conversation_id: convId, sender_id: 'system', sender_pseudo: 'Zamis',
-        type: 'text', content: fromU.pseudo + ' et ' + toU.pseudo + ' sont maintenant amis ! 🎉'
-      });
-    }
-    await supa.from('invitations').update({ status: 'approved' }).eq('from_child_id', inv.from_child_id).eq('to_child_id', inv.to_child_id);
+    // Contacts + conversation + statut (côté serveur, vérifie que je suis le parent validateur)
+    const { error } = await supa.rpc('resolve_invitation', { p_id: invId, p_approve: true });
+    if (error) throw error;
+    const { data: refreshed } = await supa.from('users').select('*').eq('uid', currentUser.uid).single();
+    if (refreshed) currentUserData = refreshed;
     hideLoading();
     showToast('Approuvé !');
     loadPendingRequests();
+    loadFriends();
   } catch (err) { hideLoading(); showToast('Erreur : ' + err.message); }
 }
 
 async function rejectRequest(invId) {
   try {
-    const { data: inv } = await supa.from('invitations').select('*').eq('id', invId).single();
-    if (!inv) return;
-    await supa.from('invitations').update({ status: 'rejected' }).eq('from_child_id', inv.from_child_id).eq('to_child_id', inv.to_child_id);
+    const { error } = await supa.rpc('resolve_invitation', { p_id: invId, p_approve: false });
+    if (error) throw error;
     showToast('Refusé');
     loadPendingRequests();
   } catch (err) { showToast('Erreur'); }
@@ -2713,9 +2418,9 @@ async function sendFriendRequest() {
   if (!code) return showError('inviteError', 'Entre un code');
   showLoading();
   try {
-    const { data: users } = await supa.from('users').select('*').eq('friend_code', code).limit(1);
-    if (!users || users.length === 0) { hideLoading(); return showError('inviteError', 'Code introuvable'); }
-    const target = users[0];
+    const { data: found } = await supa.rpc('find_user_by_code', { p_code: code });
+    const target = found && found[0];
+    if (!target) { hideLoading(); return showError('inviteError', 'Code introuvable'); }
     if (target.uid === currentUser.uid) { hideLoading(); return showError('inviteError', 'C\'est ton propre code'); }
     if ((currentUserData.approved_contacts || []).includes(target.uid)) { hideLoading(); return showError('inviteError', 'Déjà ami'); }
 
