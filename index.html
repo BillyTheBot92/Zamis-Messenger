@@ -714,7 +714,7 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
   </div>
   <div class="splash-title">Zamis Messenger</div>
   <div class="splash-hint">Appuyer sur le Z pour continuer</div>
-  <div class="splash-version">v2.9.0</div>
+  <div class="splash-version">v2.10.1</div>
 </div>
 
 <!-- ============================================================
@@ -822,7 +822,7 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
       <div class="header-title">🔐 Espace Adulte</div>
       <div class="header-subtitle" id="parentWelcome">Bienvenue</div>
     </div>
-    <span class="header-version">v2.9.0</span>
+    <span class="header-version">v2.10.1</span>
   </div>
   <div class="dashboard-content">
     <div class="section">
@@ -898,6 +898,7 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
       <div class="header-title" id="childHeaderTitle">💬 Messages</div>
       <div class="header-subtitle" id="childWelcome">Bienvenue</div>
     </div>
+    <button class="header-action" onclick="openNewGroup()" title="Nouveau groupe">👥</button>
     <button class="header-action" onclick="openNewConversation()">✏️</button>
   </div>
   <div class="dashboard-content" id="childContent"></div>
@@ -927,6 +928,7 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
       <div class="header-title">💬 Messagerie</div>
       <div class="header-subtitle">Tes conversations</div>
     </div>
+    <button class="header-action" onclick="openNewGroup()" title="Nouveau groupe">👥</button>
     <button class="header-action" onclick="openNewConversation()">✏️</button>
   </div>
   <div class="dashboard-content" id="parentConvList"></div>
@@ -943,7 +945,6 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
       <div class="header-title" id="convName" style="font-size:16px">Conversation</div>
       <div class="header-subtitle" id="convSubtitle">En ligne</div>
     </div>
-    <button class="header-action" onclick="openAddMembersModal()" title="Ajouter des membres">👥+</button>
     <button class="header-action" onclick="openConvMenu()">⋮</button>
   </div>
   <div id="messagesArea" style="flex:1;overflow-y:auto;padding:12px;padding-bottom:70px;display:flex;flex-direction:column;gap:6px;background:var(--bg)"></div>
@@ -1092,11 +1093,15 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
 <div class="modal-overlay" id="addMembersModal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('addMembersModal')">×</button>
-    <div class="modal-title">👥 Ajouter des membres</div>
+    <div class="modal-title" id="addMembersTitle">👥 Ajouter des membres</div>
     <div class="error-msg" id="addMembersError"></div>
+    <div class="form-group" id="groupNameGroup" style="display:none">
+      <label class="form-label">Nom du groupe</label>
+      <input type="text" class="form-input" id="groupNameInput" maxlength="30" placeholder="Ex: Les copains">
+    </div>
     <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px" id="addMembersHint">Sélectionne les contacts à ajouter</div>
     <div id="addMembersList" style="max-height:50vh;overflow-y:auto"></div>
-    <button class="btn btn-primary" style="margin-top:12px" onclick="confirmAddMembers()">Ajouter (<span id="addMembersCount">0</span>)</button>
+    <button class="btn btn-primary" style="margin-top:12px" onclick="confirmAddMembers()"><span id="addMembersBtnLabel">Ajouter</span> (<span id="addMembersCount">0</span>)</button>
   </div>
 </div>
 
@@ -1123,10 +1128,11 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
   <div class="modal">
     <button class="modal-close" onclick="closeModal('convMenuModal')">×</button>
     <div class="modal-title">Options</div>
-    <button class="btn btn-secondary" style="margin-bottom:10px" onclick="showConvParticipants()">👥 Participants</button>
-    <button class="btn btn-secondary" style="margin-bottom:10px" onclick="openRenameGroup()" id="convMenuRename" style="display:none">✏️ Renommer le groupe</button>
-    <button class="btn btn-secondary" style="margin-bottom:10px" onclick="openAddMembersModal()">👥+ Ajouter des membres</button>
-    <button class="btn btn-danger" style="margin-bottom:10px" onclick="confirmLeaveGroup()" id="convMenuLeave" style="display:none">🚪 Quitter le groupe</button>
+    <button class="btn btn-secondary" style="margin-bottom:10px" onclick="showConvParticipants()" id="convMenuParticipants">👥 Participants</button>
+    <button class="btn btn-secondary" style="margin-bottom:10px;display:none" onclick="openRenameGroup()" id="convMenuRename">✏️ Renommer le groupe</button>
+    <button class="btn btn-secondary" style="margin-bottom:10px" onclick="openAddMembersModal()" id="convMenuAdd">👥+ Ajouter des membres</button>
+    <button class="btn btn-secondary" style="margin-bottom:10px;display:none" id="convMenuBlock">🚫 Bloquer</button>
+    <button class="btn btn-danger" style="margin-bottom:10px;display:none" onclick="confirmLeaveGroup()" id="convMenuLeave">🚪 Quitter le groupe</button>
     <button class="btn btn-danger" onclick="confirmDeleteConversation()" id="convMenuDelete">🗑️ Supprimer la conversation</button>
   </div>
 </div>
@@ -1154,7 +1160,7 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
     <button class="modal-close" onclick="closeModal('addCoParentModal')">×</button>
     <div class="modal-title">🔑 Ajouter un co-parent</div>
     <div class="error-msg" id="addCoParentError"></div>
-    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">Entre le code Zamis d'un autre adulte. Vous partagerez la gestion des enfants.</div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">Entre le code Zamis d'un autre adulte. Il devra accepter ta demande, puis vous partagerez la gestion des enfants.</div>
     <div class="form-group">
       <label class="form-label">Code Zamis</label>
       <input type="text" class="form-input" id="coParentCode" placeholder="pseudo.xxxxx">
@@ -1196,7 +1202,7 @@ input, textarea, .msg-bubble { -webkit-user-select: text; user-select: text; }
 /* ============================================================
    CONFIG + ÉTAT GLOBAL
 ============================================================ */
-const ZAMIS_VERSION = '2.9.0';
+const ZAMIS_VERSION = '2.10.1';
 const SUPABASE_URL = 'https://qsrfghnfqbrvoyefdbtd.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_c4lO9VvCGqn6WvrPjP37lg_-eLlw60s';
 const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1263,6 +1269,16 @@ function openModal(id) {
   modal.classList.add('show');
   // Push state pour que le back du navigateur ferme le modal au lieu de quitter
   try { history.pushState({ modal: id }, ''); } catch(e) {}
+}
+// Enchaîner deux modales (menu → sous-fenêtre) sans history.back(), qui refermerait la 2e
+function switchModal(fromId, toId) {
+  const from = $(fromId);
+  if (!from || !from.classList.contains('show')) return openModal(toId);
+  from.classList.remove('show');
+  const to = $(toId);
+  if (!to) return;
+  to.classList.add('show');
+  try { history.replaceState({ modal: toId }, ''); } catch (e) {}
 }
 function closeModal(id) {
   const modal = $(id);
@@ -1352,6 +1368,9 @@ function themeToggleButton() {
 }
 
 function escapeQuote(s) { return (s || '').replace(/'/g, "\\'"); }
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
 function calcAge(birthStr) {
   if (!birthStr) return null;
   const b = new Date(birthStr);
@@ -1789,29 +1808,94 @@ async function loadFriends() {
   $('friendsSeeAll').style.display = data.length > 4 ? '' : 'none';
 }
 
+function pendingRow(color, initial, title, sub, actions) {
+  return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">' +
+    '<div style="width:36px;height:36px;border-radius:50%;background:' + color + ';color:white;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">' + initial + '</div>' +
+    '<div style="flex:1;min-width:0;font-size:13px"><div style="font-weight:600">' + title + '</div><div style="color:var(--text-secondary);font-size:12px">' + sub + '</div></div>' +
+    actions + '</div>';
+}
+function pendingBtn(color, label, onclick) {
+  return '<button style="background:' + color + ';color:white;border:none;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer;flex-shrink:0" onclick="' + onclick + '">' + label + '</button>';
+}
+
 async function loadPendingRequests() {
   const container = $('pendingRequests');
   if (!container) return;
   try {
-    const { data: invs } = await supa.from('invitations').select('*').eq('parent_approval_id', currentUser.uid).eq('status', 'pending');
-    if (!invs || invs.length === 0) { container.innerHTML = '<div class="pending-empty">Aucune demande en attente</div>'; return; }
+    const me = currentUser.uid;
+    const [invRes, reqRes, notifRes] = await Promise.all([
+      supa.from('invitations').select('*').eq('parent_approval_id', me).eq('status', 'pending'),
+      supa.from('requests').select('*').eq('approver_id', me).eq('status', 'pending').order('created_at'),
+      supa.from('parent_notifications').select('*').eq('parent_id', me).eq('read', false).order('created_at', { ascending: false })
+    ]);
+    const invs = invRes.data || [], reqs = reqRes.data || [], notifs = notifRes.data || [];
+    if (!invs.length && !reqs.length && !notifs.length) { container.innerHTML = '<div class="pending-empty">Aucune demande en attente</div>'; return; }
     let html = '';
+    // Invitations de contact (enfant ↔ enfant / adulte ↔ enfant)
     for (const inv of invs) {
-      // Détecter si from est un adulte ou un enfant
       const { data: fromU } = await supa.from('users').select('role').eq('uid', inv.from_child_id).single();
       const isFromAdult = fromU && fromU.role === 'parent';
       const label = isFromAdult
         ? '🔒 Adulte : ' + inv.from_child_pseudo + ' veut discuter avec ' + inv.to_child_pseudo
         : inv.from_child_pseudo + ' veut ajouter ' + inv.to_child_pseudo;
-      html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">' +
-        '<div style="width:36px;height:36px;border-radius:50%;background:' + (isFromAdult ? 'var(--blue)' : 'var(--orange)') + ';color:white;display:flex;align-items:center;justify-content:center;font-weight:700">' + (inv.from_child_pseudo || '?').charAt(0).toUpperCase() + '</div>' +
-        '<div style="flex:1;font-size:13px"><div style="font-weight:600">' + inv.from_child_pseudo + '</div><div style="color:var(--text-secondary);font-size:12px">' + label + '</div></div>' +
-        '<button style="background:var(--green);color:white;border:none;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer" onclick="approveRequest(\'' + inv.id + '\')">✓</button>' +
-        '<button style="background:var(--red);color:white;border:none;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer" onclick="rejectRequest(\'' + inv.id + '\')">✕</button>' +
-        '</div>';
+      html += pendingRow(isFromAdult ? 'var(--blue)' : 'var(--orange)', escHtml((inv.from_child_pseudo || '?').charAt(0).toUpperCase()),
+        escHtml(inv.from_child_pseudo), escHtml(label),
+        pendingBtn('var(--green)', '✓', "approveRequest('" + inv.id + "')") + pendingBtn('var(--red)', '✕', "rejectRequest('" + inv.id + "')"));
     }
-    container.innerHTML = html;
+    // Demandes co-parent + ajout d'un adulte dans un groupe d'enfant
+    for (const r of reqs) {
+      const isCo = r.type === 'coparent';
+      const sub = isCo
+        ? '🔑 veut devenir co-parent de tes enfants'
+        : '👥 veut ajouter l\'adulte ' + escHtml(r.target_pseudo) + ' au groupe « ' + escHtml(r.group_name) + ' »';
+      html += pendingRow(isCo ? 'var(--green)' : 'var(--blue)', escHtml((r.from_pseudo || '?').charAt(0).toUpperCase()),
+        escHtml(r.from_pseudo), sub,
+        pendingBtn('var(--green)', '✓', "resolveRequest('" + r.id + "',true)") + pendingBtn('var(--red)', '✕', "resolveRequest('" + r.id + "',false)"));
+    }
+    // Notifications (informations)
+    for (const n of notifs) {
+      const d = n.data || {};
+      if (n.type === 'child_created_group') {
+        const members = (d.members || []).map(escHtml).join(', ');
+        const pend = (d.pending || []).map(escHtml).join(', ');
+        html += pendingRow('var(--primary)', '👥', escHtml(d.child_pseudo) + ' a créé le groupe « ' + escHtml(d.group_name) + ' »',
+          'Membres : ' + members + (pend ? ' · En attente : ' + pend : ''),
+          pendingBtn('var(--blue)', '👁️', "viewChildGroup('" + n.child_id + "','" + d.conv_id + "')") + pendingBtn('var(--green)', '✓', "dismissNotif('" + n.id + "')"));
+      } else if (n.type === 'child_blocked_user') {
+        html += pendingRow('var(--red)', '🚫', escHtml(d.child_pseudo) + ' a bloqué ' + escHtml(d.blocked_name), 'Information',
+          pendingBtn('var(--green)', '✓', "dismissNotif('" + n.id + "')"));
+      }
+    }
+    container.innerHTML = html || '<div class="pending-empty">Aucune demande en attente</div>';
   } catch (e) { container.innerHTML = '<div class="pending-empty">Erreur</div>'; }
+}
+
+async function resolveRequest(reqId, approve) {
+  showLoading();
+  try {
+    const { error } = await supa.rpc('resolve_request', { p_id: reqId, p_approve: approve });
+    if (error) throw error;
+    const { data: refreshed } = await supa.from('users').select('*').eq('uid', currentUser.uid).single();
+    if (refreshed) currentUserData = refreshed;
+    hideLoading();
+    showToast(approve ? 'Accepté !' : 'Refusé');
+    loadPendingRequests();
+    loadCoParents();
+    loadChildren();
+  } catch (err) { hideLoading(); showToast('Erreur : ' + err.message); }
+}
+
+async function dismissNotif(notifId) {
+  try {
+    await supa.from('parent_notifications').update({ read: true }).eq('id', notifId);
+  } catch (e) {}
+  loadPendingRequests();
+}
+
+// Ouvrir le groupe d'un enfant en mode lecture
+async function viewChildGroup(childId, convId) {
+  await viewChildAsParent(childId);
+  if (isParentBrowsingChild) openConversation(convId);
 }
 
 let parentRealtimeChannel = null;
@@ -1820,6 +1904,8 @@ function setupParentRealtime() {
   if (!currentUser) return;
   parentRealtimeChannel = supa.channel('parent_' + currentUser.uid + '_' + Date.now())
     .on('postgres_changes', { event: '*', schema: 'public', table: 'invitations', filter: 'parent_approval_id=eq.' + currentUser.uid }, () => loadPendingRequests())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'requests', filter: 'approver_id=eq.' + currentUser.uid }, () => loadPendingRequests())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'parent_notifications', filter: 'parent_id=eq.' + currentUser.uid }, () => loadPendingRequests())
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => updateUnreadBadge())
     .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => updateUnreadBadge())
     .subscribe();
@@ -2180,18 +2266,13 @@ async function addCoParent() {
     const myCo = currentUserData.co_parents || [];
     if (myCo.includes(co.uid)) { hideLoading(); return showError('addCoParentError', 'Déjà co-parent'); }
 
-    // Liens co-parents + partage des enfants + conversation (côté serveur)
-    const { error: linkErr } = await supa.rpc('link_coparent', { p_target: co.uid });
-    if (linkErr) throw linkErr;
-
-    const { data: refreshed } = await supa.from('users').select('*').eq('uid', currentUser.uid).single();
-    if (refreshed) currentUserData = refreshed;
+    // Demande envoyée : l'autre adulte doit l'accepter depuis son tableau de bord
+    const { error: reqErr } = await supa.rpc('request_coparent', { p_target: co.uid });
+    if (reqErr) throw reqErr;
 
     hideLoading();
     closeModal('addCoParentModal');
-    showToast('Co-parent ajouté !');
-    loadCoParents();
-    loadChildren();
+    showToast('Demande envoyée à ' + co.pseudo);
   } catch (err) { hideLoading(); showError('addCoParentError', err.message); }
 }
 
@@ -2549,7 +2630,7 @@ function renderConvList(container, convs) {
   convs.forEach(conv => {
     const isGroup = conv.type === 'group';
     let name, color;
-    if (isGroup) { name = conv.group_name || 'Groupe'; color = '#7C5CFC'; }
+    if (isGroup) { name = escHtml(conv.group_name || 'Groupe'); color = '#7C5CFC'; }
     else {
       const otherIds = (conv.members || []).filter(m => m !== currentUser.uid);
       if (otherIds.length === 0) return;
@@ -2557,7 +2638,7 @@ function renderConvList(container, convs) {
       name = (conv.member_names || {})[otherId] || 'Inconnu';
       color = (conv.member_colors || {})[otherId] || '#7C5CFC';
     }
-    const preview = conv.last_message || 'Nouvelle conversation';
+    const preview = escHtml(conv.last_message || 'Nouvelle conversation');
     const dateStr = formatDate(conv.last_message_at);
     const initial = isGroup ? '👥' : name.charAt(0).toUpperCase();
 
@@ -2752,34 +2833,65 @@ function backFromConv() {
 }
 
 function openConvMenu() {
-  // Adapter le menu selon type conv
-  const isGroup = currentConvData && currentConvData.type === 'group';
-  const renameBtn = $('convMenuRename');
-  const leaveBtn = $('convMenuLeave');
-  const deleteBtn = $('convMenuDelete');
-  if (renameBtn) renameBtn.style.display = isGroup ? '' : 'none';
-  if (leaveBtn) leaveBtn.style.display = isGroup ? '' : 'none';
-  if (deleteBtn) deleteBtn.style.display = isGroup ? 'none' : '';
+  if (!currentConvData) return;
+  const isGroup = currentConvData.type === 'group';
+  const ro = isParentBrowsingChild;
+  const otherId = isGroup ? null : (currentConvData.members || []).find(m => m !== currentUser.uid);
+  if (!isGroup && (ro || !otherId)) return; // rien à proposer
+  const isCreator = currentConvData.created_by === currentUser.uid;
+  const show = (id, v) => { const el = $(id); if (el) el.style.display = v ? '' : 'none'; };
+  show('convMenuParticipants', isGroup);
+  show('convMenuAdd', isGroup && !ro);
+  show('convMenuRename', isGroup && isCreator && !ro);
+  show('convMenuLeave', isGroup && !ro);
+  show('convMenuDelete', !isGroup);
+  show('convMenuBlock', !isGroup);
+  if (!isGroup) {
+    const otherName = (currentConvData.member_names || {})[otherId] || 'Inconnu';
+    const blocked = isBlocked(otherId);
+    const blockBtn = $('convMenuBlock');
+    blockBtn.textContent = blocked ? '✅ Débloquer ' + otherName : '🚫 Bloquer ' + otherName;
+    blockBtn.onclick = () => { closeModal('convMenuModal'); (blocked ? unblockUser : blockUser)(otherId, otherName); };
+  }
   openModal('convMenuModal');
 }
 
 /* ============================================================
-   GROUPS - Ajouter membres (transforme direct → groupe si besoin)
+   GROUPS - Création + ajout de membres (même sélecteur)
+   Règles (vérifiées côté serveur) : un enfant qui ajoute un adulte
+   autre que ses parents → validation d'un parent obligatoire
 ============================================================ */
 let selectedNewMembers = new Set();
+let membersPickerMode = 'add'; // 'create' | 'add'
 
-async function openAddMembersModal() {
-  closeModal('convMenuModal');
-  if (!currentConvData) return;
+function openNewGroup() {
+  membersPickerMode = 'create';
+  openMembersPicker(null);
+}
+
+function openAddMembersModal() {
+  if (!currentConvData || currentConvData.type !== 'group') return;
+  membersPickerMode = 'add';
+  openMembersPicker('convMenuModal');
+}
+
+async function openMembersPicker(fromModal) {
   selectedNewMembers = new Set();
   hideError('addMembersError');
-  
+  const isCreate = membersPickerMode === 'create';
+  $('addMembersTitle').textContent = isCreate ? '👥 Nouveau groupe' : '👥 Ajouter des membres';
+  $('addMembersBtnLabel').textContent = isCreate ? 'Créer le groupe' : 'Ajouter';
+  $('addMembersHint').textContent = isCreate ? 'Choisis au moins 2 contacts' : 'Sélectionne les contacts à ajouter';
+  $('groupNameGroup').style.display = isCreate ? '' : 'none';
+  $('groupNameInput').value = '';
+
   const list = $('addMembersList');
   list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary)">Chargement...</div>';
   updateAddMembersCount();
-  openModal('addMembersModal');
+  if (fromModal) switchModal(fromModal, 'addMembersModal');
+  else openModal('addMembersModal');
 
-  // Récupérer les contacts disponibles (moins ceux déjà dans la conv)
+  // Contacts disponibles
   const ids = new Set();
   if (currentUserData.role === 'child') {
     (currentUserData.approved_contacts || []).forEach(id => ids.add(id));
@@ -2790,14 +2902,12 @@ async function openAddMembersModal() {
     (currentUserData.co_parents || []).forEach(id => ids.add(id));
     (currentUserData.adult_friends || []).forEach(id => ids.add(id));
   }
-  // Retirer les membres déjà dans la conv
-  (currentConvData.members || []).forEach(id => ids.delete(id));
+  if (!isCreate && currentConvData) (currentConvData.members || []).forEach(id => ids.delete(id));
 
   if (ids.size === 0) {
     list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:13px">Aucun contact à ajouter</div>';
     return;
   }
-
   const { data: contacts } = await supa.from('users').select('*').in('uid', [...ids]);
   if (!contacts || contacts.length === 0) {
     list.innerHTML = '<div style="text-align:center;padding:20px">Aucun contact</div>';
@@ -2805,11 +2915,15 @@ async function openAddMembersModal() {
   }
   contacts.sort((a, b) => (a.pseudo || '').toLowerCase().localeCompare((b.pseudo || '').toLowerCase()));
 
+  const isChild = currentUserData.role === 'child';
+  const myParents = [currentUserData.parent_id, ...(currentUserData.co_parent_ids || [])];
   let html = '';
   contacts.forEach(c => {
+    const needsApproval = isChild && c.role === 'parent' && !myParents.includes(c.uid);
+    const sub = c.role === 'child' ? 'Enfant' : (needsApproval ? 'Adulte · validation d\'un parent' : 'Adulte');
     html += '<div class="member-row" data-uid="' + c.uid + '" onclick="toggleMember(\'' + c.uid + '\', this)" style="display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px solid var(--border);cursor:pointer">' +
       '<div style="width:40px;height:40px;border-radius:50%;background:' + (c.avatar_color || '#7C5CFC') + ';display:flex;align-items:center;justify-content:center;color:white;font-weight:700">' + c.pseudo.charAt(0).toUpperCase() + '</div>' +
-      '<div style="flex:1"><div style="font-weight:600">' + c.pseudo + '</div><div style="font-size:11px;color:var(--text-tertiary)">' + (c.role === 'child' ? 'Enfant' : 'Adulte') + '</div></div>' +
+      '<div style="flex:1"><div style="font-weight:600">' + c.pseudo + '</div><div style="font-size:11px;color:var(--text-tertiary)">' + sub + '</div></div>' +
       '<div class="member-check" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;color:white;font-size:14px"></div>' +
       '</div>';
   });
@@ -2839,55 +2953,26 @@ function updateAddMembersCount() {
 
 async function confirmAddMembers() {
   hideError('addMembersError');
-  if (selectedNewMembers.size === 0) return showError('addMembersError', 'Sélectionne au moins 1 contact');
-  if (!currentConvData) return;
+  const isCreate = membersPickerMode === 'create';
+  const members = [...selectedNewMembers];
+  if (isCreate && members.length < 2) return showError('addMembersError', 'Choisis au moins 2 contacts');
+  if (!isCreate && members.length === 0) return showError('addMembersError', 'Sélectionne au moins 1 contact');
+  const name = isCreate ? $('groupNameInput').value.trim() : '';
+  if (name.length > 30) return showError('addMembersError', 'Nom trop long (max 30)');
 
   showLoading();
   try {
-    const existingMembers = currentConvData.members || [];
-    const newMembers = [...selectedNewMembers];
-    const allMembers = [...existingMembers, ...newMembers];
-
-    // Récupérer noms/couleurs des nouveaux membres
-    const { data: newUsers } = await supa.from('users').select('uid,pseudo,avatar_color').in('uid', newMembers);
-    const newNames = { ...(currentConvData.member_names || {}) };
-    const newColors = { ...(currentConvData.member_colors || {}) };
-    if (newUsers) newUsers.forEach(u => {
-      newNames[u.uid] = u.pseudo;
-      newColors[u.uid] = u.avatar_color || '#7C5CFC';
-    });
-
-    // Passer en groupe si direct
-    const wasDirect = currentConvData.type === 'direct';
-    let updateData = {
-      members: allMembers,
-      member_names: newNames,
-      member_colors: newColors
-    };
-
-    if (wasDirect) {
-      // Générer un nom auto = concaténation prénoms
-      const names = allMembers.map(id => newNames[id]).filter(Boolean);
-      const groupName = names.slice(0, 3).join(', ') + (names.length > 3 ? ' +' + (names.length - 3) : '');
-      updateData.type = 'group';
-      updateData.group_name = groupName;
-      updateData.admins = [currentUser.uid];
-    }
-
-    await supa.from('conversations').update(updateData).eq('id', currentConvId);
-
-    // Message système
-    const addedNames = newUsers ? newUsers.map(u => u.pseudo).join(', ') : 'nouveaux membres';
-    await supa.from('messages').insert({
-      id: 'msg_' + Date.now(), conversation_id: currentConvId, sender_id: 'system', sender_pseudo: 'Zamis',
-      type: 'text', content: currentUserData.pseudo + ' a ajouté ' + addedNames + (wasDirect ? ' — la conversation devient un groupe' : '')
-    });
-
+    const { data: res, error } = isCreate
+      ? await supa.rpc('create_group', { p_name: name, p_members: members })
+      : await supa.rpc('add_group_members', { p_conv: currentConvId, p_members: members });
+    if (error) throw error;
     hideLoading();
     closeModal('addMembersModal');
-    showToast('Membres ajoutés !');
-    // Recharger la conv
-    openConversation(currentConvId);
+    const pending = (res && res.pending) || [];
+    showToast(pending.length
+      ? 'Validation d\'un parent demandée pour : ' + pending.join(', ')
+      : (isCreate ? 'Groupe créé !' : 'Membres ajoutés !'));
+    openConversation(isCreate ? res.conv_id : currentConvId);
   } catch (err) {
     hideLoading();
     showError('addMembersError', err.message);
@@ -2895,14 +2980,14 @@ async function confirmAddMembers() {
 }
 
 /* ============================================================
-   GROUPS - Renommer
+   GROUPS - Renommer (créateur uniquement, vérifié côté serveur)
 ============================================================ */
 function openRenameGroup() {
-  closeModal('convMenuModal');
   if (!currentConvData || currentConvData.type !== 'group') return;
+  if (currentConvData.created_by !== currentUser.uid) return showToast('Seul le créateur peut renommer le groupe');
   hideError('renameGroupError');
   $('renameGroupInput').value = currentConvData.group_name || '';
-  openModal('renameGroupModal');
+  switchModal('convMenuModal', 'renameGroupModal');
 }
 
 async function confirmRenameGroup() {
@@ -2913,7 +2998,8 @@ async function confirmRenameGroup() {
 
   showLoading();
   try {
-    await supa.from('conversations').update({ group_name: name }).eq('id', currentConvId);
+    const { error } = await supa.from('conversations').update({ group_name: name }).eq('id', currentConvId);
+    if (error) throw error;
     await supa.from('messages').insert({
       id: 'msg_' + Date.now(), conversation_id: currentConvId, sender_id: 'system', sender_pseudo: 'Zamis',
       type: 'text', content: currentUserData.pseudo + ' a renommé le groupe : "' + name + '"'
@@ -2929,7 +3015,7 @@ async function confirmRenameGroup() {
 }
 
 /* ============================================================
-   GROUPS - Quitter
+   GROUPS - Quitter (côté serveur : transfert créateur si besoin)
 ============================================================ */
 async function confirmLeaveGroup() {
   closeModal('convMenuModal');
@@ -2938,28 +3024,8 @@ async function confirmLeaveGroup() {
 
   showLoading();
   try {
-    const newMembers = (currentConvData.members || []).filter(id => id !== currentUser.uid);
-    const newNames = { ...(currentConvData.member_names || {}) };
-    delete newNames[currentUser.uid];
-    const newColors = { ...(currentConvData.member_colors || {}) };
-    delete newColors[currentUser.uid];
-    const newAdmins = (currentConvData.admins || []).filter(id => id !== currentUser.uid);
-
-    if (newMembers.length === 0) {
-      // Plus personne, supprimer la conv
-      await supa.from('conversations').delete().eq('id', currentConvId);
-    } else {
-      await supa.from('conversations').update({
-        members: newMembers,
-        member_names: newNames,
-        member_colors: newColors,
-        admins: newAdmins
-      }).eq('id', currentConvId);
-      await supa.from('messages').insert({
-        id: 'msg_' + Date.now(), conversation_id: currentConvId, sender_id: 'system', sender_pseudo: 'Zamis',
-        type: 'text', content: currentUserData.pseudo + ' a quitté le groupe'
-      });
-    }
+    const { error } = await supa.rpc('leave_group', { p_conv: currentConvId });
+    if (error) throw error;
     hideLoading();
     showToast('Tu as quitté le groupe');
     backFromConv();
@@ -2969,10 +3035,7 @@ async function confirmLeaveGroup() {
   }
 }
 
-function openConvMenuOld() { openModal('convMenuModal'); }
-
 async function showConvParticipants() {
-  closeModal('convMenuModal');
   if (!currentConvData) return;
   const members = currentConvData.members || [];
   const names = currentConvData.member_names || {};
@@ -2986,15 +3049,15 @@ async function showConvParticipants() {
     const isSelf = id === currentUser.uid;
     const blocked = myBlocked.includes(id);
     html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">' +
-      '<div style="width:40px;height:40px;border-radius:50%;background:' + color + ';display:flex;align-items:center;justify-content:center;color:white;font-weight:700">' + name.charAt(0).toUpperCase() + '</div>' +
-      '<div style="flex:1"><div style="font-size:14px;font-weight:600">' + name + (isSelf ? ' (toi)' : '') + (blocked ? ' 🚫' : '') + '</div></div>' +
-      (isSelf ? '' : (blocked
+      '<div style="width:40px;height:40px;border-radius:50%;background:' + color + ';display:flex;align-items:center;justify-content:center;color:white;font-weight:700">' + escHtml(name.charAt(0).toUpperCase()) + '</div>' +
+      '<div style="flex:1"><div style="font-size:14px;font-weight:600">' + escHtml(name) + (isSelf ? ' (toi)' : '') + (blocked ? ' 🚫' : '') + '</div></div>' +
+      (isSelf || isParentBrowsingChild ? '' : (blocked
         ? '<button style="background:var(--green);color:white;border:none;padding:4px 8px;border-radius:8px;font-size:11px;cursor:pointer" onclick="unblockUser(\'' + id + '\',\'' + escapeQuote(name) + '\');closeModal(\'participantsModal\')">Débloquer</button>'
         : '<button style="background:var(--red);color:white;border:none;padding:4px 8px;border-radius:8px;font-size:11px;cursor:pointer" onclick="blockUser(\'' + id + '\',\'' + escapeQuote(name) + '\');closeModal(\'participantsModal\')">Bloquer</button>')) +
       '</div>';
   });
   $('participantsList').innerHTML = html || '<div style="text-align:center;color:var(--text-secondary);padding:20px">Aucun</div>';
-  openModal('participantsModal');
+  switchModal('convMenuModal', 'participantsModal');
 }
 
 async function confirmDeleteConversation() {

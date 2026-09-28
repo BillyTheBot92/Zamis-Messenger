@@ -3,6 +3,7 @@
   "short_name": "Zamis",
   "description": "Messagerie sécurisée pour les enfants",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "theme_color": "#0F0F1E",

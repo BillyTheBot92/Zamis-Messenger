@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zamis-v2.9.0';
+const CACHE_NAME = 'zamis-v2.10.1';
 const ASSETS = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
@@ -6,7 +6,7 @@ self.addEventListener('install', e => {
   self.skipWaiting();
 });
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('zamis-') && k !== CACHE_NAME).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 self.addEventListener('message', e => { if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting(); });
 self.addEventListener('fetch', e => {
@@ -17,5 +17,9 @@ self.addEventListener('fetch', e => {
       caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
     }
     return r;
-  }).catch(() => caches.match(e.request)));
+  }).catch(() => caches.open(CACHE_NAME).then(c => c.match(e.request).then(cached => {
+    if (cached) return cached;
+    if (e.request.mode === 'navigate') return c.match('./index.html');
+    return undefined;
+  }))));
 });
